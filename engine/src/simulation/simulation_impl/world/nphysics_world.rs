@@ -18,17 +18,14 @@ use ncollide2d::math::Point as NcollidePoint;
 use ncollide2d::shape::{ConvexPolygon, ShapeHandle};
 use ncollide2d::world::{CollisionGroups, CollisionObjectHandle};
 use nphysics2d::algebra::ForceType;
-use nphysics2d::force_generator::ForceGenerator;
 use nphysics2d::material::{BasicMaterial, MaterialHandle};
 use nphysics2d::math::Force as NphysicsForce;
 use nphysics2d::math::{Isometry, Point as NPhysicsPoint, Vector as NPhysicsVector};
 use nphysics2d::object::{
-    Body, BodyHandle as NphysicsBodyHandle, BodyPartHandle, Collider, ColliderDesc, ColliderHandle,
-    RigidBodyDesc,
+    Body, BodyPartHandle, Collider, ColliderDesc, ColliderHandle, RigidBodyDesc,
 };
 use nphysics2d::volumetric::Volumetric;
 use nphysics2d::world::World as PhysicsWorld;
-use std::fmt;
 
 use std::collections::HashSet;
 
@@ -145,15 +142,6 @@ impl NphysicsWorld {
         let body_handle = to_body_handle(collider.handle());
         self.passable_bodies.contains(&body_handle)
     }
-}
-
-/// A [`ForceGenerator`] that applies a given force exactly once
-pub trait SingleTimeForceApplier: fmt::Debug + ForceGenerator<f64> {
-    /// Registers a [`Force`] to be applied to the body identified by `handle`
-    /// in the next step
-    ///
-    /// [`Force`]: ../../object/struct.Force.html
-    fn register_force(&mut self, handle: NphysicsBodyHandle, force: Force);
 }
 
 fn elements<N>(vector: &Vector2<N>) -> (N, N)
