@@ -21,9 +21,7 @@ use nphysics2d::algebra::ForceType;
 use nphysics2d::material::{BasicMaterial, MaterialHandle};
 use nphysics2d::math::Force as NphysicsForce;
 use nphysics2d::math::{Isometry, Point as NPhysicsPoint, Vector as NPhysicsVector};
-use nphysics2d::object::{
-    Body, BodyPartHandle, Collider, ColliderDesc, ColliderHandle, RigidBodyDesc,
-};
+use nphysics2d::object::{BodyPartHandle, Collider, ColliderDesc, ColliderHandle, RigidBodyDesc};
 use nphysics2d::volumetric::Volumetric;
 use nphysics2d::world::World as PhysicsWorld;
 
@@ -252,7 +250,7 @@ impl World for NphysicsWorld {
     fn apply_force(&mut self, body_handle: BodyHandle, force: Force) -> Option<()> {
         let collider_handle = to_collider_handle(body_handle);
         let nphysics_body_handle = self.physics_world.collider_body_handle(collider_handle)?;
-        let body = self.physics_world.rigid_body_mut(nphysics_body_handle)?;
+        let body = self.physics_world.body_mut(nphysics_body_handle)?;
 
         let nphysics_force =
             NphysicsForce::from_slice(&[force.linear.x, force.linear.y, force.torque.0]);
@@ -272,7 +270,6 @@ impl World for NphysicsWorld {
         ///
         /// [Source](https://www.nphysics.org/rigid_body_simulations_with_contacts/#one-time-force-application-and-impulses)
         const AUTO_WAKE_UP: bool = true;
-
         body.apply_force(PART_ID, &nphysics_force, ForceType::Force, AUTO_WAKE_UP);
         Some(())
     }
