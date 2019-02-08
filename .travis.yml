@@ -9,6 +9,8 @@ install:
 
 script:
 - cargo build
-- cargo test
+- cargo test --all-features
 - cargo clippy -- -Dwarnings
+- cargo clippy --tests -- -Dwarnings
 - cargo fmt --all -- --check
+- cargo doc --no-deps
