@@ -26,10 +26,12 @@ impl ForceGenerator<f64> for SingleTimeForceApplierImpl {
     fn apply(&mut self, _: &IntegrationParameters<f64>, bodies: &mut BodySet<f64>) -> bool {
         for (body_handle, force) in self.forces_to_apply.drain() {
             if bodies.contains(body_handle) {
+                /*
                 let mut body = bodies.body_part_mut(body_handle);
                 let nphysics_force =
                     NphysicsForce::from_slice(&[force.linear.x, force.linear.y, force.torque.0]);
                 body.apply_force(&nphysics_force);
+                */
             }
         }
 

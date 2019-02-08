@@ -20,10 +20,14 @@ use ncollide2d::bounding_volume::AABB as NcollideAabb;
 use ncollide2d::math::Point as NcollidePoint;
 use ncollide2d::shape::{ConvexPolygon, ShapeHandle};
 use ncollide2d::world::{CollisionGroups, CollisionObjectHandle};
+use nphysics2d::algebra::ForceType;
 use nphysics2d::force_generator::{ForceGenerator, ForceGeneratorHandle};
+use nphysics2d::material::{BasicMaterial, MaterialHandle};
+use nphysics2d::math::Force as NphysicsForce;
 use nphysics2d::math::{Isometry, Point as NPhysicsPoint, Vector as NPhysicsVector};
 use nphysics2d::object::{
-    BodyHandle as NphysicsBodyHandle, Collider, ColliderHandle, Material, RigidBody,
+    Body, BodyHandle as NphysicsBodyHandle, BodyPartHandle, Collider, ColliderDesc, ColliderHandle,
+    RigidBody, RigidBodyDesc,
 };
 use nphysics2d::volumetric::Volumetric;
 use nphysics2d::world::World as PhysicsWorld;
@@ -115,7 +119,7 @@ impl NphysicsWorld {
     }
 
     fn get_mobility(&self, collider: &Collider<f64>) -> Mobility {
-        let body_handle = collider.data().body();
+        let body_handle = collider.body();
         if body_handle.is_ground() {
             Mobility::Immovable
         } else {
@@ -204,35 +208,36 @@ impl World for NphysicsWorld {
 
         let isometry =
             to_nphysics_isometry(body.location, body.rotation, &*self.rotation_translator);
-        let material = Material::default();
+        let material = MaterialHandle::new(BasicMaterial::default());
 
         const COLLIDER_MARGIN: f64 = 0.04;
         let handle = match body.mobility {
-            Mobility::Immovable => self.physics_world.add_collider(
-                COLLIDER_MARGIN,
-                shape,
-                NphysicsBodyHandle::ground(),
-                isometry,
-                material,
-            ),
+            Mobility::Immovable => ColliderDesc::new(shape)
+                .margin(COLLIDER_MARGIN)
+                .position(isometry)
+                .material(material)
+                .build_with_parent(BodyPartHandle::ground(), &mut self.physics_world)
+                .expect("Internal nphysics error: Ground handle was invalid")
+                .handle(),
             Mobility::Movable(velocity) => {
-                let rigid_body_handle = self.physics_world.add_rigid_body(
-                    isometry,
-                    local_inertia,
-                    local_center_of_mass,
-                );
-                let mut rigid_body = self
-                    .physics_world
-                    .rigid_body_mut(rigid_body_handle)
-                    .expect("Invalid body handle");
-                set_velocity(&mut rigid_body, &velocity);
-                self.physics_world.add_collider(
-                    COLLIDER_MARGIN,
-                    shape,
-                    rigid_body_handle,
-                    Isometry::identity(),
-                    material,
-                )
+                let velocity = nphysics2d::algebra::Velocity2::linear(velocity.x, velocity.y);
+                let rigid_body_handle = RigidBodyDesc::new()
+                    .position(isometry)
+                    .local_inertia(local_inertia)
+                    .local_center_of_mass(local_center_of_mass)
+                    .velocity(velocity)
+                    .build(&mut self.physics_world)
+                    .part_handle();
+                ColliderDesc::new(shape)
+                    .margin(COLLIDER_MARGIN)
+                    .position(Isometry::identity())
+                    .material(material)
+                    .build_with_parent(rigid_body_handle, &mut self.physics_world)
+                    .expect(
+                        "Internal nphysics error: Handle of rigid body that was just built is \
+                         invalid",
+                    )
+                    .handle()
             }
         };
 
@@ -267,12 +272,28 @@ impl World for NphysicsWorld {
     fn apply_force(&mut self, body_handle: BodyHandle, force: Force) -> Option<()> {
         let collider_handle = to_collider_handle(body_handle);
         let nphysics_body_handle = self.physics_world.collider_body_handle(collider_handle)?;
-        self.physics_world
-            .force_generator_mut(self.force_generator_handle)
-            .downcast_mut::<GenericSingleTimeForceApplierWrapper>()
-            .expect("Stored force generator was not of type GenericSingleTimeForceApplierWrapper")
-            .inner_mut()
-            .register_force(nphysics_body_handle, force);
+        let body = self.physics_world.rigid_body_mut(nphysics_body_handle)?;
+
+        let nphysics_force =
+            NphysicsForce::from_slice(&[force.linear.x, force.linear.y, force.torque.0]);
+
+        /// > `part_id` is the index of the body’s part you want to apply the force to.
+        /// > For rigid bodies, this argument is ignored and can take any value.
+        ///
+        /// [Source](https://www.nphysics.org/rigid_body_simulations_with_contacts/#one-time-force-application-and-impulses)
+        const PART_ID: usize = '🤦' as usize;
+
+        /// > `auto_wake_up` controls whether the body affected by the force should be waken-up automatically
+        /// > because of this force application. This should typically be set to true whenever
+        /// > you are applying a one-time force manually.
+        /// > This should likely be set to false if you are applying a continuous
+        /// > force from a force generator (so that bodies reaching a dynamic
+        /// > equilibrium can be put to sleep again).
+        ///
+        /// [Source](https://www.nphysics.org/rigid_body_simulations_with_contacts/#one-time-force-application-and-impulses)
+        const AUTO_WAKE_UP: bool = true;
+
+        body.apply_force(PART_ID, &nphysics_force, ForceType::Force, AUTO_WAKE_UP);
         Some(())
     }
 
@@ -288,16 +309,11 @@ impl World for NphysicsWorld {
         let collision_groups = CollisionGroups::new();
 
         self.physics_world
-            .collision_world()
+            .collider_world()
             .interferences_with_aabb(&to_ncollide_aabb(area), &collision_groups)
             .map(|collision| to_body_handle(collision.handle()))
             .collect()
     }
-}
-
-fn set_velocity(rigid_body: &mut RigidBody<f64>, velocity: &Vector) {
-    let nphysics_velocity = nphysics2d::algebra::Velocity2::linear(velocity.x, velocity.y);
-    rigid_body.set_velocity(nphysics_velocity);
 }
 
 fn to_body_handle(collider_handle: ColliderHandle) -> BodyHandle {
@@ -316,7 +332,7 @@ fn to_ncollide_aabb(aabb: Aabb) -> NcollideAabb<f64> {
 }
 
 fn to_ncollide_point(point: Point) -> NcollidePoint<f64> {
-    NcollidePoint::from(Vector2::new(point.x, point.y))
+    NcollidePoint::from_slice(&[point.x, point.y])
 }
 
 #[cfg(test)]
