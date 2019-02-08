@@ -1,6 +1,7 @@
 sudo: false
 dist: trusty
 language: rust
+cache: cargo
 
 install:
 - rustup component add rustfmt clippy

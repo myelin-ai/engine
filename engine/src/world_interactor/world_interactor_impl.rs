@@ -64,8 +64,8 @@ mod tests {
         interactable
             .expect_objects_in_area(partial_eq(area))
             .returns(objects.clone());
-        let object_environment = WorldInteractorImpl::new(&interactable);
+        let world_interactor = WorldInteractorImpl::new(&interactable);
 
-        assert_eq!(objects, object_environment.find_objects_in_area(area));
+        assert_eq!(objects, world_interactor.find_objects_in_area(area));
     }
 }
