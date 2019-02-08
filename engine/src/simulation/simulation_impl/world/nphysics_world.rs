@@ -4,6 +4,7 @@
 //!
 //! [`World`]: ./trait.World.html
 //! [`Objects`]: ../object/struct.Body.html
+mod builder;
 mod force_applier;
 mod physics_world_wrapper;
 pub mod rotation_translator;
