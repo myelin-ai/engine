@@ -8,16 +8,18 @@ use crate::simulation::simulation_impl::world::builder::NphysicsWorldBuilder;
 use crate::simulation::simulation_impl::SimulationImpl;
 use crate::simulation::Simulation;
 use crate::world_interactor::WorldInteractorImpl;
-use std::time::Instant;
-use std::fmt::Debug;
 use std::fmt;
+use std::fmt::Debug;
+use std::time::Instant;
 
 /// Builder for the [`Simulation`]. This is the composition root.
 /// Only advanced users should derive from the defaults.
 ///
 /// # Example
 /// ```
-/// SimulationBuilder::new().build()
+/// use myelin_engine::simulation::SimulationBuilder;
+///
+/// let simulation = SimulationBuilder::new().build();
 /// ```
 ///
 /// [`Simulation`]: ./../trait.Simulation.html

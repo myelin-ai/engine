@@ -15,6 +15,8 @@ use std::error::Error;
 use std::fmt::{self, Debug};
 use std::time::Duration;
 
+pub use self::builder::SimulationBuilder;
+
 /// Factory used by [`SimulationImpl`] to create an [`WorldInteractor`].
 ///
 /// [`SimulationImpl`]: ./struct.SimulationImpl.html
