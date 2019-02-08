@@ -3,6 +3,7 @@ use super::rotation_translator::{NphysicsRotationTranslator, NphysicsRotationTra
 use super::NphysicsWorld;
 use super::SingleTimeForceApplier;
 
+#[derive(Default)]
 pub struct NphysicsWorldBuilder {
     timestep: Option<f64>,
     rotation_translator: Option<Box<dyn NphysicsRotationTranslator>>,
@@ -10,6 +11,10 @@ pub struct NphysicsWorldBuilder {
 }
 
 impl NphysicsWorldBuilder {
+    pub fn new() -> NphysicsWorldBuilder {
+        NphysicsWorldBuilder::default()
+    }
+
     pub fn timestep(&mut self, timestep: f64) {
         self.timestep = Some(timestep)
     }

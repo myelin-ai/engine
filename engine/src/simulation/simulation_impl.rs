@@ -1,6 +1,7 @@
 //! A `Simulation` that outsources all physical
 //! behaviour into a separate `World` type
 
+pub mod builder;
 pub mod time;
 pub mod world;
 
