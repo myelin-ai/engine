@@ -3,6 +3,9 @@ use super::rotation_translator::{NphysicsRotationTranslator, NphysicsRotationTra
 use super::NphysicsWorld;
 use super::SingleTimeForceApplier;
 
+/// Builder for the [`NphysicsWorld`]
+///
+/// [`NphysicsWorld`]: ./../../struct.NphysicsWorld.html
 #[derive(Default)]
 pub struct NphysicsWorldBuilder {
     timestep: Option<f64>,
@@ -11,14 +14,17 @@ pub struct NphysicsWorldBuilder {
 }
 
 impl NphysicsWorldBuilder {
+    /// Creates a new builder by calling NphysicsWorldBuilder::default()
     pub fn new() -> NphysicsWorldBuilder {
         NphysicsWorldBuilder::default()
     }
 
+    /// Sets the simulation timestep
     pub fn timestep(&mut self, timestep: f64) {
         self.timestep = Some(timestep)
     }
 
+    /// Sets the rotation translator used between the engine and nphysics
     pub fn rotation_translator(
         &mut self,
         rotation_translator: Box<dyn NphysicsRotationTranslator>,
@@ -26,10 +32,14 @@ impl NphysicsWorldBuilder {
         self.rotation_translator = Some(rotation_translator)
     }
 
+    /// Sets the force applier
     pub fn force_applier(&mut self, force_applier: Box<dyn SingleTimeForceApplier>) {
         self.force_applier = Some(force_applier)
     }
 
+    /// Builds the [`NphysicsWorld`]
+    ///
+    /// [`NphysicsWorld`]: ./../../struct.NphysicsWorld.html
     pub fn build(self) -> NphysicsWorld {
         NphysicsWorld::with_timestep(
             self.timestep.unwrap_or((1 / 60) as f64),
