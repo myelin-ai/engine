@@ -18,7 +18,7 @@ use ncollide2d::math::Point as NcollidePoint;
 use ncollide2d::shape::{ConvexPolygon, ShapeHandle};
 use ncollide2d::world::{CollisionGroups, CollisionObjectHandle};
 use nphysics2d::algebra::ForceType;
-use nphysics2d::force_generator::{ForceGenerator, ForceGeneratorHandle};
+use nphysics2d::force_generator::ForceGenerator;
 use nphysics2d::material::{BasicMaterial, MaterialHandle};
 use nphysics2d::math::Force as NphysicsForce;
 use nphysics2d::math::{Isometry, Point as NPhysicsPoint, Vector as NPhysicsVector};
