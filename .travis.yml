@@ -1,0 +1,13 @@
+sudo: false
+dist: trusty
+language: rust
+
+install:
+- rustup component add rustfmt clippy
+- rustup target add wasm32-unknown-unknown
+
+script:
+- cargo build
+- cargo test
+- cargo clippy -- -Dwarnings
+- cargo fmt --all -- --check
