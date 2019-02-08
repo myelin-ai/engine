@@ -49,9 +49,9 @@ impl NphysicsWorldBuilder {
         NphysicsWorld::with_timestep(
             self.timestep.unwrap_or(DEFAULT_TIMESTEP),
             self.rotation_translator
-                .unwrap_or(box NphysicsRotationTranslatorImpl::default()),
+                .unwrap_or_else(|| box NphysicsRotationTranslatorImpl::default()),
             self.force_applier
-                .unwrap_or(box SingleTimeForceApplierImpl::default()),
+                .unwrap_or_else(|| box SingleTimeForceApplierImpl::default()),
         )
     }
 }

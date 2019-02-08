@@ -81,11 +81,11 @@ impl SimulationBuilder {
     pub fn build(self) -> Box<dyn Simulation> {
         box SimulationImpl::new(
             self.world
-                .unwrap_or(box NphysicsWorldBuilder::default().build()),
+                .unwrap_or_else(|| box NphysicsWorldBuilder::default().build()),
             self.world_interactor_factory_fn
-                .unwrap_or(box |simulation| box WorldInteractorImpl::new(simulation)),
+                .unwrap_or_else(|| box |simulation| box WorldInteractorImpl::new(simulation)),
             self.instant_wrapper_factory_fn
-                .unwrap_or(box || box InstantWrapperImpl::new(Instant::now())),
+                .unwrap_or_else(|| box || box InstantWrapperImpl::new(Instant::now())),
         )
     }
 }
