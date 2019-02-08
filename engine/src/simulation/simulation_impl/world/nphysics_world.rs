@@ -331,18 +331,14 @@ fn to_ncollide_point(point: Point) -> NcollidePoint<f64> {
 mod tests {
     use super::*;
     use mockiato::partial_eq;
-    use nphysics2d::object::BodySet;
-    use nphysics2d::solver::IntegrationParameters;
     use std::f64::consts::FRAC_PI_2;
-    use std::sync::RwLock;
-    use std::thread::panicking;
 
     const DEFAULT_TIMESTEP: f64 = 1.0;
 
     #[test]
     fn returns_none_when_calling_body_with_invalid_handle() {
         let rotation_translator = NphysicsRotationTranslatorMock::new();
-        let force_applier = SingleTimeForceApplierMock::default();
+
         let world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let invalid_handle = BodyHandle(1337);
         let body = world.body(invalid_handle);
@@ -352,7 +348,7 @@ mod tests {
     #[test]
     fn returns_none_when_removing_invalid_object() {
         let rotation_translator = NphysicsRotationTranslatorMock::new();
-        let force_applier = SingleTimeForceApplierMock::default();
+
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let invalid_handle = BodyHandle(123);
         let physical_body = world.remove_body(invalid_handle);
@@ -362,7 +358,7 @@ mod tests {
     #[test]
     fn can_return_rigid_object_with_valid_handle() {
         let rotation_translator = rotation_translator_for_adding_and_reading_body();
-        let force_applier = SingleTimeForceApplierMock::default();
+
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let movable_body = movable_body();
 
@@ -374,7 +370,7 @@ mod tests {
     #[test]
     fn can_return_grounded_object_with_valid_handle() {
         let rotation_translator = rotation_translator_for_adding_and_reading_body();
-        let force_applier = SingleTimeForceApplierMock::default();
+
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let body = immovable_body();
 
@@ -386,7 +382,7 @@ mod tests {
     #[test]
     fn removing_object_returns_physical_body() {
         let rotation_translator = rotation_translator_for_adding_and_reading_body();
-        let force_applier = SingleTimeForceApplierMock::default();
+
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let expected_body = movable_body();
 
@@ -399,7 +395,7 @@ mod tests {
     #[test]
     fn removed_object_cannot_be_accessed() {
         let rotation_translator = rotation_translator_for_adding_and_reading_body();
-        let force_applier = SingleTimeForceApplierMock::default();
+
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let expected_body = movable_body();
 
@@ -422,7 +418,6 @@ mod tests {
             .returns(FRAC_PI_2)
             .times(2);
 
-        let force_applier = SingleTimeForceApplierMock::default();
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let rigid_object = movable_body();
         let grounded_object = immovable_body();
@@ -437,7 +432,7 @@ mod tests {
     #[test]
     fn returns_correct_rigid_body() {
         let rotation_translator = rotation_translator_for_adding_and_reading_body();
-        let force_applier = SingleTimeForceApplierMock::default();
+
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let expected_body = movable_body();
         let handle = world.add_body(expected_body.clone());
@@ -450,7 +445,7 @@ mod tests {
     #[test]
     fn returns_correct_grounded_body() {
         let rotation_translator = rotation_translator_for_adding_and_reading_body();
-        let force_applier = SingleTimeForceApplierMock::default();
+
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let expected_body = immovable_body();
         let handle = world.add_body(expected_body.clone());
@@ -463,8 +458,7 @@ mod tests {
     #[test]
     fn timestep_is_respected() {
         let rotation_translator = rotation_translator_for_adding_and_reading_body();
-        let mut force_applier = SingleTimeForceApplierMock::default();
-        force_applier.expect_apply_and_return(true);
+
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
 
         let local_object = movable_body();
@@ -485,8 +479,7 @@ mod tests {
     #[test]
     fn timestep_can_be_changed() {
         let rotation_translator = rotation_translator_for_adding_and_reading_body();
-        let mut force_applier = SingleTimeForceApplierMock::default();
-        force_applier.expect_apply_and_return(true);
+
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         world.set_simulated_timestep(2.0);
 
@@ -508,8 +501,7 @@ mod tests {
     #[test]
     fn step_is_ignored_for_rigid_objects_with_no_movement() {
         let rotation_translator = rotation_translator_for_adding_and_reading_body();
-        let mut force_applier = SingleTimeForceApplierMock::default();
-        force_applier.expect_apply_and_return(true);
+
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let expected_body = immovable_body();
         let handle = world.add_body(expected_body.clone());
@@ -524,8 +516,7 @@ mod tests {
     #[test]
     fn step_is_ignored_for_grounded_objects() {
         let rotation_translator = rotation_translator_for_adding_and_reading_body();
-        let mut force_applier = SingleTimeForceApplierMock::default();
-        force_applier.expect_apply_and_return(true);
+
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let body = immovable_body();
         let still_body = PhysicalBody {
@@ -544,12 +535,11 @@ mod tests {
     #[test]
     fn applied_force_is_propagated() {
         let rotation_translator = rotation_translator_for_adding_body();
-        let mut force_applier = SingleTimeForceApplierMock::default();
+
         let expected_force = Force {
             linear: Vector { x: 4.0, y: 10.0 },
             torque: Torque(2.0),
         };
-        force_applier.expect_register_force(expected_force.clone());
 
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let expected_body = movable_body();
@@ -561,8 +551,7 @@ mod tests {
     #[test]
     fn bodies_in_area_returns_body_in_area() {
         let rotation_translator = rotation_translator_for_adding_body();
-        let mut force_applier = SingleTimeForceApplierMock::default();
-        force_applier.expect_apply_and_return(true);
+
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let expected_body = movable_body();
         let handle = world.add_body(expected_body);
@@ -578,8 +567,6 @@ mod tests {
     #[test]
     fn bodies_in_area_does_not_return_out_of_range_bodies() {
         let rotation_translator = rotation_translator_for_adding_body();
-        let mut force_applier = SingleTimeForceApplierMock::default();
-        force_applier.expect_apply_and_return(true);
 
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let expected_body = movable_body();
@@ -806,88 +793,6 @@ mod tests {
             location: Point { x: 300.0, y: 200.0 },
             rotation: Radians::try_new(FRAC_PI_2).unwrap(),
             passable: false,
-        }
-    }
-
-    #[derive(Default)]
-    struct SingleTimeForceApplierMock {
-        expect_register_force: Option<(Force,)>,
-        expect_apply_and_return: Option<(bool,)>,
-
-        register_force_was_called: RwLock<bool>,
-        apply_was_called: RwLock<bool>,
-    }
-
-    impl fmt::Debug for SingleTimeForceApplierMock {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            f.debug_struct(name_of_type!(SingleTimeForceApplierMock))
-                .finish()
-        }
-    }
-
-    impl SingleTimeForceApplierMock {
-        fn expect_register_force(&mut self, force: Force) {
-            self.expect_register_force = Some((force,))
-        }
-
-        fn expect_apply_and_return(&mut self, return_value: bool) {
-            self.expect_apply_and_return = Some((return_value,))
-        }
-    }
-
-    impl SingleTimeForceApplier for SingleTimeForceApplierMock {
-        fn register_force(&mut self, _handle: NphysicsBodyHandle, force: Force) {
-            *self
-                .register_force_was_called
-                .write()
-                .expect("RwLock was poisoned") = true;
-
-            let expected_force = self
-                .expect_register_force
-                .clone()
-                .expect("register_force() was called unexpectedly")
-                .0;
-
-            assert_eq!(
-                expected_force, force,
-                "register_force() was called with {:?}, expected {:?}",
-                force, expected_force
-            );
-        }
-    }
-
-    impl ForceGenerator<f64> for SingleTimeForceApplierMock {
-        fn apply(&mut self, _: &IntegrationParameters<f64>, _: &mut BodySet<f64>) -> bool {
-            *self.apply_was_called.write().expect("RwLock was poisoned") = true;
-
-            if let Some((return_value,)) = self.expect_apply_and_return {
-                // IntegrationParameters and BodySet have no comparison functionality
-                return_value
-            } else {
-                panic!("apply() was called unexpectedly")
-            }
-        }
-    }
-
-    impl Drop for SingleTimeForceApplierMock {
-        fn drop(&mut self) {
-            if !panicking() {
-                if self.expect_register_force.is_some() {
-                    assert!(
-                        *self
-                            .register_force_was_called
-                            .read()
-                            .expect("RwLock was poisoned"),
-                        "expect_register_force() was not called, but was expected"
-                    )
-                }
-                if self.expect_apply_and_return.is_some() {
-                    assert!(
-                        *self.apply_was_called.read().expect("RwLock was poisoned"),
-                        "expect_apply_and_return() was not called, but was expected"
-                    )
-                }
-            }
         }
     }
 }
