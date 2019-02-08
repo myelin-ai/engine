@@ -45,8 +45,9 @@ impl NphysicsWorldBuilder {
     ///
     /// [`NphysicsWorld`]: ./../../struct.NphysicsWorld.html
     pub fn build(self) -> NphysicsWorld {
+        const DEFAULT_TIMESTEP: f64 = 1.0 / 60.0;
         NphysicsWorld::with_timestep(
-            self.timestep.unwrap_or((1 / 60) as f64),
+            self.timestep.unwrap_or(DEFAULT_TIMESTEP),
             self.rotation_translator
                 .unwrap_or(box NphysicsRotationTranslatorImpl::default()),
             self.force_applier
