@@ -716,22 +716,6 @@ mod tests {
         test_force(&physical_body(), &expected_body, force);
     }
 
-    fn physical_body() -> PhysicalBody {
-        PhysicalBody {
-            location: Point { x: 5.0, y: 5.0 },
-            rotation: Radians::default(),
-            mobility: Mobility::Movable(Vector::default()),
-            shape: PolygonBuilder::default()
-                .vertex(-5.0, -5.0)
-                .vertex(-5.0, 5.0)
-                .vertex(5.0, 5.0)
-                .vertex(5.0, -5.0)
-                .build()
-                .unwrap(),
-            passable: false,
-        }
-    }
-
     fn test_force(body: &PhysicalBody, expected_body: &PhysicalBody, force: Force) {
         let rotation_translator = NphysicsRotationTranslatorImpl::default();
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
@@ -792,6 +776,22 @@ mod tests {
             mobility: Mobility::Immovable,
             location: Point { x: 300.0, y: 200.0 },
             rotation: Radians::try_new(FRAC_PI_2).unwrap(),
+            passable: false,
+        }
+    }
+
+    fn physical_body() -> PhysicalBody {
+        PhysicalBody {
+            location: Point { x: 5.0, y: 5.0 },
+            rotation: Radians::default(),
+            mobility: Mobility::Movable(Vector::default()),
+            shape: PolygonBuilder::default()
+                .vertex(-5.0, -5.0)
+                .vertex(-5.0, 5.0)
+                .vertex(5.0, 5.0)
+                .vertex(5.0, -5.0)
+                .build()
+                .unwrap(),
             passable: false,
         }
     }
