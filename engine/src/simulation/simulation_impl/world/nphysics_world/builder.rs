@@ -10,7 +10,7 @@ use super::SingleTimeForceApplier;
 /// Builder for the [`NphysicsWorld`].
 ///
 /// [`NphysicsWorld`]: ./../../struct.NphysicsWorld.html
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct NphysicsWorldBuilder {
     timestep: Option<f64>,
     rotation_translator: Option<Box<dyn NphysicsRotationTranslator>>,

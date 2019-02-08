@@ -9,6 +9,8 @@ use crate::simulation::simulation_impl::SimulationImpl;
 use crate::simulation::Simulation;
 use crate::world_interactor::WorldInteractorImpl;
 use std::time::Instant;
+use std::fmt::Debug;
+use std::fmt;
 
 /// Builder for the [`Simulation`]. This is the composition root.
 /// Only advanced users should derive from the defaults.
@@ -24,6 +26,14 @@ pub struct SimulationBuilder {
     world: Option<Box<dyn World>>,
     world_interactor_factory_fn: Option<Box<WorldInteractorFactoryFn>>,
     instant_wrapper_factory_fn: Option<Box<InstantWrapperFactoryFn>>,
+}
+
+impl Debug for SimulationBuilder {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct(name_of_type!(SimulationBuilder))
+            .field("world", &self.world)
+            .finish()
+    }
 }
 
 impl SimulationBuilder {
