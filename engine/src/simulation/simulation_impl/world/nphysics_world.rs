@@ -663,7 +663,10 @@ mod tests {
     fn location_can_underflow() {
         let body = physical_body();
         let force = Force {
-            linear: Vector { x: -100.0, y: -200.0 },
+            linear: Vector {
+                x: -100.0,
+                y: -200.0,
+            },
             torque: Torque::default(),
         };
         let expected_body = PhysicalBody {
