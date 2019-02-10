@@ -2,10 +2,8 @@
 //!
 //! [`NphysicsWorld`]: ./../../struct.NphysicsWorld.html
 
-use super::force_applier::SingleTimeForceApplierImpl;
 use super::rotation_translator::{NphysicsRotationTranslator, NphysicsRotationTranslatorImpl};
 use super::NphysicsWorld;
-use super::SingleTimeForceApplier;
 
 /// Builder for the [`NphysicsWorld`].
 ///
@@ -14,7 +12,6 @@ use super::SingleTimeForceApplier;
 pub struct NphysicsWorldBuilder {
     timestep: Option<f64>,
     rotation_translator: Option<Box<dyn NphysicsRotationTranslator>>,
-    force_applier: Option<Box<dyn SingleTimeForceApplier>>,
 }
 
 impl NphysicsWorldBuilder {
@@ -36,11 +33,6 @@ impl NphysicsWorldBuilder {
         self.rotation_translator = Some(rotation_translator)
     }
 
-    /// Sets the force applier.
-    pub fn force_applier(&mut self, force_applier: Box<dyn SingleTimeForceApplier>) {
-        self.force_applier = Some(force_applier)
-    }
-
     /// Builds the [`NphysicsWorld`].
     ///
     /// [`NphysicsWorld`]: ./../../struct.NphysicsWorld.html
@@ -50,8 +42,6 @@ impl NphysicsWorldBuilder {
             self.timestep.unwrap_or(DEFAULT_TIMESTEP),
             self.rotation_translator
                 .unwrap_or_else(|| box NphysicsRotationTranslatorImpl::default()),
-            self.force_applier
-                .unwrap_or_else(|| box SingleTimeForceApplierImpl::default()),
         )
     }
 }
