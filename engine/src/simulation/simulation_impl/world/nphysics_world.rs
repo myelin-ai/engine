@@ -607,10 +607,10 @@ mod tests {
         let body = physical_body();
         let force = Force {
             linear: Vector::default(),
-            torque: Torque(101.55),
+            torque: Torque(100.0),
         };
         let expected_body = PhysicalBody {
-            rotation: Radians::try_new(0.6093).unwrap(),
+            rotation: Radians::try_new(1.2).unwrap(),
             ..body
         };
         test_force(&physical_body(), &expected_body, force);
