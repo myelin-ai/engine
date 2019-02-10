@@ -635,14 +635,14 @@ mod tests {
         let body = physical_body();
         let force = Force {
             linear: Vector {
-                x: 100.000_000_000_000_01,
-                y: 100.000_000_000_000_01,
+                x: 100.0,
+                y: 100.0,
             },
             torque: Torque::default(),
         };
         let expected_body = PhysicalBody {
             location: Point { x: 15.0, y: 15.0 },
-            mobility: Mobility::Movable(Vector { x: 10.0, y: 10.0 }),
+            mobility: Mobility::Movable(Vector { x: 5.0, y: 5.0 }),
             ..body
         };
         test_force(&physical_body(), &expected_body, force);
