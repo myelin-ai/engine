@@ -163,7 +163,7 @@ dependencies = [
  "nalgebra 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "nameof 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "ncollide2d 0.18.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "nphysics2d 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nphysics2d 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.87 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.87 (registry+https://github.com/rust-lang/crates.io-index)",
  "unordered-pair 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -224,7 +224,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "nphysics2d"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "alga 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -592,7 +592,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum nameof 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "2e90fbc8c7ae00979152d976d59e1d98a47d9967cae51af4b94b188ad3ca2e68"
 "checksum ncollide2d 0.18.1 (registry+https://github.com/rust-lang/crates.io-index)" = "8e493d4bffa06957054308aef7e987256e383cd7d05e14bdffff9b7480918d7a"
 "checksum nearly_eq 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)" = "a629868a433328c35d654e1e1fb4648a68a042e3c71de4e507a9bcf4602c5635"
-"checksum nphysics2d 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)" = "07558ce2f4f2f7211fccb702bd65c475eda4de697a8609dd40396f55707a10db"
+"checksum nphysics2d 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)" = "e93bf176f40b0420ed836253d325dd710aa8766f7208413e5c5433e86ab40981"
 "checksum num-complex 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "107b9be86cd2481930688277b675b0114578227f034674726605b8a482d8baf8"
 "checksum num-traits 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)" = "0b3a5d7cc97d6d30d8b9bc8fa19bf45349ffe46241e8816f50f62f6d6aaabee1"
 "checksum ordermap 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)" = "a86ed3f5f244b372d6b1a00b72ef7f8876d0bc6a78a4c9985c53614041512063"
