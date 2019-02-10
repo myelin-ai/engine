@@ -1,5 +1,6 @@
 use super::Interactable;
 use crate::prelude::*;
+use std::time::Duration;
 
 /// Default implementation of [`WorldInteractor`].
 ///
@@ -21,6 +22,10 @@ impl<'a> WorldInteractorImpl<'a> {
 impl<'a> WorldInteractor for WorldInteractorImpl<'a> {
     fn find_objects_in_area(&self, area: Aabb) -> Snapshot {
         self.interactable.objects_in_area(area)
+    }
+
+    fn elapsed_time_in_update(&self) -> Duration {
+        self.interactable.elapsed_time_in_update()
     }
 }
 

@@ -2,6 +2,7 @@
 
 use crate::prelude::*;
 use std::fmt::Debug;
+use std::time::Duration;
 
 #[cfg(any(test, feature = "use-mocks"))]
 use mockiato::mockable;
@@ -25,4 +26,8 @@ pub trait WorldInteractor: Debug {
     ///
     /// [`Aabb`]: ./struct.Aabb.html
     fn find_objects_in_area(&self, area: Aabb) -> Snapshot;
+
+    /// Returns the amount of time that passed since the last call
+    /// to the `step` function of [`Simulation`]
+    fn elapsed_time_in_update(&self) -> Duration;
 }
