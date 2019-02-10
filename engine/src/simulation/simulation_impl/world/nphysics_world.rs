@@ -186,7 +186,9 @@ impl World for NphysicsWorld {
             to_nphysics_isometry(body.location, body.rotation, &*self.rotation_translator);
         let material = MaterialHandle::new(BasicMaterial::default());
 
+        /// Arbitrary value
         const COLLIDER_MARGIN: f64 = 0.04;
+        /// Arbitrary value
         const MASS_OF_BODY_IN_KG: f64 = 20.0;
 
         let handle = match body.mobility {
