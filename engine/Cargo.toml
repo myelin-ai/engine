@@ -25,7 +25,7 @@ nameof = "1.0"
 mockiato = { git = "https://github.com/myelin-ai/mockiato", optional = true }
 
 [dependencies.nphysics2d]
-version = "0.10"
+version = "0.10.2"
 default-features = false
 features = ["use-wasm-bindgen"]
 
