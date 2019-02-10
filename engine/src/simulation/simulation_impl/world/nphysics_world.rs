@@ -49,8 +49,7 @@ impl NphysicsWorld {
     /// use std::sync::{Arc, RwLock};
     ///
     /// let rotation_translator = NphysicsRotationTranslatorImpl::default();
-    /// let mut world =
-    ///     NphysicsWorld::with_timestep(1.0, Box::new(rotation_translator));
+    /// let mut world = NphysicsWorld::with_timestep(1.0, Box::new(rotation_translator));
     /// ```
     pub fn with_timestep(
         timestep: f64,
@@ -634,10 +633,7 @@ mod tests {
     fn linear_force_with_no_torque_changes_location_and_speed() {
         let body = physical_body();
         let force = Force {
-            linear: Vector {
-                x: 100.0,
-                y: 100.0,
-            },
+            linear: Vector { x: 100.0, y: 100.0 },
             torque: Torque::default(),
         };
         let expected_body = PhysicalBody {
@@ -652,10 +648,7 @@ mod tests {
     fn negative_linear_force_results_in_lower_location() {
         let body = physical_body();
         let force = Force {
-            linear: Vector {
-                x: -50.0,
-                y: -50.0,
-            },
+            linear: Vector { x: -50.0, y: -50.0 },
             torque: Torque::default(),
         };
         let expected_body = PhysicalBody {
@@ -670,10 +663,7 @@ mod tests {
     fn location_can_underflow() {
         let body = physical_body();
         let force = Force {
-            linear: Vector {
-                x: -100.0,
-                y: -200.0,
-            },
+            linear: Vector { x: -100.0, y: -200.0 },
             torque: Torque::default(),
         };
         let expected_body = PhysicalBody {
@@ -688,10 +678,7 @@ mod tests {
     fn linear_force_and_torque_can_be_combined() {
         let body = physical_body();
         let force = Force {
-            linear: Vector {
-                x: 50.0,
-                y: 100.0,
-            },
+            linear: Vector { x: 50.0, y: 100.0 },
             torque: Torque(1.5),
         };
 
