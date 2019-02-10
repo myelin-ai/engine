@@ -624,7 +624,7 @@ mod tests {
             torque: Torque(-202.0),
         };
         let expected_body = PhysicalBody {
-            rotation: Radians::try_new(5.071_185_307_179_586_5).unwrap(),
+            rotation: Radians::try_new(3.859_185_307_179_586_7).unwrap(),
             ..body
         };
         test_force(&physical_body(), &expected_body, force);
@@ -653,14 +653,14 @@ mod tests {
         let body = physical_body();
         let force = Force {
             linear: Vector {
-                x: -50.000_000_000_000_01,
-                y: -50.000_000_000_000_01,
+                x: -50.0,
+                y: -50.0,
             },
             torque: Torque::default(),
         };
         let expected_body = PhysicalBody {
             location: Point { x: 0.0, y: 0.0 },
-            mobility: Mobility::Movable(Vector { x: -5.0, y: -5.0 }),
+            mobility: Mobility::Movable(Vector { x: -2.5, y: -2.5 }),
             ..body
         };
         test_force(&physical_body(), &expected_body, force);
@@ -671,14 +671,14 @@ mod tests {
         let body = physical_body();
         let force = Force {
             linear: Vector {
-                x: -100.000_000_000_000_01,
-                y: -200.000_000_000_000_03,
+                x: -100.0,
+                y: -200.0,
             },
             torque: Torque::default(),
         };
         let expected_body = PhysicalBody {
             location: Point { x: -5.0, y: -15.0 },
-            mobility: Mobility::Movable(Vector { x: -10.0, y: -20.0 }),
+            mobility: Mobility::Movable(Vector { x: -5.0, y: -10.0 }),
             ..body
         };
         test_force(&physical_body(), &expected_body, force);
@@ -689,16 +689,16 @@ mod tests {
         let body = physical_body();
         let force = Force {
             linear: Vector {
-                x: 50.000_000_000_000_01,
-                y: 100.000_000_000_000_01,
+                x: 50.0,
+                y: 100.0,
             },
             torque: Torque(1.5),
         };
 
         let expected_body = PhysicalBody {
             location: Point { x: 10.0, y: 15.0 },
-            rotation: Radians::try_new(0.009_000_000_000_000_001).unwrap(),
-            mobility: Mobility::Movable(Vector { x: 5.0, y: 10.0 }),
+            rotation: Radians::try_new(0.018_000_000_000_000_001).unwrap(),
+            mobility: Mobility::Movable(Vector { x: 2.5, y: 5.0 }),
             ..body
         };
         test_force(&physical_body(), &expected_body, force);
