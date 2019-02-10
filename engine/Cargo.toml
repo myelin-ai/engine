@@ -15,8 +15,8 @@ edition = "2018"
 
 [dependencies]
 myelin-geometry = { path = "../geometry" }
-nalgebra = "0.16"
-ncollide2d = { git = "https://github.com/myelin-ai/ncollide", rev = "type-id" }
+nalgebra = "0.17"
+ncollide2d = "0.18" 
 serde = "1.0"
 serde_derive = "1.0"
 alga = "0.7"
@@ -25,9 +25,7 @@ nameof = "1.0"
 mockiato = { git = "https://github.com/myelin-ai/mockiato", optional = true }
 
 [dependencies.nphysics2d]
-# version = "0.9.1"
-git = "https://github.com/myelin-ai/nphysics"
-rev = "master"
+version = "0.10.2"
 default-features = false
 features = ["use-wasm-bindgen"]
 
