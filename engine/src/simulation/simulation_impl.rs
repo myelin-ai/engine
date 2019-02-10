@@ -1,6 +1,7 @@
 //! A `Simulation` that outsources all physical
 //! behaviour into a separate `World` type
 
+pub mod builder;
 pub mod time;
 pub mod world;
 
@@ -13,6 +14,8 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{self, Debug};
 use std::time::Duration;
+
+pub use self::builder::SimulationBuilder;
 
 /// Factory used by [`SimulationImpl`] to create an [`WorldInteractor`].
 ///
