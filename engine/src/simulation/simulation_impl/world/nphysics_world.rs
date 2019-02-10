@@ -687,7 +687,7 @@ mod tests {
 
         let expected_body = PhysicalBody {
             location: Point { x: 10.0, y: 15.0 },
-            rotation: Radians::try_new(0.018_000_000_000_000_001).unwrap(),
+            rotation: Radians::try_new(0.018_000_000_000_000_002).unwrap(),
             mobility: Mobility::Movable(Vector { x: 2.5, y: 5.0 }),
             ..body
         };
