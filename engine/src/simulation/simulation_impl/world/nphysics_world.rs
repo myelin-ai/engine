@@ -189,6 +189,8 @@ impl World for NphysicsWorld {
         let material = MaterialHandle::new(BasicMaterial::default());
 
         const COLLIDER_MARGIN: f64 = 0.04;
+        const MASS_OF_BODY_IN_KG: f64 = 20.0;
+
         let handle = match body.mobility {
             Mobility::Immovable => ColliderDesc::new(shape)
                 .margin(COLLIDER_MARGIN)
@@ -203,6 +205,7 @@ impl World for NphysicsWorld {
                     .position(isometry)
                     .local_inertia(local_inertia)
                     .local_center_of_mass(local_center_of_mass)
+                    .mass(MASS_OF_BODY_IN_KG)
                     .velocity(velocity)
                     .build(&mut self.physics_world)
                     .part_handle();
