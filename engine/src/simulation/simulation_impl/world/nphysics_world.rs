@@ -458,7 +458,7 @@ mod tests {
         let actual_body = world.body(handle);
 
         let expected_body = PhysicalBody {
-            location: Point { x: 6.0, y: 6.0 },
+            location: Point { x: 7.0, y: 7.0 },
             ..local_object
         };
         assert_eq!(Some(expected_body), actual_body);
@@ -480,7 +480,7 @@ mod tests {
         let actual_body = world.body(handle);
 
         let expected_body = PhysicalBody {
-            location: Point { x: 7.0, y: 7.0 },
+            location: Point { x: 9.0, y: 9.0 },
             ..local_object
         };
         assert_eq!(Some(expected_body), actual_body);
