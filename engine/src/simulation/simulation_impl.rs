@@ -68,18 +68,15 @@ impl SimulationImpl {
     /// use myelin_engine::prelude::*;
     /// use myelin_engine::simulation::world::{
     ///     rotation_translator::NphysicsRotationTranslatorImpl, NphysicsWorld,
-    ///     SingleTimeForceApplierImpl,
     /// };
     /// use myelin_engine::simulation::SimulationImpl;
     /// use myelin_engine::world_interactor::WorldInteractorImpl;
     /// use std::sync::{Arc, RwLock};
     ///
     /// let rotation_translator = NphysicsRotationTranslatorImpl::default();
-    /// let force_applier = SingleTimeForceApplierImpl::default();
     /// let world = Box::new(NphysicsWorld::with_timestep(
     ///     1.0,
     ///     Box::new(rotation_translator),
-    ///     Box::new(force_applier),
     /// ));
     /// let simulation = SimulationImpl::new(
     ///     world,
