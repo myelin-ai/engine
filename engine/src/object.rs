@@ -28,8 +28,10 @@ pub struct Object<'a> {
     /// The object's unique ID.
     /// Can be stored in order to retrieve this object later on.
     pub id: Id,
+
     /// Physical description of the object
     pub description: ObjectDescription,
+
     /// Custom behavior of the object
     pub behavior: Ref<'a, Box<dyn ObjectBehavior>>,
 }
