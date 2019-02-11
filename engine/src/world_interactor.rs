@@ -93,10 +93,9 @@ mod mocks {
 
             let (return_value,) = self
                 .expect_elapsed_time_in_update_and_return
-                .clone()
                 .expect("elapsed_time_in_update() was called unexpectedly");
 
-            return_value.clone()
+            return_value
         }
     }
 

@@ -39,7 +39,7 @@ pub struct Object<'a> {
 impl<'a> Clone for Object<'a> {
     fn clone(&self) -> Self {
         Self {
-            id: self.id.clone(),
+            id: self.id,
             description: self.description.clone(),
             behavior: Ref::clone(&self.behavior),
         }

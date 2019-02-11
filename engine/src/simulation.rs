@@ -155,7 +155,6 @@ mod mocks {
 
             let (expected_timestep,) = self
                 .expect_set_simulated_timestep
-                .clone()
                 .expect("set_simulated_timestep() was called unexpectedly");
 
             assert_eq!(
