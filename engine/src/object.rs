@@ -4,6 +4,7 @@
 //! [`ObjectBuilder`]: crate::object_builder::ObjectBuilder
 
 use crate::prelude::*;
+use std::any::Any;
 use std::cell::Ref;
 use std::fmt::Debug;
 
@@ -20,6 +21,19 @@ pub trait ObjectBehavior: Debug + ObjectBehaviorClone {
         own_description: &ObjectDescription,
         world_interactor: &dyn WorldInteractor,
     ) -> Option<Action>;
+
+    /// Cast implementation to `Any`.
+    /// This is needed in order to downcast trait objects of type `&dyn ObjectBehavior` to
+    /// concrete types.
+    ///
+    /// Implement this as follows.
+    /// ```rust,ignore
+    /// fn as_any(&self) -> &Any {
+    ///    self
+    /// }
+    /// ```
+    /// [Additional information](https://stackoverflow.com/a/47642317/5903309)
+    fn as_any(&self) -> &'_ dyn Any;
 }
 
 /// An object that is stored in the simulation
