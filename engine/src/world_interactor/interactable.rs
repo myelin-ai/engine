@@ -93,12 +93,14 @@ mod mocks {
             }
 
             assert!(
-                *self.objects_in_area_was_called.borrow(),
+                self.expect_objects_in_area_and_return.is_some()
+                    == *self.objects_in_area_was_called.borrow(),
                 "objects_in_area() was not called, but expected"
             );
 
             assert!(
-                *self.elapsed_time_in_update_was_called.borrow(),
+                self.expect_elapsed_time_in_update_and_return.is_some()
+                    == *self.elapsed_time_in_update_was_called.borrow(),
                 "elapsed_time_in_update() was not called, but expected"
             );
         }
