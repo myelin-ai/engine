@@ -84,6 +84,7 @@ mod mocks {
             self.expect_step = Some(());
         }
 
+        /// Expect a call to `add_object`
         pub fn expect_add_object_and_return(
             &mut self,
             object_description: ObjectDescription,
@@ -92,8 +93,23 @@ mod mocks {
             self.expect_add_object_and_return = Some((object_description, return_value));
         }
 
+        /// Expect a call to `objects`
         pub fn expect_objects_and_return(&mut self, return_value: Snapshot<'a>) {
             self.expect_objects_and_return = Some((return_value,));
+        }
+
+        /// Expect a call to `set_simulated_timestep`
+        pub fn expect_set_simulated_timestep(&mut self, timestep: f64) {
+            self.expect_set_simulated_timestep = Some((timestep,));
+        }
+
+        /// Expect a call to `objects_in_area`
+        pub fn expect_objects_in_area_and_return(
+            &mut self,
+            area: Aabb,
+            return_value: Snapshot<'a>,
+        ) {
+            self.expect_objects_in_area_and_return = Some((area, return_value));
         }
     }
 
