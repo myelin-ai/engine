@@ -5,22 +5,9 @@
 
 use crate::prelude::*;
 use std::cell::Ref;
-use std::fmt::Debug;
 
-#[cfg(any(test, feature = "use-mocks"))]
-use mockiato::mockable;
-
-/// Behavior of an object
-#[cfg_attr(any(test, feature = "use-mocks"), mockable)]
-pub trait ObjectBehavior: Debug + ObjectBehaviorClone {
-    /// Returns all actions performed by the object
-    /// in the current simulation tick
-    fn step(
-        &mut self,
-        own_description: &ObjectDescription,
-        world_interactor: &dyn WorldInteractor,
-    ) -> Option<Action>;
-}
+mod object_behavior;
+pub use self::object_behavior::*;
 
 /// An object that is stored in the simulation
 #[derive(Debug)]
@@ -134,23 +121,3 @@ pub struct Force {
 /// Force of rotation
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct Torque(pub f64);
-
-/// Supertrait used to make sure that all implementors
-/// of [`ObjectBehavior`] are [`Clone`]. You don't need
-/// to care about this type.
-///
-/// [`ObjectBehavior`]: ./trait.ObjectBehavior.html
-/// [`Clone`]: https://doc.rust-lang.org/nightly/std/clone/trait.Clone.html
-#[doc(hidden)]
-pub trait ObjectBehaviorClone {
-    fn clone_box(&self) -> Box<dyn ObjectBehavior>;
-}
-
-impl<T> ObjectBehaviorClone for T
-where
-    T: ObjectBehavior + Clone + 'static,
-{
-    default fn clone_box(&self) -> Box<dyn ObjectBehavior> {
-        box self.clone()
-    }
-}
