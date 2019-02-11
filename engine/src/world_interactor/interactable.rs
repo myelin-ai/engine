@@ -11,7 +11,7 @@ use mockiato::mockable;
 pub trait Interactable: Debug {
     /// Returns read-only descriptions for all objects either completely
     /// contained or intersecting with the given area.
-    fn objects_in_area(&self, area: Aabb) -> Snapshot;
+    fn objects_in_area(&self, area: Aabb) -> Snapshot<'_>;
 
     /// Returns the amount of time that passed since the last call
     /// to the `step` function of [`Simulation`]

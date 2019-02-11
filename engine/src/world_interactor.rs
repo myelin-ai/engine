@@ -25,7 +25,7 @@ pub trait WorldInteractor: Debug {
     /// with the area.
     ///
     /// [`Aabb`]: ./struct.Aabb.html
-    fn find_objects_in_area(&self, area: Aabb) -> Snapshot;
+    fn find_objects_in_area(&self, area: Aabb) -> Snapshot<'_>;
 
     /// Returns the amount of time that passed since the last call
     /// to the `step` function of [`Simulation`]

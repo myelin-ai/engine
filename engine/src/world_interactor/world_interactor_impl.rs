@@ -20,7 +20,7 @@ impl<'a> WorldInteractorImpl<'a> {
 }
 
 impl<'a> WorldInteractor for WorldInteractorImpl<'a> {
-    fn find_objects_in_area(&self, area: Aabb) -> Snapshot {
+    fn find_objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
         self.interactable.objects_in_area(area)
     }
 

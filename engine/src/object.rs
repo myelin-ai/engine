@@ -21,6 +21,18 @@ pub trait ObjectBehavior: Debug + ObjectBehaviorClone {
     ) -> Option<Action>;
 }
 
+/// An object that is stored in the simulation
+#[derive(Debug)]
+pub struct Object<'a> {
+    /// The object's unique ID.
+    /// Can be stored in order to retrieve this object later on.
+    pub id: Id,
+    /// Physical description of the object
+    pub description: ObjectDescription,
+    /// Custom behavior of the object
+    pub behavior: std::cell::Ref<'a, Box<dyn ObjectBehavior>>,
+}
+
 /// Possible actions performed by an [`Object`]
 /// during a simulation step
 ///

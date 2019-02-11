@@ -165,6 +165,21 @@ impl SimulationImpl {
             .and(self.non_physical_object_data.remove(&body_handle))
             .to_action_result()
     }
+
+    fn handle_to_object(&self, handle: BodyHandle) -> Object<'_> {
+        Object {
+            id: handle.0,
+            description: self
+                .convert_to_object_description(handle)
+                .expect("Handle stored in simulation was not found in world"),
+            behavior: self
+                .non_physical_object_data
+                .get(&handle)
+                .expect("Handle stored in simulation was not found in world")
+                .behavior
+                .borrow(),
+        }
+    }
 }
 
 trait HandleOption {
@@ -221,7 +236,7 @@ impl Simulation for SimulationImpl {
         &mut self,
         object_description: ObjectDescription,
         object_behavior: Box<dyn ObjectBehavior>,
-    ) {
+    ) -> Object<'_> {
         let physical_body = PhysicalBody {
             shape: object_description.shape,
             location: object_description.location,
@@ -238,18 +253,13 @@ impl Simulation for SimulationImpl {
         };
         self.non_physical_object_data
             .insert(body_handle, non_physical_object_data);
+        self.handle_to_object(body_handle)
     }
 
-    fn objects(&self) -> Snapshot {
+    fn objects(&self) -> Snapshot<'_> {
         self.non_physical_object_data
             .keys()
-            .map(|&handle| {
-                (
-                    handle.0,
-                    self.convert_to_object_description(handle)
-                        .expect("Handle stored in simulation was not found in world"),
-                )
-            })
+            .map(|&handle| self.handle_to_object(handle))
             .collect()
     }
 
@@ -258,23 +268,17 @@ impl Simulation for SimulationImpl {
         self.world.set_simulated_timestep(timestep)
     }
 
-    fn objects_in_area(&self, area: Aabb) -> Snapshot {
+    fn objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
         self.world
             .bodies_in_area(area)
             .into_iter()
-            .map(|handle| {
-                let object_description = self
-                    .convert_to_object_description(handle)
-                    .expect("Handle stored in simulation was not found in world");
-
-                (handle.0, object_description)
-            })
+            .map(|handle| self.handle_to_object(handle))
             .collect()
     }
 }
 
 impl Interactable for SimulationImpl {
-    fn objects_in_area(&self, area: Aabb) -> Snapshot {
+    fn objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
         Simulation::objects_in_area(self, area)
     }
 

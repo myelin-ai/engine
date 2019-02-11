@@ -4,7 +4,6 @@ mod simulation_impl;
 
 pub use self::simulation_impl::*;
 use crate::prelude::*;
-use std::collections::HashMap;
 use std::fmt::Debug;
 
 /// A Simulation that can be filled with [`Object`] on
@@ -24,9 +23,10 @@ pub trait Simulation: Debug {
         &mut self,
         object_description: ObjectDescription,
         object_behavior: Box<dyn ObjectBehavior>,
-    );
+    ) -> Object<'_>;
     /// Returns a read-only description of all objects currently inhabiting the simulation.
-    fn objects(&self) -> Snapshot;
+    fn objects(&self) -> Snapshot<'_>;
+
 
     /// Sets how much time in seconds is simulated for each step.
     /// # Examples
@@ -37,11 +37,11 @@ pub trait Simulation: Debug {
 
     /// Returns read-only descriptions for all objects either completely
     /// contained or intersecting with the given area.
-    fn objects_in_area(&self, area: Aabb) -> Snapshot;
+    fn objects_in_area(&self, area: Aabb) -> Snapshot<'_>;
 }
 
 /// Unique identifier of an Object
 pub type Id = usize;
 
 /// A representation of the current state of the simulation
-pub type Snapshot = HashMap<Id, ObjectDescription>;
+pub type Snapshot<'a> = Vec<Object<'a>>;
