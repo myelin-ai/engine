@@ -313,7 +313,7 @@ mod tests {
     use crate::object_builder::ObjectBuilder;
     use crate::simulation::simulation_impl::world::WorldMock;
     use crate::world_interactor::{Interactable, WorldInteractor, WorldInteractorMock};
-    use mockiato::{any, partial_eq, partial_eq_owned};
+    use mockiato::partial_eq;
     use myelin_geometry::PolygonBuilder;
     use std::thread::sleep;
     use std::time::Instant;
@@ -468,9 +468,7 @@ mod tests {
             .unwrap();
 
         let mut object_behavior = ObjectBehaviorMock::new();
-        object_behavior
-            .expect_step(partial_eq_owned(expected_object_description.clone()), any())
-            .returns(None);
+        object_behavior.expect_step_and_return(&expected_object_description, None);
 
         let mut simulation = SimulationImpl::new(
             box world,
@@ -583,16 +581,15 @@ mod tests {
             .unwrap();
 
         let mut child_object_behavior = ObjectBehaviorMock::new();
-        child_object_behavior
-            .expect_step(partial_eq_owned(expected_object_description.clone()), any())
-            .returns(None);
+        child_object_behavior.expect_step_and_return(&expected_object_description, None);
 
-        object_behavior
-            .expect_step(partial_eq_owned(expected_object_description.clone()), any())
-            .returns(Some(Action::Spawn(
+        object_behavior.expect_step_and_return(
+            &expected_object_description,
+            Some(Action::Spawn(
                 expected_object_description.clone(),
                 box child_object_behavior,
-            )));
+            )),
+        );
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
 
@@ -649,8 +646,7 @@ mod tests {
             .unwrap();
 
         object_behavior
-            .expect_step(partial_eq_owned(expected_object_description.clone()), any())
-            .returns(Some(Action::DestroySelf));
+            .expect_step_and_return(&expected_object_description, Some(Action::DestroySelf));
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
 
@@ -707,9 +703,10 @@ mod tests {
             .build()
             .unwrap();
 
-        object_behavior
-            .expect_step(partial_eq_owned(expected_object_description.clone()), any())
-            .returns(Some(Action::Destroy(handle_two.0)));
+        object_behavior.expect_step_and_return(
+            &expected_object_description,
+            Some(Action::Destroy(handle_two.0)),
+        );
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
 
@@ -771,9 +768,10 @@ mod tests {
             .build()
             .unwrap();
 
-        object_behavior
-            .expect_step(partial_eq_owned(expected_object_description.clone()), any())
-            .returns(Some(Action::ApplyForce(expected_force)));
+        object_behavior.expect_step_and_return(
+            &expected_object_description,
+            Some(Action::ApplyForce(expected_force)),
+        );
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
 
