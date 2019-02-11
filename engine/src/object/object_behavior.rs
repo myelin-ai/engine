@@ -4,10 +4,9 @@ use std::fmt::Debug;
 use crate::prelude::*;
 
 #[cfg(any(test, feature = "use-mocks"))]
-use mockiato::mockable;
+pub use self::mocks::*;
 
 /// Behavior of an object
-#[cfg_attr(any(test, feature = "use-mocks"), mockable)]
 pub trait ObjectBehavior: Debug + ObjectBehaviorClone {
     /// Returns all actions performed by the object
     /// in the current simulation tick
@@ -48,5 +47,78 @@ where
 {
     default fn clone_box(&self) -> Box<dyn ObjectBehavior> {
         box self.clone()
+    }
+}
+
+#[cfg(any(test, feature = "use-mocks"))]
+mod mocks {
+    use super::*;
+    use std::cell::RefCell;
+    use std::thread::panicking;
+
+    /// Mock for [`ObjectBehavior`]
+    ///
+    /// [`ObjectBehavior`]: ../trait.ObjectBehavior.html
+    #[derive(Debug, Default, Clone)]
+    pub struct ObjectBehaviorMock {
+        expect_step_and_return: Option<(ObjectDescription, Option<Action>)>,
+
+        step_was_called: RefCell<bool>,
+    }
+
+    impl ObjectBehaviorMock {
+        /// Construt a new `ObjectBehaviorMock`
+        pub fn new() -> Self {
+            Default::default()
+        }
+
+        /// Expect a call to `step`
+        pub fn expect_step_and_return(
+            &mut self,
+            own_description: &ObjectDescription,
+            return_value: Option<Action>,
+        ) {
+            self.expect_step_and_return = Some((own_description.clone(), return_value));
+        }
+    }
+
+    impl ObjectBehavior for ObjectBehaviorMock {
+        fn step(
+            &mut self,
+            own_description: &ObjectDescription,
+            _world_interactor: &dyn WorldInteractor,
+        ) -> Option<Action> {
+            *self.step_was_called.borrow_mut() = true;
+
+            let (expected_own_description, return_value) = self
+                .expect_step_and_return
+                .clone()
+                .expect("step() was called unexpectedly");
+
+            assert_eq!(
+                expected_own_description, *own_description,
+                "step() was called with {:?}, expected {:?}",
+                own_description, expected_own_description
+            );
+
+            return_value.clone()
+        }
+
+        fn as_any(&self) -> &'_ dyn Any {
+            self
+        }
+    }
+
+    impl Drop for ObjectBehaviorMock {
+        fn drop(&mut self) {
+            if panicking() {
+                return;
+            }
+
+            assert!(
+                self.expect_step_and_return.is_some() == *self.step_was_called.borrow(),
+                "step() was not called, but expected"
+            );
+        }
     }
 }
