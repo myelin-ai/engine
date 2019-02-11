@@ -514,8 +514,8 @@ mod tests {
         let objects = simulation.objects();
         assert_eq!(1, objects.len());
 
-        let object_description = objects.iter().next().unwrap().description;
-        assert_eq!(expected_object_description, object_description);
+        let object_description = &objects.iter().next().unwrap().description;
+        assert_eq!(expected_object_description, *object_description);
     }
 
     // Something seems fishy with the following test

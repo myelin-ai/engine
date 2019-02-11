@@ -51,12 +51,13 @@ mod mocks {
         fn objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
             *self.objects_in_area_was_called.borrow_mut() = true;
 
-            let (ref expected_area, ref return_value) = self
+            let (expected_area, return_value) = self
                 .expect_objects_in_area_and_return
+                .clone()
                 .expect("objects_in_area() was called unexpectedly");
 
             assert_eq!(
-                *expected_area, area,
+                expected_area, area,
                 "objects_in_area() was called with {:?}, expected {:?}",
                 area, expected_area
             );

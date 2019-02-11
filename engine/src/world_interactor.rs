@@ -41,6 +41,13 @@ mod mocks {
     #[derive(Debug, Default)]
     pub struct WorldInteractorMock {}
 
+    impl WorldInteractorMock {
+        /// Constructs a new `WorldInteractorMock`
+        pub fn new() -> Self {
+            Default::default()
+        }
+    }
+
     impl WorldInteractor for WorldInteractorMock {
         fn find_objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
             unimplemented!()
