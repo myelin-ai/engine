@@ -29,7 +29,10 @@ mod mocks {
     #[derive(Debug, Default)]
     pub struct InteractableMock<'a> {
         expect_objects_in_area_and_return: Option<(Aabb, Snapshot<'a>)>,
+        expect_elapsed_time_in_update_and_return: Option<(Duration,)>,
+
         objects_in_area_was_called: RefCell<bool>,
+        elapsed_time_in_update_was_called: RefCell<bool>,
     }
 
     impl<'a> InteractableMock<'a> {
@@ -38,12 +41,18 @@ mod mocks {
             Default::default()
         }
 
+        /// expect call to `objects_in_area`
         pub fn expect_objects_in_area_and_return(
             &mut self,
             area: Aabb,
             return_value: Snapshot<'a>,
         ) {
             self.expect_objects_in_area_and_return = Some((area, return_value))
+        }
+
+        /// expect call to `elapsed_time_in_update`
+        pub fn expect_elapsed_time_in_update_and_return(&mut self, return_value: Duration) {
+            self.expect_elapsed_time_in_update_and_return = Some((return_value,))
         }
     }
 
@@ -66,7 +75,14 @@ mod mocks {
         }
 
         fn elapsed_time_in_update(&self) -> Duration {
-            unimplemented!()
+            *self.elapsed_time_in_update_was_called.borrow_mut() = true;
+
+            let (return_value,) = self
+                .expect_elapsed_time_in_update_and_return
+                .clone()
+                .expect("elapsed_time_in_update() was called unexpectedly");
+
+            return_value.clone()
         }
     }
 
@@ -79,7 +95,12 @@ mod mocks {
             assert!(
                 *self.objects_in_area_was_called.borrow(),
                 "objects_in_area() was not called, but expected"
-            )
+            );
+
+            assert!(
+                *self.elapsed_time_in_update_was_called.borrow(),
+                "elapsed_time_in_update() was not called, but expected"
+            );
         }
     }
 }
