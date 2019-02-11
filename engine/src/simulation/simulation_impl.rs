@@ -243,6 +243,8 @@ impl Simulation for SimulationImpl {
         object_description: ObjectDescription,
         object_behavior: Box<dyn ObjectBehavior>,
     ) -> Object<'_> {
+        let returned_object_descripton = object_description.clone();
+
         let physical_body = PhysicalBody {
             shape: object_description.shape,
             location: object_description.location,
@@ -259,7 +261,14 @@ impl Simulation for SimulationImpl {
         };
         self.non_physical_object_data
             .insert(body_handle, non_physical_object_data);
-        self.handle_to_object(body_handle)
+
+        Object {
+            id: body_handle.0,
+            description: returned_object_descripton,
+            behavior: self
+                .handle_to_behavior(body_handle)
+                .expect("Internal error: Handle of newly created body was invalid"),
+        }
     }
 
     fn objects(&self) -> Snapshot<'_> {
