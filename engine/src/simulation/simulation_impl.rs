@@ -114,7 +114,7 @@ impl SimulationImpl {
         }
     }
 
-    fn convert_to_object_description(&self, body_handle: BodyHandle) -> Option<ObjectDescription> {
+    fn handle_to_description(&self, body_handle: BodyHandle) -> Option<ObjectDescription> {
         let physics_body = self.world.body(body_handle)?;
         let non_physical_object_data = self.non_physical_object_data.get(&body_handle)?;
         Some(ObjectDescription {
@@ -170,7 +170,7 @@ impl SimulationImpl {
         Object {
             id: handle.0,
             description: self
-                .convert_to_object_description(handle)
+                .handle_to_description(handle)
                 .expect("Handle stored in simulation was not found in world"),
             behavior: self
                 .handle_to_behavior(handle)
@@ -208,7 +208,7 @@ impl Simulation for SimulationImpl {
                     object_handle,
                     // This is safe because the keys of self.objects and
                     // object_handle_to_objects_within_sensor are identical
-                    self.convert_to_object_description(object_handle).unwrap(),
+                    self.handle_to_description(object_handle).unwrap(),
                 )
             })
             .collect();
