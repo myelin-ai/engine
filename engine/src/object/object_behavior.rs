@@ -122,3 +122,16 @@ mod mocks {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn object_behavior_can_be_downcast() {
+        let object_behavior: Box<dyn ObjectBehavior> = box ObjectBehaviorMock::new();
+        let object_behavior_as_any = object_behavior.as_any();
+        let downcast_behavior = object_behavior_as_any.downcast_ref::<ObjectBehaviorMock>();
+        assert!(downcast_behavior.is_some())
+    }
+}
