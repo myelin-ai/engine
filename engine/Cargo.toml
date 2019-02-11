@@ -15,6 +15,7 @@ repository = "https://github.com/myelin-ai/engine"
 homepage = "https://github.com/myelin-ai/engine"
 documentation = "https://docs.rs/myelin-engine"
 edition = "2018"
+license = "MIT/Apache-2.0"
 
 [dependencies]
 myelin-geometry = { path = "../geometry", version = "1.0.0" }
