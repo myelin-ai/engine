@@ -18,10 +18,6 @@ extern crate serde_derive;
 #[macro_use]
 extern crate nameof;
 
-#[cfg_attr(test, macro_use)]
-#[cfg(test)]
-extern crate maplit;
-
 pub mod object;
 mod object_builder;
 pub mod prelude;

@@ -30,7 +30,6 @@ default-features = false
 features = ["use-wasm-bindgen"]
 
 [dev-dependencies]
-maplit = "1.0"
 mockiato = { git = "https://github.com/myelin-ai/mockiato" }
 
 [features]

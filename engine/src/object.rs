@@ -4,6 +4,7 @@
 //! [`ObjectBuilder`]: crate::object_builder::ObjectBuilder
 
 use crate::prelude::*;
+use std::cell::Ref;
 use std::fmt::Debug;
 
 #[cfg(any(test, feature = "use-mocks"))]
@@ -19,6 +20,30 @@ pub trait ObjectBehavior: Debug + ObjectBehaviorClone {
         own_description: &ObjectDescription,
         world_interactor: &dyn WorldInteractor,
     ) -> Option<Action>;
+}
+
+/// An object that is stored in the simulation
+#[derive(Debug)]
+pub struct Object<'a> {
+    /// The object's unique ID.
+    /// Can be stored in order to retrieve this object later on.
+    pub id: Id,
+
+    /// Physical description of the object
+    pub description: ObjectDescription,
+
+    /// Custom behavior of the object
+    pub behavior: Ref<'a, Box<dyn ObjectBehavior>>,
+}
+
+impl<'a> Clone for Object<'a> {
+    fn clone(&self) -> Self {
+        Self {
+            id: self.id,
+            description: self.description.clone(),
+            behavior: Ref::clone(&self.behavior),
+        }
+    }
 }
 
 /// Possible actions performed by an [`Object`]

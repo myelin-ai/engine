@@ -20,7 +20,7 @@ impl<'a> WorldInteractorImpl<'a> {
 }
 
 impl<'a> WorldInteractor for WorldInteractorImpl<'a> {
-    fn find_objects_in_area(&self, area: Aabb) -> Snapshot {
+    fn find_objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
         self.interactable.objects_in_area(area)
     }
 
@@ -33,8 +33,8 @@ impl<'a> WorldInteractor for WorldInteractorImpl<'a> {
 mod tests {
     use super::*;
     use crate::world_interactor::InteractableMock;
-    use mockiato::partial_eq;
     use myelin_geometry::{Point, PolygonBuilder};
+    use std::cell::RefCell;
 
     fn object_description() -> ObjectDescription {
         ObjectBuilder::default()
@@ -54,18 +54,25 @@ mod tests {
 
     #[test]
     fn find_objects_in_area_is_propagated() {
-        let objects = hashmap! { 125 => object_description() };
+        let object_behavior: RefCell<Box<dyn ObjectBehavior>> =
+            RefCell::new(box ObjectBehaviorMock::new());
+        let objects = vec![Object {
+            id: 125,
+            description: object_description(),
+            behavior: object_behavior.borrow(),
+        }];
         let area = Aabb {
             upper_left: Point { x: 10.0, y: 10.0 },
             lower_right: Point { x: 20.0, y: 0.0 },
         };
 
         let mut interactable = InteractableMock::new();
-        interactable
-            .expect_objects_in_area(partial_eq(area))
-            .returns(objects.clone());
+        interactable.expect_objects_in_area_and_return(area, objects.clone());
         let world_interactor = WorldInteractorImpl::new(&interactable);
 
-        assert_eq!(objects, world_interactor.find_objects_in_area(area));
+        let objects_in_area = world_interactor.find_objects_in_area(area);
+        assert_eq!(1, objects_in_area.len());
+        assert_eq!(objects[0].id, objects_in_area[0].id);
+        assert_eq!(objects[0].description, objects_in_area[0].description);
     }
 }

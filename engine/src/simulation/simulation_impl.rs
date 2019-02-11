@@ -9,7 +9,7 @@ use self::time::InstantWrapper;
 use self::world::{BodyHandle, PhysicalBody, World};
 use crate::prelude::*;
 use crate::world_interactor::Interactable;
-use std::cell::RefCell;
+use std::cell::{Ref, RefCell};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{self, Debug};
@@ -114,7 +114,7 @@ impl SimulationImpl {
         }
     }
 
-    fn convert_to_object_description(&self, body_handle: BodyHandle) -> Option<ObjectDescription> {
+    fn handle_to_description(&self, body_handle: BodyHandle) -> Option<ObjectDescription> {
         let physics_body = self.world.body(body_handle)?;
         let non_physical_object_data = self.non_physical_object_data.get(&body_handle)?;
         Some(ObjectDescription {
@@ -165,6 +165,27 @@ impl SimulationImpl {
             .and(self.non_physical_object_data.remove(&body_handle))
             .to_action_result()
     }
+
+    fn handle_to_object(&self, handle: BodyHandle) -> Object<'_> {
+        Object {
+            id: handle.0,
+            description: self
+                .handle_to_description(handle)
+                .expect("Handle stored in simulation was not found in world"),
+            behavior: self
+                .handle_to_behavior(handle)
+                .expect("Handle stored in simulation was not found in world"),
+        }
+    }
+
+    fn handle_to_behavior(&self, handle: BodyHandle) -> Option<Ref<'_, Box<dyn ObjectBehavior>>> {
+        Some(
+            self.non_physical_object_data
+                .get(&handle)?
+                .behavior
+                .borrow(),
+        )
+    }
 }
 
 trait HandleOption {
@@ -187,7 +208,7 @@ impl Simulation for SimulationImpl {
                     object_handle,
                     // This is safe because the keys of self.objects and
                     // object_handle_to_objects_within_sensor are identical
-                    self.convert_to_object_description(object_handle).unwrap(),
+                    self.handle_to_description(object_handle).unwrap(),
                 )
             })
             .collect();
@@ -221,7 +242,9 @@ impl Simulation for SimulationImpl {
         &mut self,
         object_description: ObjectDescription,
         object_behavior: Box<dyn ObjectBehavior>,
-    ) {
+    ) -> Object<'_> {
+        let returned_object_descripton = object_description.clone();
+
         let physical_body = PhysicalBody {
             shape: object_description.shape,
             location: object_description.location,
@@ -238,18 +261,20 @@ impl Simulation for SimulationImpl {
         };
         self.non_physical_object_data
             .insert(body_handle, non_physical_object_data);
+
+        Object {
+            id: body_handle.0,
+            description: returned_object_descripton,
+            behavior: self
+                .handle_to_behavior(body_handle)
+                .expect("Internal error: Handle of newly created body was invalid"),
+        }
     }
 
-    fn objects(&self) -> Snapshot {
+    fn objects(&self) -> Snapshot<'_> {
         self.non_physical_object_data
             .keys()
-            .map(|&handle| {
-                (
-                    handle.0,
-                    self.convert_to_object_description(handle)
-                        .expect("Handle stored in simulation was not found in world"),
-                )
-            })
+            .map(|&handle| self.handle_to_object(handle))
             .collect()
     }
 
@@ -258,23 +283,17 @@ impl Simulation for SimulationImpl {
         self.world.set_simulated_timestep(timestep)
     }
 
-    fn objects_in_area(&self, area: Aabb) -> Snapshot {
+    fn objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
         self.world
             .bodies_in_area(area)
             .into_iter()
-            .map(|handle| {
-                let object_description = self
-                    .convert_to_object_description(handle)
-                    .expect("Handle stored in simulation was not found in world");
-
-                (handle.0, object_description)
-            })
+            .map(|handle| self.handle_to_object(handle))
             .collect()
     }
 }
 
 impl Interactable for SimulationImpl {
-    fn objects_in_area(&self, area: Aabb) -> Snapshot {
+    fn objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
         Simulation::objects_in_area(self, area)
     }
 
@@ -510,7 +529,7 @@ mod tests {
         let objects = simulation.objects();
         assert_eq!(1, objects.len());
 
-        let object_description = objects.iter().next().unwrap().1;
+        let object_description = &objects.iter().next().unwrap().description;
         assert_eq!(expected_object_description, *object_description);
     }
 
@@ -831,15 +850,13 @@ mod tests {
             box instant_wrapper_factory_fn,
         );
 
-        let object_behavior = ObjectBehaviorMock::new();
-        simulation.add_object(object_description.clone(), box object_behavior);
+        let object_behavior = box ObjectBehaviorMock::new();
+        simulation.add_object(object_description.clone(), object_behavior);
 
-        let expected_objects = hashmap! { 1234 => object_description };
-
-        assert_eq!(
-            expected_objects,
-            Simulation::objects_in_area(&simulation, area)
-        );
+        let objects_in_area = Simulation::objects_in_area(&simulation, area);
+        assert_eq!(1, objects_in_area.len());
+        assert_eq!(returned_handle.0, objects_in_area[0].id);
+        assert_eq!(object_description, objects_in_area[0].description);
     }
 
     #[test]
@@ -869,13 +886,6 @@ mod tests {
 
         let object_behavior = ObjectBehaviorMock::new();
         simulation.add_object(object_description.clone(), box object_behavior);
-
-        let expected_objects = hashmap! { 1234 => object_description };
-
-        assert_eq!(
-            expected_objects,
-            Simulation::objects_in_area(&simulation, area)
-        );
     }
 
     fn object() -> (PhysicalBody, ObjectDescription) {
