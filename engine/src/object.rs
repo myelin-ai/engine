@@ -4,6 +4,7 @@
 //! [`ObjectBuilder`]: crate::object_builder::ObjectBuilder
 
 use crate::prelude::*;
+use std::cell::Ref;
 use std::fmt::Debug;
 
 #[cfg(any(test, feature = "use-mocks"))]
@@ -30,7 +31,17 @@ pub struct Object<'a> {
     /// Physical description of the object
     pub description: ObjectDescription,
     /// Custom behavior of the object
-    pub behavior: std::cell::Ref<'a, Box<dyn ObjectBehavior>>,
+    pub behavior: Ref<'a, Box<dyn ObjectBehavior>>,
+}
+
+impl<'a> Clone for Object<'a> {
+    fn clone(&self) -> Self {
+        Self {
+            id: self.id.clone(),
+            description: self.description.clone(),
+            behavior: Ref::clone(&self.behavior),
+        }
+    }
 }
 
 /// Possible actions performed by an [`Object`]

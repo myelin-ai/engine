@@ -514,8 +514,8 @@ mod tests {
         let objects = simulation.objects();
         assert_eq!(1, objects.len());
 
-        let object_description = objects.iter().next().unwrap().1;
-        assert_eq!(expected_object_description, *object_description);
+        let object_description = objects.iter().next().unwrap().description;
+        assert_eq!(expected_object_description, object_description);
     }
 
     // Something seems fishy with the following test
@@ -835,15 +835,13 @@ mod tests {
             box instant_wrapper_factory_fn,
         );
 
-        let object_behavior = ObjectBehaviorMock::new();
-        simulation.add_object(object_description.clone(), box object_behavior);
+        let object_behavior = box ObjectBehaviorMock::new();
+        simulation.add_object(object_description.clone(), object_behavior);
 
-        let expected_objects = hashmap! { 1234 => object_description };
-
-        assert_eq!(
-            expected_objects,
-            Simulation::objects_in_area(&simulation, area)
-        );
+        let objects_in_area = Simulation::objects_in_area(&simulation, area);
+        assert_eq!(1, objects_in_area.len());
+        assert_eq!(returned_handle.0, objects_in_area[0].id);
+        assert_eq!(object_description, objects_in_area[0].description);
     }
 
     #[test]
@@ -873,13 +871,6 @@ mod tests {
 
         let object_behavior = ObjectBehaviorMock::new();
         simulation.add_object(object_description.clone(), box object_behavior);
-
-        let expected_objects = hashmap! { 1234 => object_description };
-
-        assert_eq!(
-            expected_objects,
-            Simulation::objects_in_area(&simulation, area)
-        );
     }
 
     fn object() -> (PhysicalBody, ObjectDescription) {
