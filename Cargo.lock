@@ -153,7 +153,7 @@ version = "0.1.0"
 dependencies = [
  "alga 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "mockiato 0.1.0 (git+https://github.com/myelin-ai/mockiato)",
- "myelin-geometry 0.1.0",
+ "myelin-geometry 1.0.0",
  "nalgebra 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "nameof 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "ncollide2d 0.18.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -165,7 +165,7 @@ dependencies = [
 
 [[package]]
 name = "myelin-geometry"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "itertools 0.7.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "nearly_eq 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",

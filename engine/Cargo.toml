@@ -11,10 +11,13 @@ authors = [
     "Ruben Schmidmeister <ruben@myelin.ch>",
     "Jeremy Stucki <jeremy@myelin.ch>",
 ]
+repository = "https://github.com/myelin-ai/engine"
+homepage = "https://github.com/myelin-ai/engine"
+documentation = "https://docs.rs/myelin-engine"
 edition = "2018"
 
 [dependencies]
-myelin-geometry = { path = "../geometry" }
+myelin-geometry = { path = "../geometry", version = "1.0.0" }
 nalgebra = "0.17"
 ncollide2d = "0.18" 
 serde = "1.0"
