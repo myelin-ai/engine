@@ -6,24 +6,28 @@ pub use self::simulation_impl::*;
 use crate::prelude::*;
 use std::fmt::Debug;
 
+#[cfg(any(test, feature = "use-mocks"))]
+pub use self::mocks::*;
+
 /// A Simulation that can be filled with [`Object`] on
 /// which it will apply physical rules when calling [`step`].
 /// This trait represents our API.
 ///
 /// [`Object`]: ./object/struct.Object.html
 /// [`step`]: ./trait.Simulation.html#tymethod.step
-#[cfg_attr(any(test, feature = "use-mocks"), mockiato::mockable)]
 pub trait Simulation: Debug {
     /// Advance the simulation by one tick. This will apply
     /// forces to the objects, handle collisions and allow them to
     /// take action.
     fn step(&mut self);
+
     /// Add a new object to the world.
     fn add_object(
         &mut self,
         object_description: ObjectDescription,
         object_behavior: Box<dyn ObjectBehavior>,
     ) -> Object<'_>;
+
     /// Returns a read-only description of all objects currently inhabiting the simulation.
     fn objects(&self) -> Snapshot<'_>;
 
@@ -44,3 +48,40 @@ pub type Id = usize;
 
 /// A representation of the current state of the simulation
 pub type Snapshot<'a> = Vec<Object<'a>>;
+
+#[cfg(any(test, feature = "use-mocks"))]
+mod mocks {
+    use super::*;
+
+    /// Mock for [`Simulation`]
+    ///
+    /// [`Simulation`]: ../trait.Simulation.html
+    #[derive(Debug, Default)]
+    pub struct SimulationMock {}
+
+    impl Simulation for SimulationMock {
+        fn step(&mut self) {
+            unimplemented!()
+        }
+
+        fn add_object(
+            &mut self,
+            object_description: ObjectDescription,
+            object_behavior: Box<dyn ObjectBehavior>,
+        ) -> Object<'_> {
+            unimplemented!()
+        }
+
+        fn objects(&self) -> Snapshot<'_> {
+            unimplemented!()
+        }
+
+        fn set_simulated_timestep(&mut self, timestep: f64) {
+            unimplemented!()
+        }
+
+        fn objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
+            unimplemented!()
+        }
+    }
+}
