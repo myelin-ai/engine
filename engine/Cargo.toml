@@ -42,3 +42,4 @@ use-mocks = ["mockiato"]
 
 [badges]
 travis-ci = { repository = "myelin-ai/engine", branch = "master" }
+codecov = { repository = "myelin-ai/engine", branch = "master", service = "github" }
