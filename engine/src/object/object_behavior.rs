@@ -50,6 +50,12 @@ where
     }
 }
 
+impl Clone for Box<dyn ObjectBehavior> {
+    fn clone(&self) -> Self {
+        self.clone_box()
+    }
+}
+
 #[cfg(any(test, feature = "use-mocks"))]
 mod mocks {
     use super::*;
