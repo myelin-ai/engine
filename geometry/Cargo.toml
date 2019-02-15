@@ -1,14 +1,18 @@
 [package]
 name = "myelin-geometry"
 description = "Basic linear and vector geometry for two-dimensional Euclidean geometry"
-version = "0.1.0"
+version = "1.0.1"
 authors = [
     "Jan Nils Ferner <jan@myelin.ch>",
     "Mathias Fischler <mathias@myelin.ch>",
     "Ruben Schmidmeister <ruben@myelin.ch>",
     "Jeremy Stucki <jeremy@myelin.ch>",
 ]
+repository = "https://github.com/myelin-ai/engine"
+homepage = "https://github.com/myelin-ai/engine"
+documentation = "https://docs.rs/myelin-geometry"
 edition = "2018"
+license = "MIT/Apache-2.0"
 
 [dependencies]
 serde = "1.0"

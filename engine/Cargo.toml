@@ -4,17 +4,22 @@ description = """
 This crate contains the physical engine of
 the simulation, as well as the objects that reside
 within it"""
-version = "0.1.0"
+version = "0.1.2"
 authors = [
     "Jan Nils Ferner <jan@myelin.ch>",
     "Mathias Fischler <mathias@myelin.ch>",
     "Ruben Schmidmeister <ruben@myelin.ch>",
     "Jeremy Stucki <jeremy@myelin.ch>",
 ]
+repository = "https://github.com/myelin-ai/engine"
+homepage = "https://github.com/myelin-ai/engine"
+documentation = "https://docs.rs/myelin-engine"
 edition = "2018"
+license = "MIT/Apache-2.0"
+keywords = [ "simulation", "2d", "physics" ]
 
 [dependencies]
-myelin-geometry = { path = "../geometry" }
+myelin-geometry = { path = "../geometry", version = "1.0.0" }
 nalgebra = "0.17"
 ncollide2d = "0.18" 
 serde = "1.0"
@@ -22,7 +27,7 @@ serde_derive = "1.0"
 alga = "0.7"
 unordered-pair = "0.2"
 nameof = "1.0"
-mockiato = { git = "https://github.com/myelin-ai/mockiato", optional = true }
+mockiato = { version = "0.1", optional = true }
 
 [dependencies.nphysics2d]
 version = "0.10.2"
@@ -30,7 +35,10 @@ default-features = false
 features = ["use-wasm-bindgen"]
 
 [dev-dependencies]
-mockiato = { git = "https://github.com/myelin-ai/mockiato" }
+mockiato = { version = "0.1" }
 
 [features]
 use-mocks = ["mockiato"]
+
+[badges]
+travis-ci = { repository = "myelin-ai/engine", branch = "master" }
