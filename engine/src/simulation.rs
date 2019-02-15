@@ -73,7 +73,7 @@ mod mocks {
     enum ObjectsInAreaExpectation<Input, ReturnValue> {
         None,
         AtLeastOnce(Input, ReturnValue),
-        Sequence(VecDeque<(Input, ReturnValue)>),
+        Sequence(RefCell<VecDeque<(Input, ReturnValue)>>),
     }
 
     impl<Input, ReturnValue> Default for ObjectsInAreaExpectation<Input, ReturnValue> {
@@ -151,8 +151,9 @@ mod mocks {
             &mut self,
             expected_calls_and_return_values: Vec<(Aabb, Snapshot<'a>)>,
         ) {
-            self.expect_objects_in_area_and_return =
-                ObjectsInAreaExpectation::Sequence(expected_calls_and_return_values.into());
+            self.expect_objects_in_area_and_return = ObjectsInAreaExpectation::Sequence(
+                RefCell::new(expected_calls_and_return_values.into()),
+            );
         }
     }
 
@@ -215,11 +216,12 @@ mod mocks {
 
             let (expected_area, return_value) = match self.expect_objects_in_area_and_return {
                 ObjectsInAreaExpectation::None => panic!(UNEXPECTED_CALL_ERROR_MESSAGE),
-                ObjectsInAreaExpectation::AtLeastOnce(expected_area, return_value) => {
-                    (expected_area, return_value)
+                ObjectsInAreaExpectation::AtLeastOnce(ref expected_area, ref return_value) => {
+                    (*expected_area, return_value.clone())
                 }
-                ObjectsInAreaExpectation::Sequence(ref mut expected_calls_and_return_values) => {
+                ObjectsInAreaExpectation::Sequence(ref expected_calls_and_return_values) => {
                     expected_calls_and_return_values
+                        .borrow_mut()
                         .pop_front()
                         .expect(UNEXPECTED_CALL_ERROR_MESSAGE)
                 }
