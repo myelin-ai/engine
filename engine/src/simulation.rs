@@ -53,7 +53,21 @@ pub type Snapshot<'a> = Vec<Object<'a>>;
 mod mocks {
     use super::*;
     use std::cell::RefCell;
+    use std::collections::VecDeque;
     use std::thread::panicking;
+
+    #[derive(Debug, Clone)]
+    enum AddObjectExpectation<Input, ReturnValue> {
+        None,
+        Any(ReturnValue),
+        AtLeastOnce(Input, ReturnValue),
+    }
+
+    impl<Input, ReturnValue> Default for AddObjectExpectation<Input, ReturnValue> {
+        fn default() -> Self {
+            AddObjectExpectation::None
+        }
+    }
 
     /// Mock for [`Simulation`]
     ///
@@ -62,7 +76,7 @@ mod mocks {
     pub struct SimulationMock<'a> {
         expect_step: Option<()>,
         expect_objects_and_return: Option<(Snapshot<'a>,)>,
-        expect_add_object_and_return: Option<(ObjectDescription, Object<'a>)>,
+        expect_add_object_and_return: AddObjectExpectation<ObjectDescription, Object<'a>>,
         expect_set_simulated_timestep: Option<(f64,)>,
         expect_objects_in_area_and_return: Option<(Aabb, Snapshot<'a>)>,
 
@@ -84,13 +98,19 @@ mod mocks {
             self.expect_step = Some(());
         }
 
+        /// Expects an arbitrary amount of calls to `add_object`
+        pub fn expect_add_object_any_times_and_return(&mut self, return_value: Object<'a>) {
+            self.expect_add_object_and_return = AddObjectExpectation::Any(return_value);
+        }
+
         /// Expect a call to `add_object`
         pub fn expect_add_object_and_return(
             &mut self,
             object_description: ObjectDescription,
             return_value: Object<'a>,
         ) {
-            self.expect_add_object_and_return = Some((object_description, return_value));
+            self.expect_add_object_and_return =
+                AddObjectExpectation::AtLeastOnce(object_description, return_value);
         }
 
         /// Expect a call to `objects`
@@ -125,18 +145,19 @@ mod mocks {
         ) -> Object<'_> {
             *self.add_object_was_called.borrow_mut() = true;
 
-            let (expected_object_description, return_value) = self
-                .expect_add_object_and_return
-                .clone()
-                .expect("add_object() was called unexpectedly");
+            match &self.expect_add_object_and_return {
+                AddObjectExpectation::None => panic!("add_object() was called unexpectedly"),
+                AddObjectExpectation::Any(return_value) => return_value.clone(),
+                AddObjectExpectation::AtLeastOnce(expected_object_description, return_value) => {
+                    assert_eq!(
+                        *expected_object_description, object_description,
+                        "add_object() was called with {:?}, expected {:?}",
+                        object_description, expected_object_description
+                    );
 
-            assert_eq!(
-                expected_object_description, object_description,
-                "add_object() was called with {:?}, expected {:?}",
-                object_description, expected_object_description
-            );
-
-            return_value.clone()
+                    return_value.clone()
+                }
+            }
         }
 
         fn objects(&self) -> Snapshot<'_> {
@@ -193,10 +214,12 @@ mod mocks {
                 "step() was not called, but expected"
             );
 
-            assert!(
-                self.expect_add_object_and_return.is_some() == *self.add_object_was_called.borrow(),
-                "add_object() was not called, but expected"
-            );
+            if let AddObjectExpectation::AtLeastOnce(..) = self.expect_add_object_and_return {
+                assert!(
+                    *self.add_object_was_called.borrow(),
+                    "add_object() was not called, but expected"
+                );
+            }
 
             assert!(
                 self.expect_objects_and_return.is_some() == *self.objects_was_called.borrow(),
