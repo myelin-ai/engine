@@ -39,3 +39,6 @@ mockiato = { version = "0.1" }
 
 [features]
 use-mocks = ["mockiato"]
+
+[badges]
+travis-ci = { repository = "myelin-ai/engine", branch = "master" }
