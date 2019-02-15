@@ -1,5 +1,9 @@
 # Myelin Engine
 
+[![Build Status](https://travis-ci.com/myelin-ai/engine.svg?branch=master)](https://travis-ci.com/myelin-ai/engine)
+[![Latest Version](https://img.shields.io/crates/v/myelin-engine.svg)](https://crates.io/crates/myelin-engine)
+[![Documentation](https://docs.rs/myelin-engine/badge.svg)](https://docs.rs/myelin-engine)
+
 A general purpose 2D simulation engine for applications such as physics simulations or video games.
 
 ## Features
