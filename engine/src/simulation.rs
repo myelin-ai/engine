@@ -69,6 +69,19 @@ mod mocks {
         }
     }
 
+    #[derive(Debug, Clone)]
+    enum ObjectsInAreaExpectation<Input, ReturnValue> {
+        None,
+        AtLeastOnce(Input, ReturnValue),
+        Sequence(VecDeque<(Input, ReturnValue)>),
+    }
+
+    impl<Input, ReturnValue> Default for ObjectsInAreaExpectation<Input, ReturnValue> {
+        fn default() -> Self {
+            ObjectsInAreaExpectation::None
+        }
+    }
+
     /// Mock for [`Simulation`]
     ///
     /// [`Simulation`]: ../trait.Simulation.html
@@ -78,7 +91,7 @@ mod mocks {
         expect_objects_and_return: Option<(Snapshot<'a>,)>,
         expect_add_object_and_return: AddObjectExpectation<ObjectDescription, Object<'a>>,
         expect_set_simulated_timestep: Option<(f64,)>,
-        expect_objects_in_area_and_return: Option<(Aabb, Snapshot<'a>)>,
+        expect_objects_in_area_and_return: ObjectsInAreaExpectation<Aabb, Snapshot<'a>>,
 
         step_was_called: RefCell<bool>,
         objects_was_called: RefCell<bool>,
@@ -129,7 +142,16 @@ mod mocks {
             area: Aabb,
             return_value: Snapshot<'a>,
         ) {
-            self.expect_objects_in_area_and_return = Some((area, return_value));
+            self.expect_objects_in_area_and_return =
+                ObjectsInAreaExpectation::AtLeastOnce(area, return_value);
+        }
+
+        pub fn expect_objects_in_area_and_return_in_sequence(
+            &mut self,
+            expected_calls_and_return_values: Vec<(Aabb, Snapshot<'a>)>,
+        ) {
+            self.expect_objects_in_area_and_return =
+                ObjectsInAreaExpectation::Sequence(expected_calls_and_return_values.into());
         }
     }
 
@@ -188,10 +210,19 @@ mod mocks {
         fn objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
             *self.objects_in_area_was_called.borrow_mut() = true;
 
-            let (expected_area, return_value) = self
-                .expect_objects_in_area_and_return
-                .clone()
-                .expect("objects_in_area() was called unexpectedly");
+            const UNEXPECTED_CALL_ERROR_MESSAGE: &str = "objects_in_area() was called unexpectedly";
+
+            let (expected_area, return_value) = match self.expect_objects_in_area_and_return {
+                ObjectsInAreaExpectation::None => panic!(UNEXPECTED_CALL_ERROR_MESSAGE),
+                ObjectsInAreaExpectation::AtLeastOnce(expected_area, return_value) => {
+                    (expected_area, return_value)
+                }
+                ObjectsInAreaExpectation::Sequence(ref mut expected_calls_and_return_values) => {
+                    expected_calls_and_return_values
+                        .pop_front()
+                        .expect(UNEXPECTED_CALL_ERROR_MESSAGE)
+                }
+            };
 
             assert_eq!(
                 expected_area, area,
@@ -232,11 +263,14 @@ mod mocks {
                 "set_simulated_timestep() was not called, but expected"
             );
 
-            assert!(
-                self.expect_objects_in_area_and_return.is_some()
-                    == *self.objects_in_area_was_called.borrow(),
-                "objects_in_area() was not called, but expected"
-            );
+            if let ObjectsInAreaExpectation::AtLeastOnce(..)
+            | ObjectsInAreaExpectation::Sequence(..) = self.expect_objects_in_area_and_return
+            {
+                assert!(
+                    *self.objects_in_area_was_called.borrow(),
+                    "objects_in_area() was not called, but expected"
+                );
+            }
         }
     }
 }
