@@ -111,7 +111,7 @@ mod mocks {
             self.expect_step = Some(());
         }
 
-        /// Expects an arbitrary amount of calls to `add_object`
+        /// Expects an arbitrary amount of calls to `add_object` and return the specified object every time
         pub fn expect_add_object_any_times_and_return(&mut self, return_value: Object<'a>) {
             self.expect_add_object_and_return = AddObjectExpectation::Any(return_value);
         }
@@ -146,6 +146,7 @@ mod mocks {
                 ObjectsInAreaExpectation::AtLeastOnce(area, return_value);
         }
 
+        /// Expects a sequence of calls to `objects_in_area`
         pub fn expect_objects_in_area_and_return_in_sequence(
             &mut self,
             expected_calls_and_return_values: Vec<(Aabb, Snapshot<'a>)>,
