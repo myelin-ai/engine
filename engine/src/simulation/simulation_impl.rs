@@ -179,12 +179,13 @@ impl SimulationImpl {
     }
 
     fn handle_to_behavior(&self, handle: BodyHandle) -> Option<&dyn ObjectBehavior> {
-        Some(
-            self.non_physical_object_data
-                .get(&handle)?
-                .behavior
-                .borrow(),
-        )
+        let ptr = self
+            .non_physical_object_data
+            .get(&handle)?
+            .behavior
+            .as_ptr();
+        let ref_to_behavior = unsafe { ptr.as_ref() }.unwrap().as_ref();
+        Some(ref_to_behavior)
     }
 }
 
@@ -206,9 +207,8 @@ impl Simulation for SimulationImpl {
             .map(|&object_handle| {
                 (
                     object_handle,
-                    // This is safe because the keys of self.objects and
-                    // object_handle_to_objects_within_sensor are identical
-                    self.handle_to_description(object_handle).unwrap(),
+                    self.handle_to_description(object_handle)
+                        .expect("Internal error: Stored handle was invalid"),
                 )
             })
             .collect();
@@ -217,8 +217,6 @@ impl Simulation for SimulationImpl {
         {
             let world_interactor = (self.world_interactor_factory_fn)(self);
             for (object_handle, non_physical_object_data) in &self.non_physical_object_data {
-                // This is safe because the keys of self.objects and
-                // object_handle_to_objects_within_sensor are identical
                 let own_description = &object_handle_to_own_description[object_handle];
                 let action = non_physical_object_data
                     .behavior
