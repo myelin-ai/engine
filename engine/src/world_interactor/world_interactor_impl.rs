@@ -34,7 +34,6 @@ mod tests {
     use super::*;
     use crate::world_interactor::InteractableMock;
     use myelin_geometry::{Point, PolygonBuilder};
-    use std::cell::RefCell;
 
     fn object_description() -> ObjectDescription {
         ObjectBuilder::default()
@@ -54,12 +53,11 @@ mod tests {
 
     #[test]
     fn find_objects_in_area_is_propagated() {
-        let object_behavior: RefCell<Box<dyn ObjectBehavior>> =
-            RefCell::new(box ObjectBehaviorMock::new());
+        let object_behavior = ObjectBehaviorMock::new();
         let objects = vec![Object {
             id: 125,
             description: object_description(),
-            behavior: object_behavior.borrow(),
+            behavior: &object_behavior,
         }];
         let area = Aabb {
             upper_left: Point { x: 10.0, y: 10.0 },
