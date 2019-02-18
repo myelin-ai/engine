@@ -9,7 +9,7 @@ use self::time::InstantWrapper;
 use self::world::{BodyHandle, PhysicalBody, World};
 use crate::prelude::*;
 use crate::world_interactor::Interactable;
-use std::cell::{Ref, RefCell};
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{self, Debug};
@@ -178,7 +178,7 @@ impl SimulationImpl {
         }
     }
 
-    fn handle_to_behavior(&self, handle: BodyHandle) -> Option<Ref<'_, Box<dyn ObjectBehavior>>> {
+    fn handle_to_behavior(&self, handle: BodyHandle) -> Option<&dyn ObjectBehavior> {
         Some(
             self.non_physical_object_data
                 .get(&handle)?
