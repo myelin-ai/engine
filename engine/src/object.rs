@@ -20,7 +20,7 @@ pub struct Object<'a> {
     pub description: ObjectDescription,
 
     /// Custom behavior of the object
-    pub behavior: Ref<'a, Box<dyn ObjectBehavior>>,
+    pub behavior: &'a dyn ObjectBehavior,
 }
 
 impl<'a> Clone for Object<'a> {
@@ -28,7 +28,7 @@ impl<'a> Clone for Object<'a> {
         Self {
             id: self.id,
             description: self.description.clone(),
-            behavior: Ref::clone(&self.behavior),
+            behavior: self.behavior.clone(),
         }
     }
 }
