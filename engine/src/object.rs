@@ -9,7 +9,7 @@ mod object_behavior;
 pub use self::object_behavior::*;
 
 /// An object that is stored in the simulation
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Object<'a> {
     /// The object's unique ID.
     /// Can be stored in order to retrieve this object later on.
@@ -20,16 +20,6 @@ pub struct Object<'a> {
 
     /// Custom behavior of the object
     pub behavior: &'a dyn ObjectBehavior,
-}
-
-impl<'a> Clone for Object<'a> {
-    fn clone(&self) -> Self {
-        Self {
-            id: self.id,
-            description: self.description.clone(),
-            behavior: self.behavior.clone(),
-        }
-    }
 }
 
 /// Possible actions performed by an [`Object`]
