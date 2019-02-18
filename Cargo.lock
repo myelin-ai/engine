@@ -130,15 +130,15 @@ dependencies = [
 
 [[package]]
 name = "mockiato"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "mockiato-codegen 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "mockiato-codegen 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "mockiato-codegen"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "heck 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -152,7 +152,7 @@ name = "myelin-engine"
 version = "0.3.1"
 dependencies = [
  "alga 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "mockiato 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "mockiato 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "myelin-geometry 1.0.1",
  "nalgebra 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "nameof 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -579,8 +579,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum libm 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "03c0bb6d5ce1b5cc6fd0578ec1cbc18c9d88b5b591a5c7c1d6c6175e266a0819"
 "checksum log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "c84ec4b527950aa83a329754b01dbe3f58361d1c5efacd1f6d68c494d08a17c6"
 "checksum matrixmultiply 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "dcfed72d871629daa12b25af198f110e8095d7650f5f4c61c5bac28364604f9b"
-"checksum mockiato 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "94aaea43c6ebfd97110d49e341f7fb44c0bc77b4a961debf64e9704919a8b44e"
-"checksum mockiato-codegen 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1d11dbd11715e9ae8bbdc6661cd23f33e52eb5f838da4fb527f26af0f040478f"
+"checksum mockiato 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d83e0825a1862e3b76ec383d5fac6d10f7fcf34e00500694bcd68c028446af1a"
+"checksum mockiato-codegen 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ed99f2a496250d889184a722854a357d03b5459c0eb50432c48bebf71dc834f7"
 "checksum nalgebra 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f75ff2a99063281e23bc062bed0144a9c1f627f4ac00b060b378276d7cff1d83"
 "checksum nameof 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "2e90fbc8c7ae00979152d976d59e1d98a47d9967cae51af4b94b188ad3ca2e68"
 "checksum ncollide2d 0.18.1 (registry+https://github.com/rust-lang/crates.io-index)" = "8e493d4bffa06957054308aef7e987256e383cd7d05e14bdffff9b7480918d7a"
