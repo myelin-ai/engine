@@ -1,5 +1,5 @@
-use myelin_engine::simulation::SimulationBuilder;
 use myelin_engine::prelude::*;
+use myelin_engine::simulation::SimulationBuilder;
 use std::any::Any;
 
 #[derive(Debug, Clone, Default)]
@@ -19,24 +19,23 @@ impl ObjectBehavior for StaticBehavior {
     }
 }
 
-
 #[test]
 fn simulation_runs() {
     let mut simulation = SimulationBuilder::new().build();
     let description = ObjectBuilder::default()
-            .shape(
-                PolygonBuilder::default()
-                    .vertex(-5.0, -5.0)
-                    .vertex(5.0, -5.0)
-                    .vertex(5.0, 5.0)
-                    .vertex(-5.0, 5.0)
-                    .build()
-                    .unwrap(),
-            )
-            .location(10.0, 15.0)
-            .mobility(Mobility::Immovable)
-            .build()
-            .unwrap();
+        .shape(
+            PolygonBuilder::default()
+                .vertex(-5.0, -5.0)
+                .vertex(5.0, -5.0)
+                .vertex(5.0, 5.0)
+                .vertex(-5.0, 5.0)
+                .build()
+                .unwrap(),
+        )
+        .location(10.0, 15.0)
+        .mobility(Mobility::Immovable)
+        .build()
+        .unwrap();
 
     let behavior: Box<ObjectBehavior> = Box::new(StaticBehavior::default());
     simulation.add_object(description, behavior);
