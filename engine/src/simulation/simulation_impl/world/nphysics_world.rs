@@ -711,7 +711,7 @@ mod tests {
         assert_eq!(*expected_body, actual_body);
     }
 
-    fn rotation_translator_for_adding_body() -> NphysicsRotationTranslatorMock {
+    fn rotation_translator_for_adding_body() -> NphysicsRotationTranslatorMock<'static> {
         let mut rotation_translator = NphysicsRotationTranslatorMock::new();
         rotation_translator
             .expect_to_nphysics_rotation(partial_eq(Radians::try_new(FRAC_PI_2).unwrap()))
@@ -719,7 +719,8 @@ mod tests {
         rotation_translator
     }
 
-    fn rotation_translator_for_adding_and_reading_body() -> NphysicsRotationTranslatorMock {
+    fn rotation_translator_for_adding_and_reading_body() -> NphysicsRotationTranslatorMock<'static>
+    {
         let mut rotation_translator = rotation_translator_for_adding_body();
         rotation_translator
             .expect_to_radians(partial_eq(FRAC_PI_2))
