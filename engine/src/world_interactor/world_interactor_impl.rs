@@ -33,6 +33,7 @@ impl<'a> WorldInteractor for WorldInteractorImpl<'a> {
 mod tests {
     use super::*;
     use crate::world_interactor::InteractableMock;
+    use mockiato::partial_eq;
     use myelin_geometry::{Point, PolygonBuilder};
 
     fn object_description() -> ObjectDescription {
@@ -65,7 +66,9 @@ mod tests {
         };
 
         let mut interactable = InteractableMock::new();
-        interactable.expect_objects_in_area_and_return(area, objects.clone());
+        interactable
+            .expect_objects_in_area(partial_eq(area))
+            .returns(objects.clone());
         let world_interactor = WorldInteractorImpl::new(&interactable);
 
         let objects_in_area = world_interactor.find_objects_in_area(area);
