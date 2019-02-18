@@ -40,5 +40,7 @@ fn simulation_runs() {
 
     let behavior: Box<ObjectBehavior> = Box::new(StaticBehavior::default());
     simulation.add_object(description, behavior);
+
+    simulation.step();
     simulation.step();
 }
