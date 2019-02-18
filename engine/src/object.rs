@@ -8,6 +8,8 @@ use crate::prelude::*;
 mod object_behavior;
 pub use self::object_behavior::*;
 
+
+
 /// An object that is stored in the simulation
 #[derive(Debug, Clone)]
 pub struct Object<'a> {

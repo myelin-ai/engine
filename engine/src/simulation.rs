@@ -89,7 +89,7 @@ mod mocks {
     pub struct SimulationMock<'a> {
         expect_step: Option<()>,
         expect_objects_and_return: Option<(Snapshot<'a>,)>,
-        expect_add_object_and_return: AddObjectExpectation<ObjectDescription, Object<'a>>,
+        expect_add_object_and_return: AddObjectExpectation<ObjectDescription, FullyOwnedObject>,
         expect_set_simulated_timestep: Option<(f64,)>,
         expect_objects_in_area_and_return: ObjectsInAreaExpectation<Aabb, Snapshot<'a>>,
 
@@ -99,6 +99,12 @@ mod mocks {
         set_simulated_timestep_was_called: RefCell<bool>,
         objects_in_area_was_called: RefCell<bool>,
     }
+
+    /// A helper tuple with an owned [`ObjectBehavior`], used to assemble an [`Object`] in mocks.
+    ///
+    /// [`ObjectBehavior`]: ./object/trait.ObjectBehavior.html
+    /// [`Object`]: ./object/struct.Object.html
+    pub type FullyOwnedObject = (Id, ObjectDescription, Box<dyn ObjectBehavior>);
 
     impl<'a> SimulationMock<'a> {
         /// Construct a new `SimulationMock`
@@ -112,15 +118,15 @@ mod mocks {
         }
 
         /// Expects an arbitrary amount of calls to `add_object` and return the specified object every time
-        pub fn expect_add_object_any_times_and_return(&mut self, return_value: Object<'a>) {
-            self.expect_add_object_and_return = AddObjectExpectation::Any(return_value);
+        pub fn expect_add_object_any_times_and_return(&mut self, object: FullyOwnedObject) {
+            self.expect_add_object_and_return = AddObjectExpectation::Any(object);
         }
 
         /// Expect a call to `add_object`
         pub fn expect_add_object_and_return(
             &mut self,
             object_description: ObjectDescription,
-            return_value: Object<'a>,
+            return_value: FullyOwnedObject,
         ) {
             self.expect_add_object_and_return =
                 AddObjectExpectation::AtLeastOnce(object_description, return_value);
@@ -171,7 +177,11 @@ mod mocks {
 
             match &self.expect_add_object_and_return {
                 AddObjectExpectation::None => panic!("add_object() was called unexpectedly"),
-                AddObjectExpectation::Any(return_value) => return_value.clone(),
+                AddObjectExpectation::Any((id, description, behavior)) => Object {
+                    id: *id,
+                    description: description.clone(),
+                    behavior: behavior.as_ref(),
+                },
                 AddObjectExpectation::AtLeastOnce(expected_object_description, return_value) => {
                     assert_eq!(
                         *expected_object_description, object_description,
@@ -179,7 +189,12 @@ mod mocks {
                         object_description, expected_object_description
                     );
 
-                    return_value.clone()
+                    let (id, description, behavior) = return_value;
+                    Object {
+                        id: *id,
+                        description: description.clone(),
+                        behavior: behavior.as_ref(),
+                    }
                 }
             }
         }
