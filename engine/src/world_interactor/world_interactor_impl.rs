@@ -34,7 +34,6 @@ mod tests {
     use super::*;
     use crate::world_interactor::InteractableMock;
     use myelin_geometry::{Point, PolygonBuilder};
-    use std::cell::RefCell;
 
     fn object_description() -> ObjectDescription {
         ObjectBuilder::default()

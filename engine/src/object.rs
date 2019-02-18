@@ -4,7 +4,6 @@
 //! [`ObjectBuilder`]: crate::object_builder::ObjectBuilder
 
 use crate::prelude::*;
-use std::cell::Ref;
 
 mod object_behavior;
 pub use self::object_behavior::*;
