@@ -184,6 +184,13 @@ impl SimulationImpl {
             .get(&handle)?
             .behavior
             .as_ptr();
+        // This is safe as long as we don't hand out `&mut dyn ObjectBehavior` anywhere, ever.
+        // We still have some guarantees regarding the borrow checker, as we currently hand out
+        // `Vec<Object<'a>>`, where we maintain Rust's borrowing guarantees.
+        // Only the `ObjectBehavior` of a given `Object` is borrowed unsafely, which is fine,
+        // as the only possible way to mutate it is through `step`.
+        // If you have an idea of how to restructure `Simulation` so that this unsafe call is no longer
+        // needed, be my guest.
         let ref_to_behavior = unsafe { ptr.as_ref() }.unwrap().as_ref();
         Some(ref_to_behavior)
     }
