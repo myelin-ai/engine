@@ -8,8 +8,8 @@ struct StaticBehavior;
 impl ObjectBehavior for StaticBehavior {
     fn step(
         &mut self,
-        own_description: &ObjectDescription,
-        world_interactor: &dyn WorldInteractor,
+        _own_description: &ObjectDescription,
+        _world_interactor: &dyn WorldInteractor,
     ) -> Option<Action> {
         None
     }
