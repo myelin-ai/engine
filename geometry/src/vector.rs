@@ -207,6 +207,46 @@ mod tests {
     }
 
     #[test]
+    fn scales_positive_vector() {
+        let original_vector = Vector { x: 1.0, y: 2.0 };
+        let expected_vector = Vector { x: 2.0, y: 4.0 };
+
+        let scaled_vector = original_vector * 2.0;
+
+        assert_eq!(expected_vector, scaled_vector);
+    }
+
+    #[test]
+    fn scales_vector_with_negative_component() {
+        let original_vector = Vector { x: -4.0, y: 2.0 };
+        let expected_vector = Vector { x: -8.0, y: 4.0 };
+
+        let scaled_vector = original_vector * 2.0;
+
+        assert_eq!(expected_vector, scaled_vector);
+    }
+
+    #[test]
+    fn shrinks_positive_vector() {
+        let original_vector = Vector { x: 1.0, y: 2.0 };
+        let expected_vector = Vector { x: 0.5, y: 1.0 };
+
+        let scaled_vector = original_vector / 2.0;
+
+        assert_eq!(expected_vector, scaled_vector);
+    }
+
+    #[test]
+    fn shrinks_vector_with_negative_component() {
+        let original_vector = Vector { x: -4.0, y: 2.0 };
+        let expected_vector = Vector { x: -2.0, y: 1.0 };
+
+        let scaled_vector = original_vector / 2.0;
+
+        assert_eq!(expected_vector, scaled_vector);
+    }
+
+    #[test]
     fn calculates_dot_product() {
         let a = Vector { x: 2.0, y: 3.0 };
         let b = Vector { x: -4.0, y: 10.0 };
