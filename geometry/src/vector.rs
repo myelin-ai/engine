@@ -1,5 +1,5 @@
 use crate::Point;
-use std::ops::{Add, Sub};
+use std::ops::{Add, Sub, Mul, Div};
 
 /// A vector
 #[derive(Debug, PartialEq, Copy, Clone, Default, Serialize, Deserialize)]
@@ -28,6 +28,17 @@ impl Sub for Vector {
         Vector {
             x: self.x - other.x,
             y: self.y - other.y,
+        }
+    }
+}
+
+impl Mul<f64> for Vector {
+    type Output = Vector;
+
+    fn mul(self, rhs: f64) -> Self::Output {
+        Vector {
+            x: self.x * rhs,
+            y: self.y * rhs,
         }
     }
 }
