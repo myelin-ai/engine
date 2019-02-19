@@ -1,5 +1,5 @@
 use crate::Point;
-use std::ops::{Add, Sub, Mul, Div};
+use std::ops::{Add, Div, Mul, Sub};
 
 /// A vector
 #[derive(Debug, PartialEq, Copy, Clone, Default, Serialize, Deserialize)]
