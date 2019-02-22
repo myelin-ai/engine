@@ -53,7 +53,7 @@ impl Aabb {
         let upper_left = upper_left.into();
         let lower_right = lower_right.into();
 
-        if upper_left == lower_right {
+        if upper_left >= lower_right {
             Err(())
         } else {
             Ok(Self {
@@ -61,5 +61,20 @@ impl Aabb {
                 lower_right,
             })
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn try_new_errors_for_equal_points() {
+        assert!(Aabb::try_new((10.0, 10.0), (10.0, 10.0)).is_err());
+    }
+
+    #[test]
+    fn try_new_errors_when_upper_left_is_larger_than_lower_right() {
+        assert!(Aabb::try_new((10.0, 10.0), (0.0, 0.0)).is_err());
     }
 }
