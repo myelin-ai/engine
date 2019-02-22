@@ -9,12 +9,12 @@ use self::time::InstantWrapper;
 use self::world::{BodyHandle, PhysicalBody, World};
 use crate::prelude::*;
 use crate::world_interactor::Interactable;
+use nameof::name_of_type;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{self, Debug};
 use std::time::Duration;
-use nameof::name_of_type;
 
 pub use self::builder::SimulationBuilder;
 
