@@ -244,19 +244,19 @@ mod tests {
                 vertices: vec![
                     Point {
                         x: 10.0 - FLOATING_POINT_INACCURACY,
-                        y: 10.0 + FLOATING_POINT_INACCURACY
+                        y: 10.0 + FLOATING_POINT_INACCURACY,
                     },
                     Point {
                         x: -10.0 - FLOATING_POINT_INACCURACY,
-                        y: 10.0 - FLOATING_POINT_INACCURACY
+                        y: 10.0 - FLOATING_POINT_INACCURACY,
                     },
                     Point {
                         x: -10.0 + FLOATING_POINT_INACCURACY,
-                        y: -10.0 - FLOATING_POINT_INACCURACY
+                        y: -10.0 - FLOATING_POINT_INACCURACY,
                     },
                     Point {
                         x: 10.0 + FLOATING_POINT_INACCURACY,
-                        y: -10.0 + FLOATING_POINT_INACCURACY
+                        y: -10.0 + FLOATING_POINT_INACCURACY,
                     },
                 ],
             },
@@ -276,19 +276,19 @@ mod tests {
                 vertices: vec![
                     Point {
                         x: ROTATION_A,
-                        y: ROTATION_B
+                        y: ROTATION_B,
                     },
                     Point {
                         x: -ROTATION_B,
-                        y: ROTATION_A
+                        y: ROTATION_A,
                     },
                     Point {
                         x: -ROTATION_A,
-                        y: -ROTATION_B
+                        y: -ROTATION_B,
                     },
                     Point {
                         x: ROTATION_B,
-                        y: -ROTATION_A
+                        y: -ROTATION_A,
                     },
                 ],
             },
@@ -307,19 +307,19 @@ mod tests {
                 vertices: vec![
                     Point {
                         x: 38.488_724_885_405_78,
-                        y: 51.311_125_046_603_124
+                        y: 51.311_125_046_603_124,
                     },
                     Point {
                         x: 18.688_874_953_396_876,
-                        y: 48.488_724_885_405_78
+                        y: 48.488_724_885_405_78,
                     },
                     Point {
                         x: 21.511_275_114_594_22,
-                        y: 28.688_874_953_396_876
+                        y: 28.688_874_953_396_876,
                     },
                     Point {
                         x: 41.311_125_046_603_124,
-                        y: 31.511_275_114_594_22
+                        y: 31.511_275_114_594_22,
                     },
                 ],
             },
