@@ -8,6 +8,7 @@ use crate::simulation::simulation_impl::world::builder::NphysicsWorldBuilder;
 use crate::simulation::simulation_impl::SimulationImpl;
 use crate::simulation::Simulation;
 use crate::world_interactor::WorldInteractorImpl;
+use nameof::name_of_type;
 use std::fmt;
 use std::fmt::Debug;
 use std::time::Instant;

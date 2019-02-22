@@ -1,4 +1,5 @@
 use crate::Vector;
+use serde_derive::{Deserialize, Serialize};
 use std::ops::{Add, Sub};
 
 /// A point in space
