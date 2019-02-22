@@ -4,6 +4,7 @@ pub use self::builder::*;
 use super::*;
 use crate::ConvexHull;
 use itertools::Itertools;
+use serde_derive::{Deserialize, Serialize};
 
 mod builder;
 

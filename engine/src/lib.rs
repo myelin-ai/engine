@@ -12,12 +12,6 @@
 )]
 #![cfg_attr(test, allow(clippy::float_cmp))]
 
-#[macro_use]
-extern crate serde_derive;
-
-#[macro_use]
-extern crate nameof;
-
 pub mod object;
 mod object_builder;
 pub mod prelude;
