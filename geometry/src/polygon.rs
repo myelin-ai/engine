@@ -136,6 +136,29 @@ impl Polygon {
         Aabb::try_new((min_x, min_y), (max_x, max_y)).unwrap()
     }
 }
+
+impl From<Aabb> for Polygon {
+    fn from(aabb: Aabb) -> Self {
+        Polygon {
+            vertices: vec![
+                Point {
+                    x: aabb.upper_left.x,
+                    y: aabb.upper_left.y,
+                },
+                Point {
+                    x: aabb.upper_left.x,
+                    y: aabb.lower_right.y,
+                },
+                Point {
+                    x: aabb.lower_right.x,
+                    y: aabb.upper_left.y,
+                },
+                Point {
+                    x: aabb.lower_right.x,
+                    y: aabb.lower_right.y,
+                },
+            ],
+        }
     }
 }
 
@@ -478,5 +501,19 @@ mod tests {
             }),
             Polygon::try_new(vertices)
         );
+    }
+
+    #[test]
+    fn can_be_created_from_aabb() {
+        let aabb = Aabb::try_new(Point { x: 10.0, y: 15.0 }, Point { x: 20.0, y: 30.0 }).unwrap();
+        let expected_polygon = Polygon::try_new(vec![
+            Point { x: 10.0, y: 15.0 },
+            Point { x: 10.0, y: 30.0 },
+            Point { x: 20.0, y: 15.0 },
+            Point { x: 20.0, y: 30.0 },
+        ])
+        .unwrap();
+
+        assert_eq!(expected_polygon, Polygon::from(aabb));
     }
 }
