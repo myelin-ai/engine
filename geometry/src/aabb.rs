@@ -50,4 +50,87 @@ impl Aabb {
             lower_right: lower_right.into(),
         }
     }
+
+    /// Returns wether the bounds of another `Aabb` are touching or
+    /// inside this `Aabb`.
+    /// ```other
+    /// ┼─────────────────────────────────────── x
+    /// │
+    /// │   ┌─────────────┐
+    /// │   │             │
+    /// │   │          ┌──│───────┐
+    /// │   └─────────────┘       │
+    /// │              └──────────┘
+    /// y
+    /// ```
+    pub fn intersects(&self, _other: Aabb) -> bool {
+        unimplemented!()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn intersects_self() {
+        let aabb = Aabb::new((0.0, 0.0), (10.0, 10.0));
+        assert!(aabb.intersects(aabb));
+    }
+
+    #[test]
+    fn intersects_contained() {
+        let bigger_aabb = Aabb::new((0.0, 0.0), (10.0, 10.0));
+        let smaller_aabb = Aabb::new((2.0, 2.0), (8.0, 8.0));
+        assert!(bigger_aabb.intersects(smaller_aabb));
+        assert!(smaller_aabb.intersects(bigger_aabb));
+    }
+
+    #[test]
+    fn intersects_touching() {
+        let left_aabb = Aabb::new((0.0, 0.0), (10.0, 10.0));
+        let right_aabb = Aabb::new((10.0, 0.0), (20.0, 10.0));
+        assert!(left_aabb.intersects(right_aabb));
+        assert!(right_aabb.intersects(left_aabb));
+    }
+
+    #[test]
+    fn intersects_diagonally_touching() {
+        let left_aabb = Aabb::new((0.0, 0.0), (10.0, 10.0));
+        let right_aabb = Aabb::new((10.0, 10.0), (20.0, 11.0));
+        assert!(left_aabb.intersects(right_aabb));
+        assert!(right_aabb.intersects(left_aabb));
+    }
+
+    #[test]
+    fn intersects_intersecting() {
+        let first_aabb = Aabb::new((0.0, 0.0), (10.0, 10.0));
+        let second_aabb = Aabb::new((8.0, 8.0), (20.0, 20.0));
+        assert!(first_aabb.intersects(second_aabb));
+        assert!(second_aabb.intersects(first_aabb));
+    }
+
+    #[test]
+    fn intersects_intersecting_when_negative() {
+        let first_aabb = Aabb::new((-10.0, -10.0), (-5.0, -5.0));
+        let second_aabb = Aabb::new((-6.0, -20.0), (-3.0, -3.0));
+        assert!(first_aabb.intersects(second_aabb));
+        assert!(second_aabb.intersects(first_aabb));
+    }
+
+    #[test]
+    fn intersects_intersecting_when_negative_and_positive() {
+        let first_aabb = Aabb::new((-5.0, -5.0), (5.0, 5.0));
+        let second_aabb = Aabb::new((-6.0, -20.0), (0.0, 2.0));
+        assert!(first_aabb.intersects(second_aabb));
+        assert!(second_aabb.intersects(first_aabb));
+    }
+
+    #[test]
+    fn does_not_intersect_when_appart() {
+        let first_aabb = Aabb::new((0.0, 0.0), (10.0, 10.0));
+        let second_aabb = Aabb::new((20.0, 0.0), (21.0, 20.0));
+        assert!(first_aabb.intersects(second_aabb));
+        assert!(second_aabb.intersects(first_aabb));
+    }
 }
