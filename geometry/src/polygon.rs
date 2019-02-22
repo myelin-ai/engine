@@ -132,7 +132,33 @@ impl Polygon {
         let min_y = vertices.first().unwrap().y;
         let max_y = vertices.last().unwrap().y;
 
-        Aabb::new((min_x, min_y), (max_x, max_y))
+        // Safe unwrap: A polygon where all four points are the same is not valid
+        Aabb::try_new((min_x, min_y), (max_x, max_y)).unwrap()
+    }
+}
+
+impl From<Aabb> for Polygon {
+    fn from(aabb: Aabb) -> Self {
+        Polygon {
+            vertices: vec![
+                Point {
+                    x: aabb.upper_left.x,
+                    y: aabb.upper_left.y,
+                },
+                Point {
+                    x: aabb.upper_left.x,
+                    y: aabb.lower_right.y,
+                },
+                Point {
+                    x: aabb.lower_right.x,
+                    y: aabb.upper_left.y,
+                },
+                Point {
+                    x: aabb.lower_right.x,
+                    y: aabb.lower_right.y,
+                },
+            ],
+        }
     }
 }
 
@@ -218,19 +244,19 @@ mod tests {
                 vertices: vec![
                     Point {
                         x: 10.0 - FLOATING_POINT_INACCURACY,
-                        y: 10.0 + FLOATING_POINT_INACCURACY
+                        y: 10.0 + FLOATING_POINT_INACCURACY,
                     },
                     Point {
                         x: -10.0 - FLOATING_POINT_INACCURACY,
-                        y: 10.0 - FLOATING_POINT_INACCURACY
+                        y: 10.0 - FLOATING_POINT_INACCURACY,
                     },
                     Point {
                         x: -10.0 + FLOATING_POINT_INACCURACY,
-                        y: -10.0 - FLOATING_POINT_INACCURACY
+                        y: -10.0 - FLOATING_POINT_INACCURACY,
                     },
                     Point {
                         x: 10.0 + FLOATING_POINT_INACCURACY,
-                        y: -10.0 + FLOATING_POINT_INACCURACY
+                        y: -10.0 + FLOATING_POINT_INACCURACY,
                     },
                 ],
             },
@@ -250,19 +276,19 @@ mod tests {
                 vertices: vec![
                     Point {
                         x: ROTATION_A,
-                        y: ROTATION_B
+                        y: ROTATION_B,
                     },
                     Point {
                         x: -ROTATION_B,
-                        y: ROTATION_A
+                        y: ROTATION_A,
                     },
                     Point {
                         x: -ROTATION_A,
-                        y: -ROTATION_B
+                        y: -ROTATION_B,
                     },
                     Point {
                         x: ROTATION_B,
-                        y: -ROTATION_A
+                        y: -ROTATION_A,
                     },
                 ],
             },
@@ -281,19 +307,19 @@ mod tests {
                 vertices: vec![
                     Point {
                         x: 38.488_724_885_405_78,
-                        y: 51.311_125_046_603_124
+                        y: 51.311_125_046_603_124,
                     },
                     Point {
                         x: 18.688_874_953_396_876,
-                        y: 48.488_724_885_405_78
+                        y: 48.488_724_885_405_78,
                     },
                     Point {
                         x: 21.511_275_114_594_22,
-                        y: 28.688_874_953_396_876
+                        y: 28.688_874_953_396_876,
                     },
                     Point {
                         x: 41.311_125_046_603_124,
-                        y: 31.511_275_114_594_22
+                        y: 31.511_275_114_594_22,
                     },
                 ],
             },
@@ -372,7 +398,7 @@ mod tests {
                 Point { x: 5.0, y: 5.0 },
             ],
         };
-        let expected_aabb = Aabb::new((-5.0, -5.0), (5.0, 5.0));
+        let expected_aabb = Aabb::try_new((-5.0, -5.0), (5.0, 5.0)).unwrap();
 
         assert_eq!(expected_aabb, polygon.aabb());
     }
@@ -387,7 +413,7 @@ mod tests {
                 Point { x: 5.0, y: 5.0 },
             ],
         };
-        let expected_aabb = Aabb::new((-5.0, -5.0), (5.0, 5.0));
+        let expected_aabb = Aabb::try_new((-5.0, -5.0), (5.0, 5.0)).unwrap();
 
         assert_eq!(expected_aabb, polygon.aabb());
     }
@@ -475,5 +501,19 @@ mod tests {
             }),
             Polygon::try_new(vertices)
         );
+    }
+
+    #[test]
+    fn can_be_created_from_aabb() {
+        let aabb = Aabb::try_new(Point { x: 10.0, y: 15.0 }, Point { x: 20.0, y: 30.0 }).unwrap();
+        let expected_polygon = Polygon::try_new(vec![
+            Point { x: 10.0, y: 15.0 },
+            Point { x: 10.0, y: 30.0 },
+            Point { x: 20.0, y: 15.0 },
+            Point { x: 20.0, y: 30.0 },
+        ])
+        .unwrap();
+
+        assert_eq!(expected_polygon, Polygon::from(aabb));
     }
 }
