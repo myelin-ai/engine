@@ -1,5 +1,5 @@
 use crate::Point;
-use std::ops::{Add, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 
 /// A vector
 #[derive(Debug, PartialEq, Copy, Clone, Default, Serialize, Deserialize)]
@@ -28,6 +28,28 @@ impl Sub for Vector {
         Vector {
             x: self.x - other.x,
             y: self.y - other.y,
+        }
+    }
+}
+
+impl Mul<f64> for Vector {
+    type Output = Vector;
+
+    fn mul(self, rhs: f64) -> Self::Output {
+        Vector {
+            x: self.x * rhs,
+            y: self.y * rhs,
+        }
+    }
+}
+
+impl Div<f64> for Vector {
+    type Output = Vector;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        Vector {
+            x: self.x / rhs,
+            y: self.y / rhs,
         }
     }
 }
@@ -182,6 +204,46 @@ mod tests {
         let expected_vector = Vector { x: -8.0, y: -41.0 };
         let substracted_vector = original_vector - vector_to_subtract;
         assert_eq!(expected_vector, substracted_vector);
+    }
+
+    #[test]
+    fn scales_positive_vector() {
+        let original_vector = Vector { x: 1.0, y: 2.0 };
+        let expected_vector = Vector { x: 2.0, y: 4.0 };
+
+        let scaled_vector = original_vector * 2.0;
+
+        assert_eq!(expected_vector, scaled_vector);
+    }
+
+    #[test]
+    fn scales_vector_with_negative_component() {
+        let original_vector = Vector { x: -4.0, y: 2.0 };
+        let expected_vector = Vector { x: -8.0, y: 4.0 };
+
+        let scaled_vector = original_vector * 2.0;
+
+        assert_eq!(expected_vector, scaled_vector);
+    }
+
+    #[test]
+    fn shrinks_positive_vector() {
+        let original_vector = Vector { x: 1.0, y: 2.0 };
+        let expected_vector = Vector { x: 0.5, y: 1.0 };
+
+        let scaled_vector = original_vector / 2.0;
+
+        assert_eq!(expected_vector, scaled_vector);
+    }
+
+    #[test]
+    fn shrinks_vector_with_negative_component() {
+        let original_vector = Vector { x: -4.0, y: 2.0 };
+        let expected_vector = Vector { x: -2.0, y: 1.0 };
+
+        let scaled_vector = original_vector / 2.0;
+
+        assert_eq!(expected_vector, scaled_vector);
     }
 
     #[test]

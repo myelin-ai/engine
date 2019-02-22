@@ -29,25 +29,37 @@ impl Aabb {
     /// ```
     /// use myelin_geometry::Aabb;
     ///
-    /// let area = Aabb::new((10.0, 10.0), (20.0, 0.0));
+    /// let area = Aabb::try_new((10.0, 0.0), (20.0, 10.0)).expect("Invalid aabb");
     /// ```
     ///
     /// ## From points
     /// ```
     /// use myelin_geometry::{Aabb, Point};
     ///
-    /// let area = Aabb::new(Point { x: 0.0, y: 10.0 }, Point { x: 20.0, y: 20.0 });
+    /// let area =
+    ///     Aabb::try_new(Point { x: 0.0, y: 10.0 }, Point { x: 20.0, y: 20.0 }).expect("Invalid aabb");
     /// ```
     ///
+    /// # Errors
+    ///
+    /// Returns an error when both points are the same.
+    ///
     /// [`Aabb`]: ./struct.Aabb.html
-    pub fn new<P1, P2>(upper_left: P1, lower_right: P2) -> Self
+    pub fn try_new<P1, P2>(upper_left: P1, lower_right: P2) -> Result<Self, ()>
     where
         P1: Into<Point>,
         P2: Into<Point>,
     {
-        Self {
-            upper_left: upper_left.into(),
-            lower_right: lower_right.into(),
+        let upper_left = upper_left.into();
+        let lower_right = lower_right.into();
+
+        if upper_left.x >= lower_right.x || upper_left.y >= lower_right.y {
+            Err(())
+        } else {
+            Ok(Self {
+                upper_left,
+                lower_right,
+            })
         }
     }
 
@@ -137,5 +149,30 @@ mod tests {
         let second_aabb = Aabb::new((20.0, 0.0), (21.0, 20.0));
         assert!(first_aabb.intersects(second_aabb));
         assert!(second_aabb.intersects(first_aabb));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn try_new_errors_for_equal_points() {
+        assert!(Aabb::try_new((10.0, 10.0), (10.0, 10.0)).is_err());
+    }
+
+    #[test]
+    fn try_new_errors_when_upper_left_is_larger_than_lower_right() {
+        assert!(Aabb::try_new((10.0, 10.0), (0.0, 0.0)).is_err());
+    }
+
+    #[test]
+    fn try_new_errors_when_upper_left_x_is_larger_than_lower_right_x() {
+        assert!(Aabb::try_new((10.0, 0.0), (0.0, 5.5)).is_err());
+    }
+
+    #[test]
+    fn try_new_errors_when_upper_left_y_is_larger_than_lower_right_y() {
+        assert!(Aabb::try_new((0.0, 10.0), (5.0, 0.0)).is_err());
     }
 }

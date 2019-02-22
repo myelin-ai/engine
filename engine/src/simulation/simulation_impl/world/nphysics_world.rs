@@ -548,7 +548,7 @@ mod tests {
 
         assert_eq!(
             vec![handle],
-            world.bodies_in_area(Aabb::new((-100.0, -100.0), (100.0, 100.0)))
+            world.bodies_in_area(Aabb::try_new((-100.0, -100.0), (100.0, 100.0)).unwrap())
         );
     }
 
@@ -564,7 +564,7 @@ mod tests {
 
         assert_eq!(
             Vec::<BodyHandle>::new(),
-            world.bodies_in_area(Aabb::new((20.0, 20.0), (30.0, 40.0)))
+            world.bodies_in_area(Aabb::try_new((20.0, 20.0), (30.0, 40.0)).unwrap())
         );
     }
 
