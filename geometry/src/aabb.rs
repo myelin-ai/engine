@@ -64,11 +64,11 @@ impl Aabb {
     /// y
     /// ```
     pub fn intersects(&self, other: Aabb) -> bool {
-        let intersects_x =
+        let x_overlaps =
             self.upper_left.x <= other.lower_right.x && self.lower_right.x >= other.upper_left.x;
-        let intersects_y =
+        let y_overlaps =
             self.upper_left.y <= other.lower_right.y && self.lower_right.y >= other.upper_left.y;
-        intersects_x && intersects_y
+        x_overlaps && y_overlaps
     }
 }
 
