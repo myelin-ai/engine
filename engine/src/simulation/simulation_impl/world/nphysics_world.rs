@@ -131,7 +131,12 @@ impl NphysicsWorld {
 
         self.rotation_translator
             .to_radians(rotation)
-            .expect("Rotation of a collider could not be translated into Radians")
+            .unwrap_or_else(|error| match error {
+                NphysicsRotationTranslatorError::InvalidNphysicsValue(value) => panic!(
+                    "Rotation of a collider could not be translated into Radians. Invalid value {}",
+                    value
+                ),
+            })
     }
 
     fn passable(&self, collider: &Collider<f64>) -> bool {

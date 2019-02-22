@@ -28,10 +28,10 @@ pub trait NphysicsRotationTranslator: Debug {
 }
 
 /// The reason why a rotation could not be translated
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum NphysicsRotationTranslatorError {
     /// The given nphysics value was not in the range (-π; π]
-    InvalidNphysicsValue,
+    InvalidNphysicsValue(f64),
 }
 
 impl fmt::Display for NphysicsRotationTranslatorError {

@@ -35,7 +35,7 @@ impl NphysicsRotationTranslator for NphysicsRotationTranslatorImpl {
         };
 
         Radians::try_new(adjusted_rotation)
-            .map_err(|_| NphysicsRotationTranslatorError::InvalidNphysicsValue)
+            .map_err(|_| NphysicsRotationTranslatorError::InvalidNphysicsValue(nphysics_rotation))
     }
 }
 
@@ -72,36 +72,24 @@ mod tests {
 
     #[test]
     fn to_radians_returns_0_when_passed_0() {
-        verify_to_radians_returns_expected_result(
-            0.0,
-            Radians::try_new(0.0)
-                .map_err(|_| NphysicsRotationTranslatorError::InvalidNphysicsValue),
-        )
+        verify_to_radians_returns_expected_result(0.0, Radians::try_new(0.0).unwrap())
     }
 
     #[test]
     fn to_radians_returns_half_pi_when_passed_half_pi() {
-        verify_to_radians_returns_expected_result(
-            FRAC_PI_2,
-            Radians::try_new(FRAC_PI_2)
-                .map_err(|_| NphysicsRotationTranslatorError::InvalidNphysicsValue),
-        )
+        verify_to_radians_returns_expected_result(FRAC_PI_2, Radians::try_new(FRAC_PI_2).unwrap())
     }
 
     #[test]
     fn to_radians_returns_returns_pi_when_passed_pi() {
-        verify_to_radians_returns_expected_result(
-            PI,
-            Radians::try_new(PI).map_err(|_| NphysicsRotationTranslatorError::InvalidNphysicsValue),
-        )
+        verify_to_radians_returns_expected_result(PI, Radians::try_new(PI).unwrap())
     }
 
     #[test]
     fn to_radians_returns_one_and_a_half_pi_when_passed_negative_half_pi() {
         verify_to_radians_returns_expected_result(
             -FRAC_PI_2,
-            Radians::try_new(3.0 * FRAC_PI_2)
-                .map_err(|_| NphysicsRotationTranslatorError::InvalidNphysicsValue),
+            Radians::try_new(3.0 * FRAC_PI_2).unwrap(),
         )
     }
 
@@ -109,8 +97,7 @@ mod tests {
     fn to_radians_works_with_almost_zero_value() {
         verify_to_radians_returns_expected_result(
             -0.000_000_000_000_000_275_574_467_583_596_6,
-            Radians::try_new(0.0)
-                .map_err(|_| NphysicsRotationTranslatorError::InvalidNphysicsValue),
+            Radians::try_new(0.0).unwrap(),
         )
     }
 
@@ -122,17 +109,38 @@ mod tests {
             .is_ok());
     }
 
+    #[test]
+    fn to_radians_returns_error_when_passed_too_big_value() {
+        verify_to_radians_returns_expected_error(
+            2.0 * PI,
+            NphysicsRotationTranslatorError::InvalidNphysicsValue(2.0 * PI),
+        )
+    }
+
+    #[test]
+    fn to_radians_returns_error_when_passed_too_small_value() {
+        verify_to_radians_returns_expected_error(
+            -10.0,
+            NphysicsRotationTranslatorError::InvalidNphysicsValue(-10.0),
+        )
+    }
+
     fn verify_to_nphysics_rotation_returns_expected_result(input: Radians, expected: f64) {
         let translator = NphysicsRotationTranslatorImpl::default();
         assert_eq!(expected, translator.to_nphysics_rotation(input));
     }
 
-    fn verify_to_radians_returns_expected_result(
+    fn verify_to_radians_returns_expected_result(input: f64, expected: Radians) {
+        let translator = NphysicsRotationTranslatorImpl::default();
+        assert_eq!(expected, translator.to_radians(input).unwrap());
+    }
+
+    fn verify_to_radians_returns_expected_error(
         input: f64,
-        expected: Result<Radians, NphysicsRotationTranslatorError>,
+        expected: NphysicsRotationTranslatorError,
     ) {
         let translator = NphysicsRotationTranslatorImpl::default();
-        assert_eq!(expected, translator.to_radians(input));
+        assert_eq!(Err(expected), translator.to_radians(input));
     }
 
 }
