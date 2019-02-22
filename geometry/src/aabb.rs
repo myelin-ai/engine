@@ -29,7 +29,7 @@ impl Aabb {
     /// ```
     /// use myelin_geometry::Aabb;
     ///
-    /// let area = Aabb::try_new((10.0, 10.0), (20.0, 0.0)).expect("Invalid aabb");
+    /// let area = Aabb::try_new((10.0, 0.0), (20.0, 10.0)).expect("Invalid aabb");
     /// ```
     ///
     /// ## From points
@@ -53,7 +53,7 @@ impl Aabb {
         let upper_left = upper_left.into();
         let lower_right = lower_right.into();
 
-        if upper_left >= lower_right {
+        if upper_left.x >= lower_right.x || upper_left.y >= lower_right.y {
             Err(())
         } else {
             Ok(Self {
@@ -76,5 +76,15 @@ mod tests {
     #[test]
     fn try_new_errors_when_upper_left_is_larger_than_lower_right() {
         assert!(Aabb::try_new((10.0, 10.0), (0.0, 0.0)).is_err());
+    }
+
+    #[test]
+    fn try_new_errors_when_upper_left_x_is_larger_than_lower_right_x() {
+        assert!(Aabb::try_new((10.0, 0.0), (0.0, 5.5)).is_err());
+    }
+
+    #[test]
+    fn try_new_errors_when_upper_left_y_is_larger_than_lower_right_y() {
+        assert!(Aabb::try_new((0.0, 10.0), (5.0, 0.0)).is_err());
     }
 }
