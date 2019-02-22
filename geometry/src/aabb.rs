@@ -90,6 +90,26 @@ mod tests {
     use super::*;
 
     #[test]
+    fn try_new_errors_for_equal_points() {
+        assert!(Aabb::try_new((10.0, 10.0), (10.0, 10.0)).is_err());
+    }
+
+    #[test]
+    fn try_new_errors_when_upper_left_is_larger_than_lower_right() {
+        assert!(Aabb::try_new((10.0, 10.0), (0.0, 0.0)).is_err());
+    }
+
+    #[test]
+    fn try_new_errors_when_upper_left_x_is_larger_than_lower_right_x() {
+        assert!(Aabb::try_new((10.0, 0.0), (0.0, 5.5)).is_err());
+    }
+
+    #[test]
+    fn try_new_errors_when_upper_left_y_is_larger_than_lower_right_y() {
+        assert!(Aabb::try_new((0.0, 10.0), (5.0, 0.0)).is_err());
+    }
+
+    #[test]
     fn intersects_self() {
         let aabb = Aabb::try_new((0.0, 0.0), (10.0, 10.0)).unwrap();
         assert!(aabb.intersects(aabb));
@@ -149,25 +169,5 @@ mod tests {
         let second_aabb = Aabb::try_new((20.0, 0.0), (21.0, 20.0)).unwrap();
         assert!(first_aabb.intersects(second_aabb));
         assert!(second_aabb.intersects(first_aabb));
-    }
-
-    #[test]
-    fn try_new_errors_for_equal_points() {
-        assert!(Aabb::try_new((10.0, 10.0), (10.0, 10.0)).is_err());
-    }
-
-    #[test]
-    fn try_new_errors_when_upper_left_is_larger_than_lower_right() {
-        assert!(Aabb::try_new((10.0, 10.0), (0.0, 0.0)).is_err());
-    }
-
-    #[test]
-    fn try_new_errors_when_upper_left_x_is_larger_than_lower_right_x() {
-        assert!(Aabb::try_new((10.0, 0.0), (0.0, 5.5)).is_err());
-    }
-
-    #[test]
-    fn try_new_errors_when_upper_left_y_is_larger_than_lower_right_y() {
-        assert!(Aabb::try_new((0.0, 10.0), (5.0, 0.0)).is_err());
     }
 }
