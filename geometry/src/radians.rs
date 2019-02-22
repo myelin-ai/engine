@@ -1,6 +1,8 @@
+use serde_derive::{Deserialize, Serialize};
 use std::error::Error;
 use std::f64::consts::PI;
 use std::fmt;
+
 /// A radian confined to the range of [0.0; 2π)
 #[derive(Debug, PartialEq, Copy, Clone, Default, Serialize, Deserialize)]
 pub struct Radians {
@@ -52,6 +54,7 @@ impl Error for RadiansError {}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use nearly_eq::assert_nearly_eq;
     use std::f64::consts::PI;
 
     #[test]

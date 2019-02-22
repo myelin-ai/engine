@@ -1,3 +1,4 @@
+use nameof::name_of_type;
 use nphysics2d::world::World as PhysicsWorld;
 use std::fmt::{self, Debug};
 use std::ops::{Deref, DerefMut};

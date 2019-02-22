@@ -11,6 +11,7 @@ use crate::world_interactor::WorldInteractorImpl;
 use std::fmt;
 use std::fmt::Debug;
 use std::time::Instant;
+use nameof::name_of_type;
 
 /// Builder for the [`Simulation`]. This is the composition root.
 /// Only advanced users should derive from the defaults.

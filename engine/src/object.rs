@@ -4,6 +4,7 @@
 //! [`ObjectBuilder`]: crate::object_builder::ObjectBuilder
 
 use crate::prelude::*;
+use serde_derive::{Deserialize, Serialize};
 
 mod object_behavior;
 pub use self::object_behavior::*;

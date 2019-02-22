@@ -1,4 +1,5 @@
 use crate::Point;
+use serde_derive::{Deserialize, Serialize};
 use std::ops::{Add, Div, Mul, Sub};
 
 /// A vector
@@ -96,6 +97,7 @@ impl Vector {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use nearly_eq::assert_nearly_eq;
 
     #[test]
     fn is_equal_to_itself() {
