@@ -63,8 +63,12 @@ impl Aabb {
     /// │              └──────────┘
     /// y
     /// ```
-    pub fn intersects(&self, _other: Aabb) -> bool {
-        unimplemented!()
+    pub fn intersects(&self, other: Aabb) -> bool {
+        let intersects_x =
+            self.upper_left.x <= other.lower_right.x && self.lower_right.x >= other.upper_left.x;
+        let intersects_y =
+            self.upper_left.y <= other.lower_right.y && self.lower_right.y >= other.upper_left.y;
+        intersects_x && intersects_y
     }
 }
 
