@@ -132,7 +132,10 @@ impl Polygon {
         let min_y = vertices.first().unwrap().y;
         let max_y = vertices.last().unwrap().y;
 
-        Aabb::new((min_x, min_y), (max_x, max_y))
+        // Safe unwrap: A polygon where all four points are the same is not valid
+        Aabb::try_new((min_x, min_y), (max_x, max_y)).unwrap()
+    }
+}
     }
 }
 
@@ -372,7 +375,7 @@ mod tests {
                 Point { x: 5.0, y: 5.0 },
             ],
         };
-        let expected_aabb = Aabb::new((-5.0, -5.0), (5.0, 5.0));
+        let expected_aabb = Aabb::try_new((-5.0, -5.0), (5.0, 5.0)).unwrap();
 
         assert_eq!(expected_aabb, polygon.aabb());
     }
@@ -387,7 +390,7 @@ mod tests {
                 Point { x: 5.0, y: 5.0 },
             ],
         };
-        let expected_aabb = Aabb::new((-5.0, -5.0), (5.0, 5.0));
+        let expected_aabb = Aabb::try_new((-5.0, -5.0), (5.0, 5.0)).unwrap();
 
         assert_eq!(expected_aabb, polygon.aabb());
     }
