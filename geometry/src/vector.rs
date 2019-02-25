@@ -100,6 +100,11 @@ impl Vector {
             y: self.x,
         }
     }
+
+    /// Returns the magnitude of the vector, i.e. its length if viewed as a line
+    pub fn magnitude(self) -> f64 {
+        unimplemented!()
+    }
 }
 
 #[cfg(test)]
