@@ -346,12 +346,12 @@ mod tests {
     }
 
     #[test]
-    fn cross_product_of_normal_is_zero() {
+    fn dot_product_of_normal_is_zero() {
         let vector = Vector { x: 10.0, y: 3.0 };
         let normal = vector.normal();
-        let expected_cross_product = 0.0;
-        let cross_product = vector.cross_product(normal);
+        let expected_dot_product = 0.0;
+        let dot_product = vector.dot_product(normal);
 
-        assert_eq!(expected_cross_product, cross_product);
+        assert_nearly_eq!(expected_dot_product, dot_product);
     }
 }
