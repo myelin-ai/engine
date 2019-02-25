@@ -494,6 +494,15 @@ mod tests {
     }
 
     #[test]
+    fn projection_of_zero_vector_onto_self_is_zero_vector() {
+        let zero_vector = Vector::default();
+        let expected_projection = zero_vector;
+        let projection = zero_vector.project_onto(zero_vector);
+
+        assert_eq!(expected_projection, projection);
+    }
+
+    #[test]
     fn projection_of_self_is_self() {
         let vector = Vector { x: 5.0, y: -2.0 };
         let expected_projection = vector;
