@@ -149,7 +149,7 @@ impl Polygon {
             .map(Vector::from)
     }
 
-    fn scalar_project_onto(&self, axis: Vector) -> (f64, f64) {
+    fn scalar_project_onto_unit_vector(&self, axis: Vector) -> (f64, f64) {
         let projection: Vec<_> = self
             .vertices()
             .iter()
@@ -173,19 +173,34 @@ impl Polygon {
 impl Intersects for Polygon {
     /// Returns wether this polygon touches, contains or is contained in another polygon
     fn intersects(&self, other: &Polygon) -> bool {
-        self.edges()
+        // The following codes describes the Separating Axis Theorem (SAT),
+        // which states that if we are able to draw a straight line (i.e. axis)
+        // between two polygons (i.e. separating them), they are not intersecting
+
+        // Take all edges
+        !self
+            .edges()
             .chain(other.edges())
+            // If we can draw a perpendicular (i.e. normal) between them,
+            // the polygons are separate
             .map(Vector::normal)
+            // Make axis a unit vector to simplify the following math:
+            // If the axis has a magnitude of 1, we don't need to divide
+            // the scalar projection by it.
             .map(Vector::unit)
             .any(|axis| {
-                let (own_min, own_max) = self.scalar_project_onto(axis);
-                let (other_min, other_max) = other.scalar_project_onto(axis);
+                // Take the bounds of the line that is created by projecting all
+                // vertices onto the axis
+                let (own_min, own_max) = self.scalar_project_onto_unit_vector(axis);
+                let (other_min, other_max) = other.scalar_project_onto_unit_vector(axis);
 
-                let min_is_separate_of_other_projection =
-                    own_min >= other_min && own_min <= other_max;
-                let max_is_separate_of_other_projection =
-                    own_max <= other_max && own_max >= other_min;
-                min_is_separate_of_other_projection || max_is_separate_of_other_projection
+                // Check if the bounds are touching the other polygon's projection
+                let min_is_touching_other_projection = own_min >= other_min || own_min <= other_max;
+                let max_is_touching_other_projection = own_max <= other_max || own_max >= other_min;
+
+                // If both bounds are outside the other polygon's projection, we are
+                // able to draw a separating axis between them
+                !min_is_touching_other_projection && !max_is_touching_other_projection
             })
     }
 }
