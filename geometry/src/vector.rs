@@ -95,7 +95,10 @@ impl Vector {
 
     /// Retuns the vector's normal vector, i.e. a vector that is perpendicular to this vector
     pub fn normal(self) -> Vector {
-        unimplemented!()
+        Vector {
+            x: -self.y,
+            y: self.x,
+        }
     }
 }
 
