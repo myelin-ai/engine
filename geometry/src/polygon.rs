@@ -589,7 +589,7 @@ mod tests {
     }
 
     #[test]
-    fn intersects_touching() {
+    fn intersects_touching_line() {
         let left_polygon = Polygon::try_new(vec![
             Point { x: 0.0, y: 0.0 },
             Point { x: 10.0, y: 0.0 },
@@ -598,7 +598,7 @@ mod tests {
         .unwrap();
         let right_polygon = Polygon::try_new(vec![
             Point { x: 10.0, y: 0.0 },
-            Point { x: 20.0, y: 0.0 },
+            Point { x: 5.0, y: 5.0 },
             Point { x: 20.0, y: 10.0 },
         ])
         .unwrap();
@@ -607,7 +607,7 @@ mod tests {
     }
 
     #[test]
-    fn intersects_diagonally_touching() {
+    fn intersects_touching_point() {
         let left_polygon = Polygon::try_new(vec![
             Point { x: 0.0, y: 0.0 },
             Point { x: 10.0, y: 0.0 },
