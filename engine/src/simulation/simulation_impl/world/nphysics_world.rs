@@ -592,7 +592,7 @@ mod tests {
 
     #[test]
     fn bodies_in_polygon_returns_body_in_area() {
-        let rotation_translator = rotation_translator_for_adding_body();
+        let rotation_translator = rotation_translator_for_adding_and_reading_body();
 
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let expected_body = movable_body();
@@ -613,7 +613,7 @@ mod tests {
 
     #[test]
     fn bodies_in_polygon_does_not_return_out_of_range_bodies() {
-        let rotation_translator = rotation_translator_for_adding_body();
+        let rotation_translator = rotation_translator_for_adding_and_reading_body();
 
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
         let body = movable_body();
