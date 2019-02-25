@@ -431,7 +431,7 @@ mod tests {
 
     #[test]
     fn unit_vector_is_stretched_when_original_magnitude_is_smaller_than_one() {
-        let vector = Vector { x: 4.0, y: 2.0 };
+        let vector = Vector { x: 0.2, y: 0.5 };
         let expected_unit_vector = Vector {
             x: 0.371391,
             y: 0.928477,
