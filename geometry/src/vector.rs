@@ -540,4 +540,22 @@ mod tests {
 
         assert_eq!(expected_projection, projection);
     }
+
+    #[test]
+    fn projection_of_normal_is_zero_vector() {
+        let vector = Vector { x: -8.0, y: -1.0 };
+        let expected_projection = Vector::default();
+        let projection = vector.project_onto(vector.normal());
+
+        assert_eq!(expected_projection, projection);
+    }
+
+    #[test]
+    fn projection_of_normal_is_zero_vector() {
+        let vector = Vector { x: -8.0, y: -1.0 };
+        let expected_projection = Vector::default();
+        let projection = vector.project_onto(vector.normal());
+
+        assert_eq!(expected_projection, projection);
+    }
 }
