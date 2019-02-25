@@ -100,6 +100,11 @@ impl Vector {
             y: self.x,
         }
     }
+
+    /// Returns the magnitude of the vector, i.e. its length if viewed as a line
+    pub fn magnitude(self) -> f64 {
+        (self.x.powi(2) + self.y.powi(2)).sqrt()
+    }
 }
 
 #[cfg(test)]
@@ -353,5 +358,41 @@ mod tests {
         let dot_product = vector.dot_product(normal);
 
         assert_nearly_eq!(expected_dot_product, dot_product);
+    }
+
+    #[test]
+    fn magnitude_of_zero_vector_is_zero() {
+        let vector = Vector::default();
+        let expected_magnitude = 0.0;
+        let magnitude = vector.magnitude();
+
+        assert_nearly_eq!(expected_magnitude, magnitude);
+    }
+
+    #[test]
+    fn magnitude_of_horizontal_vector_is_correct() {
+        let vector = Vector { x: 5.0, y: 0.0 };
+        let expected_magnitude = 5.0;
+        let magnitude = vector.magnitude();
+
+        assert_nearly_eq!(expected_magnitude, magnitude);
+    }
+
+    #[test]
+    fn magnitude_of_rotated_vector_is_correct() {
+        let vector = Vector { x: 9.0, y: 3.0 };
+        let expected_magnitude = 9.486_832_980_505_138;
+        let magnitude = vector.magnitude();
+
+        assert_nearly_eq!(expected_magnitude, magnitude);
+    }
+
+    #[test]
+    fn magnitude_of_negative_vector_is_correct() {
+        let vector = Vector { x: -5.0, y: -2.0 };
+        let expected_magnitude = 5.385_164_807_134_504;
+        let magnitude = vector.magnitude();
+
+        assert_nearly_eq!(expected_magnitude, magnitude);
     }
 }
