@@ -433,8 +433,8 @@ mod tests {
     fn unit_vector_is_stretched_when_original_magnitude_is_smaller_than_one() {
         let vector = Vector { x: 0.2, y: 0.5 };
         let expected_unit_vector = Vector {
-            x: 0.371391,
-            y: 0.928477,
+            x: 0.371_390_676_354_103_67,
+            y: 0.928_476_690_885_259_2,
         };
         let unit_vector = vector.unit();
 
