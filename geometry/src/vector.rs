@@ -119,7 +119,7 @@ impl Vector {
 
     /// Returns the projection of this vector onto another vector
     pub fn project_onto(self, other: Vector) -> Vector {
-        unimplemented!()
+        other.unit() * self.dot_product(other) / other.magnitude()
     }
 }
 
