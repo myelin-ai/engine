@@ -25,3 +25,6 @@ pub use self::point::*;
 
 mod convex_hull;
 pub use self::convex_hull::*;
+
+mod intersects;
+pub use intersects::*;

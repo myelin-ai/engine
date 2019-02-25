@@ -3,6 +3,7 @@
 pub use self::builder::*;
 use super::*;
 use crate::ConvexHull;
+use crate::Intersects;
 use itertools::Itertools;
 use serde_derive::{Deserialize, Serialize};
 
@@ -148,9 +149,11 @@ impl Polygon {
             .map(Vector::from)
             .collect()
     }
+}
 
+impl Intersects for Polygon {
     /// Returns wether this polygon touches, contains or is contained in another polygon
-    pub fn intersects(&self, other: &Vector) -> bool {
+    fn intersects(&self, other: &Polygon) -> bool {
         unimplemented!()
     }
 }
