@@ -148,6 +148,11 @@ impl Polygon {
             .map(Vector::from)
             .collect()
     }
+
+    /// Returns wether this polygon touches, contains or is contained in another polygon
+    pub fn intersects(&self, other: &Vector) -> bool {
+        unimplemented!()
+    }
 }
 
 impl From<Aabb> for Polygon {
