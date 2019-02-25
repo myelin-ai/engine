@@ -149,53 +149,44 @@ impl Polygon {
             .map(Vector::from)
     }
 
-    /// Projects onto an axis.
-    ///
-    /// [`Vector`]: ./struct.Vector.html
-    pub fn project(&self, axis: Vector) -> Projection {
-        let mut dot_products: Vec<_> = self
+    fn scalar_project_onto(&self, axis: Vector) -> (f64, f64) {
+        let projection: Vec<_> = self
             .vertices()
             .iter()
             .cloned()
             .map(Vector::from)
-            .map(|vertex| axis.dot_product(vertex))
+            .map(|vector| vector.dot_product(axis))
             .collect();
-
-        dot_products.sort_by(|a, b| a.partial_cmp(b).unwrap());
-
-        let min = *dot_products.first().unwrap();
-        let max = *dot_products.last().unwrap();
-
-        Projection { min, max }
-    }
-}
-
-/// A [`Polygon`] projected onto an axis.
-/// Returned from [`Polygon::project`].
-///
-/// [`Polygon`]: ./struct.Polygon.html
-#[derive(Debug, Copy, Clone)]
-pub struct Projection {
-    min: f64,
-    max: f64,
-}
-
-impl Intersects for Projection {
-    /// Returns wether this projection touches, contains or is contained in another projection
-    fn intersects(&self, other: &Projection) -> bool {
-        self.max > other.min || self.min > other.max
+        (
+            *projection
+                .iter()
+                .min_by(|lhs, rhs| lhs.partial_cmp(rhs).unwrap())
+                .unwrap(),
+            *projection
+                .iter()
+                .max_by(|lhs, rhs| lhs.partial_cmp(rhs).unwrap())
+                .unwrap(),
+        )
     }
 }
 
 impl Intersects for Polygon {
     /// Returns wether this polygon touches, contains or is contained in another polygon
     fn intersects(&self, other: &Polygon) -> bool {
-        self.edges().chain(other.edges()).all(|axis| {
-            let projection = self.project(axis);
-            let projection_of_other = other.project(axis);
+        self.edges()
+            .chain(other.edges())
+            .map(Vector::normal)
+            .map(Vector::unit)
+            .any(|axis| {
+                let (own_min, own_max) = self.scalar_project_onto(axis);
+                let (other_min, other_max) = other.scalar_project_onto(axis);
 
-            projection.intersects(&projection_of_other)
-        })
+                let min_is_separate_of_other_projection =
+                    own_min >= other_min && own_min <= other_max;
+                let max_is_separate_of_other_projection =
+                    own_max <= other_max && own_max >= other_min;
+                min_is_separate_of_other_projection || max_is_separate_of_other_projection
+            })
     }
 }
 
