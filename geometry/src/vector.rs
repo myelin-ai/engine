@@ -116,6 +116,15 @@ impl Vector {
 
         self / magnitude
     }
+
+    /// Returns the projection of this vector onto another vector
+    pub fn project_onto(self, other: Vector) -> Vector {
+        let zero_vector = Default::default();
+        if self == zero_vector || other == zero_vector {
+            return zero_vector;
+        }
+        other.unit() * self.dot_product(other) / other.magnitude()
+    }
 }
 
 #[cfg(test)]
@@ -460,5 +469,105 @@ mod tests {
     fn unit_vector_of_zero_vector_is_undefined() {
         let zero_vector = Vector::default();
         let _unit_vector = zero_vector.unit();
+    }
+
+    #[test]
+    fn projection_onto_zero_vector_is_zero_vector() {
+        let vector = Vector {
+            x: 1_000.0,
+            y: -2_000.0,
+        };
+        let zero_vector = Vector::default();
+        let expected_projection = zero_vector;
+        let projection = vector.project_onto(zero_vector);
+
+        assert_eq!(expected_projection, projection);
+    }
+
+    #[test]
+    fn projected_zero_vector_is_zero_vector() {
+        let vector = Vector {
+            x: 1_000.0,
+            y: -2_000.0,
+        };
+        let zero_vector = Vector::default();
+        let expected_projection = zero_vector;
+        let projection = zero_vector.project_onto(vector);
+
+        assert_eq!(expected_projection, projection);
+    }
+
+    #[test]
+    fn projection_of_zero_vector_onto_self_is_zero_vector() {
+        let zero_vector = Vector::default();
+        let expected_projection = zero_vector;
+        let projection = zero_vector.project_onto(zero_vector);
+
+        assert_eq!(expected_projection, projection);
+    }
+
+    #[test]
+    fn projection_of_self_is_self() {
+        let vector = Vector { x: 5.0, y: -2.0 };
+        let expected_projection = vector;
+        let projection = vector.project_onto(vector);
+
+        assert_nearly_eq!(expected_projection.x, projection.x);
+        assert_nearly_eq!(expected_projection.y, projection.y);
+    }
+
+    #[test]
+    fn projection_is_correct_for_positive_numbers() {
+        let projected_vector = Vector { x: 5.0, y: 2.0 };
+        let other_vector = Vector { x: 10.0, y: 7.0 };
+
+        let expected_projection = Vector {
+            x: 640.0 / 149.0,
+            y: 448.0 / 149.0,
+        };
+        let projection = projected_vector.project_onto(other_vector);
+
+        assert_eq!(expected_projection, projection);
+    }
+
+    #[test]
+    fn projection_is_correct_for_negative_numbers() {
+        let projected_vector = Vector { x: -8.0, y: -1.0 };
+        let other_vector = Vector { x: -2.0, y: -4.0 };
+
+        let expected_projection = Vector { x: -2.0, y: -4.0 };
+        let projection = projected_vector.project_onto(other_vector);
+
+        assert_eq!(expected_projection, projection);
+    }
+
+    #[test]
+    fn projection_of_normal_is_zero_vector() {
+        let vector = Vector { x: -8.0, y: -1.0 };
+        let expected_projection = Vector::default();
+        let projection = vector.project_onto(vector.normal());
+
+        assert_eq!(expected_projection, projection);
+    }
+
+    #[test]
+    fn projection_onto_unit_vector_is_original_vector() {
+        let vector = Vector { x: -8.0, y: -1.0 };
+        let expected_projection = vector;
+        let projection = vector.project_onto(vector.unit());
+
+        assert_nearly_eq!(expected_projection.x, projection.x);
+        assert_nearly_eq!(expected_projection.y, projection.y);
+    }
+
+    #[test]
+    fn projection_of_unit_vector_is_unit_vector() {
+        let vector = Vector { x: -8.0, y: -1.0 };
+        let unit_vector = vector.unit();
+        let expected_projection = unit_vector;
+        let projection = unit_vector.project_onto(vector);
+
+        assert_nearly_eq!(expected_projection.x, projection.x);
+        assert_nearly_eq!(expected_projection.y, projection.y);
     }
 }
