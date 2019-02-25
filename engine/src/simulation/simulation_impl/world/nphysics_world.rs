@@ -312,7 +312,7 @@ impl World for NphysicsWorld {
                 let body = self
                     .body(body_handle)
                     .expect("Internal error: Nphysics returned invalid handle");
-                area.intersects(body.shape)
+                area.aabb().intersects(body.shape.aabb())
             })
             .collect()
     }
