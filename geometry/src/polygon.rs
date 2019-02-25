@@ -114,6 +114,11 @@ impl Polygon {
             .all(|side| side == reference_side || side == Side::OnTheLine)
     }
 
+    /// Checks if another polygon touches or is contained in this polygon
+    pub fn intersects(other: Polygon) -> bool {
+        unimplemented!()
+    }
+
     /// Returns an [`Aabb`] which fully contains this polygon.
     ///
     /// # Panics
