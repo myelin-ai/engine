@@ -446,6 +446,15 @@ mod tests {
     }
 
     #[test]
+    fn magnitude_of_unit_vector_is_one() {
+        let vector = Vector { x: 1_000.0, y: -2_000.0 };
+        let expected_magnitude = 1.0;
+        let magnitude = vector.unit().magnitude();
+
+        assert_nearly_eq!(expected_magnitude, magnitude);
+    }
+
+    #[test]
     #[should_panic]
     fn unit_vector_of_zero_vector_is_undefined() {
         let zero_vector = Vector::default();
