@@ -113,10 +113,8 @@ impl Vector {
             magnitude != 0.0,
             "Attempted to take the unit vector of a zero vector (0, 0), which is undefined"
         );
-        Vector {
-            x: self.x / magnitude,
-            y: self.y / magnitude,
-        }
+
+        self / magnitude
     }
 }
 
