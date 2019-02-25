@@ -148,12 +148,54 @@ impl Polygon {
             .map(|(&first_vertex, &second_vertex)| second_vertex - first_vertex)
             .map(Vector::from)
     }
+
+    /// Projects onto an axis.
+    ///
+    /// [`Vector`]: ./struct.Vector.html
+    pub fn project(&self, axis: Vector) -> Projection {
+        let mut dot_products: Vec<_> = self
+            .vertices()
+            .iter()
+            .cloned()
+            .map(Vector::from)
+            .map(|vertex| axis.dot_product(vertex))
+            .collect();
+
+        dot_products.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+        let min = *dot_products.first().unwrap();
+        let max = *dot_products.last().unwrap();
+
+        Projection { min, max }
+    }
+}
+
+/// A [`Polygon`] projected onto an axis.
+/// Returned from [`Polygon::project`].
+///
+/// [`Polygon`]: ./struct.Polygon.html
+#[derive(Debug, Copy, Clone)]
+pub struct Projection {
+    min: f64,
+    max: f64,
+}
+
+impl Intersects for Projection {
+    /// Returns wether this projection touches, contains or is contained in another projection
+    fn intersects(&self, other: &Projection) -> bool {
+        self.max > other.min || self.min > other.max
+    }
 }
 
 impl Intersects for Polygon {
     /// Returns wether this polygon touches, contains or is contained in another polygon
     fn intersects(&self, other: &Polygon) -> bool {
-        unimplemented!()
+        self.edges().chain(other.edges()).all(|axis| {
+            let projection = self.project(axis);
+            let projection_of_other = other.project(axis);
+
+            projection.intersects(&projection_of_other)
+        })
     }
 }
 
