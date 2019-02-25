@@ -558,4 +558,121 @@ mod tests {
         let edges = polygon.edges();
         assert_eq!(expected_edges, edges);
     }
+
+    #[test]
+    fn intersects_self() {
+        let polygon = Polygon::try_new(vec![
+            Point { x: 0.0, y: 0.0 },
+            Point { x: 10.0, y: 0.0 },
+            Point { x: 10.0, y: 10.0 },
+        ])
+        .unwrap();
+        assert!(polygon.intersects(polygon));
+    }
+
+    #[test]
+    fn intersects_contained() {
+        let bigger_polygon = Polygon::try_new(vec![
+            Point { x: 0.0, y: 0.0 },
+            Point { x: 10.0, y: 0.0 },
+            Point { x: 10.0, y: 10.0 },
+        ])
+        .unwrap();
+        let smaller_polygon = Polygon::try_new(vec![
+            Point { x: 2.0, y: 2.0 },
+            Point { x: 8.0, y: 2.0 },
+            Point { x: 8.0, y: 8.0 },
+        ])
+        .unwrap();
+        assert!(bigger_polygon.intersects(smaller_polygon));
+        assert!(smaller_polygon.intersects(bigger_polygon));
+    }
+
+    #[test]
+    fn intersects_touching() {
+        let left_polygon = Polygon::try_new(vec![
+            Point { x: 0.0, y: 0.0 },
+            Point { x: 10.0, y: 0.0 },
+            Point { x: 10.0, y: 10.0 },
+        ])
+        .unwrap();
+        let right_polygon = Polygon::try_new(vec![
+            Point { x: 10.0, y: 0.0 },
+            Point { x: 20.0, y: 0.0 },
+            Point { x: 20.0, y: 10.0 },
+        ])
+        .unwrap();
+        assert!(left_polygon.intersects(right_polygon));
+        assert!(right_polygon.intersects(left_polygon));
+    }
+
+    #[test]
+    fn intersects_diagonally_touching() {
+        let left_polygon = Polygon::try_new(vec![
+            Point { x: 0.0, y: 0.0 },
+            Point { x: 10.0, y: 0.0 },
+            Point { x: 10.0, y: 10.0 },
+        ])
+        .unwrap();
+        let right_polygon = Polygon::try_new(vec![
+            Point { x: 10.0, y: 10.0 },
+            Point { x: 20.0, y: 10.0 },
+            Point { x: 20.0, y: 11.0 },
+        ])
+        .unwrap();
+        assert!(left_polygon.intersects(right_polygon));
+        assert!(right_polygon.intersects(left_polygon));
+    }
+
+    #[test]
+    fn intersects_intersecting() {
+        let first_polygon = Polygon::try_new(vec![
+            Point { x: 0.0, y: 0.0 },
+            Point { x: 10.0, y: 0.0 },
+            Point { x: 10.0, y: 10.0 },
+        ])
+        .unwrap();
+        let second_polygon = Polygon::try_new(vec![
+            Point { x: 8.0, y: 8.0 },
+            Point { x: 20.0, y: 8.0 },
+            Point { x: 20.0, y: 20.0 },
+        ])
+        .unwrap();
+        assert!(first_polygon.intersects(second_polygon));
+        assert!(second_polygon.intersects(first_polygon));
+    }
+
+    #[test]
+    fn intersects_intersecting_when_negative() {
+        let first_polygon = Aabb::try_new((-10.0, -10.0), (-5.0, -5.0)).unwrap();
+        let second_polygon = Aabb::try_new((-6.0, -20.0), (-3.0, -3.0)).unwrap();
+        assert!(first_polygon.intersects(second_polygon));
+        assert!(second_polygon.intersects(first_polygon));
+    }
+
+    #[test]
+    fn intersects_intersecting_when_negative_and_positive() {
+        let first_polygon = Aabb::try_new((-5.0, -5.0), (5.0, 5.0)).unwrap();
+        let second_polygon = Aabb::try_new((-6.0, -20.0), (0.0, 2.0)).unwrap();
+        assert!(first_polygon.intersects(second_polygon));
+        assert!(second_polygon.intersects(first_polygon));
+    }
+
+    #[test]
+    fn does_not_intersect_when_appart() {
+        let first_polygon = Polygon::try_new(vec![
+            Point { x: 0.0, y: 0.0 },
+            Point { x: 10.0, y: 0.0 },
+            Point { x: 10.0, y: 10.0 },
+        ])
+        .unwrap();
+        let second_polygon = Polygon::try_new(vec![
+            Point { x: 20.0, y: 0.0 },
+            Point { x: 21.0, y: 0.0 },
+            Point { x: 21.0, y: 20.0 },
+        ])
+        .unwrap();
+        assert!(first_polygon.intersects(second_polygon));
+        assert!(second_polygon.intersects(first_polygon));
+    }
 }
