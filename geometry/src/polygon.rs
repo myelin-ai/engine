@@ -139,7 +139,7 @@ impl Polygon {
     }
 
     /// Returns the polygon's edges, i.e. the lines between vertices, as vectors.
-    pub fn edges(&self) -> Vec<Vector> {
+    pub fn edges(&self) -> impl Iterator<Item = Vector> + '_ {
         let vertices = self.vertices();
         let shifted_vertices = vertices.iter().cycle().skip(1).take(vertices.len());
         vertices
@@ -147,7 +147,6 @@ impl Polygon {
             .zip(shifted_vertices)
             .map(|(&first_vertex, &second_vertex)| second_vertex - first_vertex)
             .map(Vector::from)
-            .collect()
     }
 }
 
@@ -555,7 +554,7 @@ mod tests {
             Vector { x: -10.0, y: -15.0 },
         ];
 
-        let edges = polygon.edges();
+        let edges: Vec<_> = polygon.edges().collect();
         assert_eq!(expected_edges, edges);
     }
 
