@@ -317,6 +317,14 @@ mod tests {
     }
 
     #[test]
+    fn cross_product_is_zero_when_both_sides_are_zero() {
+        let vector = Vector { x: 40.0, y: 10.0 };
+        let expected_cross_product = 0.0;
+        let cross_product = vector.cross_product(vector);
+        assert_nearly_eq!(expected_cross_product, cross_product);
+    }
+
+    #[test]
     fn cross_product_of_self_is_zero() {
         let a = Vector { x: 0.0, y: 0.0 };
         let b = Vector { x: 0.0, y: 0.0 };
