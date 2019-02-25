@@ -551,11 +551,23 @@ mod tests {
     }
 
     #[test]
-    fn projection_of_normal_is_zero_vector() {
+    fn projection_onto_unit_vector_is_original_vector() {
         let vector = Vector { x: -8.0, y: -1.0 };
-        let expected_projection = Vector::default();
-        let projection = vector.project_onto(vector.normal());
+        let expected_projection = vector;
+        let projection = vector.project_onto(vector.unit());
 
-        assert_eq!(expected_projection, projection);
+        assert_nearly_eq!(expected_projection.x, projection.x);
+        assert_nearly_eq!(expected_projection.y, projection.y);
+    }
+
+    #[test]
+    fn projection_of_unit_vector_is_unit_vector() {
+        let vector = Vector { x: -8.0, y: -1.0 };
+        let unit_vector = vector.unit();
+        let expected_projection = unit_vector;
+        let projection = unit_vector.project_onto(vector);
+
+        assert_nearly_eq!(expected_projection.x, projection.x);
+        assert_nearly_eq!(expected_projection.y, projection.y);
     }
 }
