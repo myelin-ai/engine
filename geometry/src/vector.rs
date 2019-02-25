@@ -105,6 +105,11 @@ impl Vector {
     pub fn magnitude(self) -> f64 {
         (self.x.powi(2) + self.y.powi(2)).sqrt()
     }
+    
+    /// Returns unit vector of this vector, i.e. a vector with the same direction and a magnitude of 1
+    pub fn unit(self) -> Vector {
+        unimplemented!()
+    }
 }
 
 #[cfg(test)]
