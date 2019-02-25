@@ -136,6 +136,18 @@ impl Polygon {
         // Safe unwrap: A polygon where all four points are the same is not valid
         Aabb::try_new((min_x, min_y), (max_x, max_y)).unwrap()
     }
+
+    /// Returns the polygon's edges, i.e. the lines between vertices, as vectors.
+    pub fn edges(&self) -> Vec<Vector> {
+        let vertices = self.vertices();
+        let shifted_vertices = vertices.iter().cycle().skip(1).take(vertices.len());
+        vertices
+            .iter()
+            .zip(shifted_vertices)
+            .map(|(&first_vertex, &second_vertex)| second_vertex - first_vertex)
+            .map(Vector::from)
+            .collect()
+    }
 }
 
 impl From<Aabb> for Polygon {
@@ -516,5 +528,26 @@ mod tests {
         .unwrap();
 
         assert_eq!(expected_polygon, Polygon::from(aabb));
+    }
+
+    #[test]
+    fn edges_are_reported_correctly() {
+        let polygon = Polygon::try_new(vec![
+            Point { x: 10.0, y: 15.0 },
+            Point { x: 10.0, y: 30.0 },
+            Point { x: 20.0, y: 15.0 },
+            Point { x: 20.0, y: 30.0 },
+        ])
+        .unwrap();
+
+        let expected_edges = vec![
+            Vector { x: 0.0, y: 15.0 },
+            Vector { x: 10.0, y: -15.0 },
+            Vector { x: 0.0, y: 15.0 },
+            Vector { x: -10.0, y: -15.0 },
+        ];
+
+        let edges = polygon.edges();
+        assert_eq!(expected_edges, edges);
     }
 }
