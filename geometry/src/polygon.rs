@@ -115,7 +115,7 @@ impl Polygon {
     }
 
     /// Checks if another polygon touches or is contained in this polygon
-    pub fn intersects(other: Polygon) -> bool {
+    pub fn intersects(&self, other: Polygon) -> bool {
         unimplemented!()
     }
 
