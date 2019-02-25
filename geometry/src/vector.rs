@@ -116,6 +116,11 @@ impl Vector {
 
         self / magnitude
     }
+
+    /// Returns the projection of this vector onto another vector
+    pub fn project_onto(self, other: Vector) -> Vector {
+        unimplemented!()
+    }
 }
 
 #[cfg(test)]
