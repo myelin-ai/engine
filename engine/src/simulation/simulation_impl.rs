@@ -296,6 +296,14 @@ impl Simulation for SimulationImpl {
             .map(|handle| self.handle_to_object(handle))
             .collect()
     }
+
+    fn objects_in_polygon(&self, area: Polygon) -> Snapshot<'_> {
+        self.world
+            .bodies_in_polygon(area)
+            .into_iter()
+            .map(|handle| self.handle_to_object(handle))
+            .collect()
+    }
 }
 
 impl Interactable for SimulationImpl {
@@ -890,6 +898,45 @@ mod tests {
 
         let object_behavior = ObjectBehaviorMock::new();
         simulation.add_object(object_description.clone(), box object_behavior);
+    }
+
+    #[test]
+    fn propagates_objects_in_polygon() {
+        let mut world = WorldMock::new();
+        let (expected_physical_body, object_description) = object();
+        let area = PolygonBuilder::default()
+            .vertex(30.0, 30.0)
+            .vertex(45.0, 15.0)
+            .vertex(60.0, 30.0)
+            .build()
+            .unwrap();
+        let returned_handle = BodyHandle(1234);
+        world
+            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .returns(returned_handle);
+        world
+            .expect_bodies_in_polygon(partial_eq(area))
+            .returns(vec![returned_handle]);
+        world
+            .expect_body(partial_eq(returned_handle))
+            .returns(Some(expected_physical_body.clone()));
+        world
+            .expect_is_body_passable(partial_eq(returned_handle))
+            .returns(expected_physical_body.passable);
+
+        let mut simulation = SimulationImpl::new(
+            box world,
+            box world_interactor_factory_fn,
+            box instant_wrapper_factory_fn,
+        );
+
+        let object_behavior = box ObjectBehaviorMock::new();
+        simulation.add_object(object_description.clone(), object_behavior);
+
+        let objects_in_polygon = Simulation::objects_in_polygon(&simulation, area);
+        assert_eq!(1, objects_in_polygon.len());
+        assert_eq!(returned_handle.0, objects_in_polygon[0].id);
+        assert_eq!(object_description, objects_in_polygon[0].description);
     }
 
     fn object() -> (PhysicalBody, ObjectDescription) {
