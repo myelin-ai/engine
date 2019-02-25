@@ -499,7 +499,8 @@ mod tests {
         let expected_projection = vector;
         let projection = vector.project_onto(vector);
 
-        assert_eq!(expected_projection, projection);
+        assert_nearly_eq!(expected_projection.x, projection.x);
+        assert_nearly_eq!(expected_projection.y, projection.y);
     }
 
     #[test]
