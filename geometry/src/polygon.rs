@@ -139,9 +139,11 @@ impl Polygon {
 
     /// Returns the polygon's edges, i.e. the lines between vertices, as vectors.
     pub fn edges(&self) -> Vec<Vector> {
-        self.vertices()
+        let vertices = self.vertices();
+        let shifted_vertices = vertices.iter().cycle().skip(1).take(vertices.len());
+        vertices
             .iter()
-            .zip(self.vertices().iter().skip(1))
+            .zip(shifted_vertices)
             .map(|(&first_vertex, &second_vertex)| second_vertex - first_vertex)
             .map(Vector::from)
             .collect()
