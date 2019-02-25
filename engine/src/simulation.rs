@@ -266,7 +266,7 @@ mod mocks {
             let (expected_area, return_value) = match self.expect_objects_in_polygon_and_return {
                 ObjectsInAreaExpectation::None => panic!(UNEXPECTED_CALL_ERROR_MESSAGE),
                 ObjectsInAreaExpectation::AtLeastOnce(ref expected_area, ref return_value) => {
-                    (*expected_area, return_value.clone())
+                    (expected_area.clone(), return_value.clone())
                 }
                 ObjectsInAreaExpectation::Sequence(ref expected_calls_and_return_values) => {
                     expected_calls_and_return_values

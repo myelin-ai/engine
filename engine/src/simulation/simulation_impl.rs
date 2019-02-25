@@ -915,7 +915,7 @@ mod tests {
             .expect_add_body(partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
         world
-            .expect_bodies_in_polygon(partial_eq(area))
+            .expect_bodies_in_polygon(partial_eq(area.clone()))
             .returns(vec![returned_handle]);
         world
             .expect_body(partial_eq(returned_handle))
