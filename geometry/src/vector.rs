@@ -105,6 +105,17 @@ impl Vector {
     pub fn magnitude(self) -> f64 {
         (self.x.powi(2) + self.y.powi(2)).sqrt()
     }
+
+    /// Returns unit vector of this vector, i.e. a vector with the same direction and a magnitude of 1
+    pub fn unit(self) -> Vector {
+        let magnitude = self.magnitude();
+        assert!(
+            magnitude != 0.0,
+            "Attempted to take the unit vector of a zero vector (0, 0), which is undefined"
+        );
+
+        self / magnitude
+    }
 }
 
 #[cfg(test)]
@@ -394,5 +405,60 @@ mod tests {
         let magnitude = vector.magnitude();
 
         assert_nearly_eq!(expected_magnitude, magnitude);
+    }
+
+    #[test]
+    fn unit_vector_is_correct_for_positive_numbers() {
+        let vector = Vector { x: 4.0, y: 2.0 };
+        let expected_unit_vector = Vector {
+            x: 2.0 / 5.0f64.sqrt(),
+            y: 1.0 / 5.0f64.sqrt(),
+        };
+        let unit_vector = vector.unit();
+
+        assert_eq!(expected_unit_vector, unit_vector);
+    }
+
+    #[test]
+    fn unit_vector_is_correct_for_negative_numbers() {
+        let vector = Vector { x: -10.0, y: -6.0 };
+        let expected_unit_vector = Vector {
+            x: -5.0 / 34f64.sqrt(),
+            y: -3.0 / 34f64.sqrt(),
+        };
+        let unit_vector = vector.unit();
+
+        assert_eq!(expected_unit_vector, unit_vector);
+    }
+
+    #[test]
+    fn unit_vector_is_stretched_when_original_magnitude_is_smaller_than_one() {
+        let vector = Vector { x: 0.2, y: 0.5 };
+        let expected_unit_vector = Vector {
+            x: 0.371_390_676_354_103_67,
+            y: 0.928_476_690_885_259_2,
+        };
+        let unit_vector = vector.unit();
+
+        assert_eq!(expected_unit_vector, unit_vector);
+    }
+
+    #[test]
+    fn magnitude_of_unit_vector_is_one() {
+        let vector = Vector {
+            x: 1_000.0,
+            y: -2_000.0,
+        };
+        let expected_magnitude = 1.0;
+        let magnitude = vector.unit().magnitude();
+
+        assert_nearly_eq!(expected_magnitude, magnitude);
+    }
+
+    #[test]
+    #[should_panic]
+    fn unit_vector_of_zero_vector_is_undefined() {
+        let zero_vector = Vector::default();
+        let _unit_vector = zero_vector.unit();
     }
 }
