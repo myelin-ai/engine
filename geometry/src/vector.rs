@@ -92,6 +92,14 @@ impl Vector {
     pub fn cross_product(self, other: Self) -> f64 {
         self.x * other.y - self.y * other.x
     }
+
+    /// Retuns the vector's normal vector, i.e. a vector that is perpendicular to this vector
+    pub fn normal(self) -> Vector {
+        Vector {
+            x: -self.y,
+            y: self.x,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -318,5 +326,32 @@ mod tests {
         let expected_cross_product = 0.0;
         let cross_product = a.cross_product(b);
         assert_nearly_eq!(expected_cross_product, cross_product);
+    }
+
+    #[test]
+    fn cross_product_of_self_is_zero() {
+        let vector = Vector { x: 40.0, y: 10.0 };
+        let expected_cross_product = 0.0;
+        let cross_product = vector.cross_product(vector);
+        assert_nearly_eq!(expected_cross_product, cross_product);
+    }
+
+    #[test]
+    fn returns_correct_normal() {
+        let vector = Vector { x: 10.0, y: 3.0 };
+        let expected_normal = Vector { x: -3.0, y: 10.0 };
+        let normal = vector.normal();
+
+        assert_eq!(expected_normal, normal);
+    }
+
+    #[test]
+    fn dot_product_of_normal_is_zero() {
+        let vector = Vector { x: 10.0, y: 3.0 };
+        let normal = vector.normal();
+        let expected_dot_product = 0.0;
+        let dot_product = vector.dot_product(normal);
+
+        assert_nearly_eq!(expected_dot_product, dot_product);
     }
 }
