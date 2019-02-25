@@ -447,7 +447,10 @@ mod tests {
 
     #[test]
     fn magnitude_of_unit_vector_is_one() {
-        let vector = Vector { x: 1_000.0, y: -2_000.0 };
+        let vector = Vector {
+            x: 1_000.0,
+            y: -2_000.0,
+        };
         let expected_magnitude = 1.0;
         let magnitude = vector.unit().magnitude();
 
