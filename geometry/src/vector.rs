@@ -108,7 +108,11 @@ impl Vector {
 
     /// Returns unit vector of this vector, i.e. a vector with the same direction and a magnitude of 1
     pub fn unit(self) -> Vector {
-        unimplemented!()
+        let magnitude = self.magnitude();
+        Vector {
+            x: self.x / magnitude,
+            y: self.y / magnitude,
+        }
     }
 }
 
@@ -440,7 +444,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn unit_vector_of_zero_vector_is_undefined() {
-        let vector = Vector::default();
-        let _unit_vector = vector.unit();
+        let zero_vector = Vector::default();
+        let _unit_vector = zero_vector.unit();
     }
 }
