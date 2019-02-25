@@ -505,7 +505,7 @@ mod tests {
     #[test]
     fn projection_is_correct_for_positive_numbers() {
         let projected_vector = Vector { x: 5.0, y: 2.0 };
-        let other_vector = Vector { x: 10.0, y: -7.0 };
+        let other_vector = Vector { x: 10.0, y: 7.0 };
 
         let expected_projection = Vector {
             x: 640.0 / 149.0,
