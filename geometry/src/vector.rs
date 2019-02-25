@@ -109,6 +109,10 @@ impl Vector {
     /// Returns unit vector of this vector, i.e. a vector with the same direction and a magnitude of 1
     pub fn unit(self) -> Vector {
         let magnitude = self.magnitude();
+        assert!(
+            magnitude != 0.0,
+            "Attempted to take the unit vector of a zero vector (0, 0), which is undefined"
+        );
         Vector {
             x: self.x / magnitude,
             y: self.y / magnitude,
