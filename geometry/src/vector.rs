@@ -103,7 +103,7 @@ impl Vector {
 
     /// Returns the magnitude of the vector, i.e. its length if viewed as a line
     pub fn magnitude(self) -> f64 {
-        unimplemented!()
+        (self.x.powi(2) + self.y.powi(2)).sqrt()
     }
 }
 
