@@ -466,4 +466,17 @@ mod tests {
         let zero_vector = Vector::default();
         let _unit_vector = zero_vector.unit();
     }
+
+    #[test]
+    fn projection_onto_zero_vector_is_zero_vector() {
+        let vector = Vector {
+            x: 1_000.0,
+            y: -2_000.0,
+        };
+        let zero_vector = Vector::default();
+        let expected_projection = zero_vector;
+        let projection = vector.project_onto(zero_vector);
+
+        assert_nearly_eq!(expected_projection, projection);
+    }
 }
