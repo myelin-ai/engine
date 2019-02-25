@@ -119,6 +119,10 @@ impl Vector {
 
     /// Returns the projection of this vector onto another vector
     pub fn project_onto(self, other: Vector) -> Vector {
+        let zero_vector = Default::default();
+        if self == zero_vector || other == zero_vector {
+            return zero_vector;
+        }
         other.unit() * self.dot_product(other) / other.magnitude()
     }
 }
