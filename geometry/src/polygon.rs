@@ -567,7 +567,7 @@ mod tests {
             Point { x: 10.0, y: 10.0 },
         ])
         .unwrap();
-        assert!(polygon.intersects(polygon));
+        assert!(polygon.intersects(&polygon));
     }
 
     #[test]
@@ -584,8 +584,8 @@ mod tests {
             Point { x: 8.0, y: 8.0 },
         ])
         .unwrap();
-        assert!(bigger_polygon.intersects(smaller_polygon));
-        assert!(smaller_polygon.intersects(bigger_polygon));
+        assert!(bigger_polygon.intersects(&smaller_polygon));
+        assert!(smaller_polygon.intersects(&bigger_polygon));
     }
 
     #[test]
@@ -602,8 +602,8 @@ mod tests {
             Point { x: 20.0, y: 10.0 },
         ])
         .unwrap();
-        assert!(left_polygon.intersects(right_polygon));
-        assert!(right_polygon.intersects(left_polygon));
+        assert!(left_polygon.intersects(&right_polygon));
+        assert!(right_polygon.intersects(&left_polygon));
     }
 
     #[test]
@@ -620,8 +620,8 @@ mod tests {
             Point { x: 20.0, y: 11.0 },
         ])
         .unwrap();
-        assert!(left_polygon.intersects(right_polygon));
-        assert!(right_polygon.intersects(left_polygon));
+        assert!(left_polygon.intersects(&right_polygon));
+        assert!(right_polygon.intersects(&left_polygon));
     }
 
     #[test]
@@ -638,24 +638,44 @@ mod tests {
             Point { x: 20.0, y: 20.0 },
         ])
         .unwrap();
-        assert!(first_polygon.intersects(second_polygon));
-        assert!(second_polygon.intersects(first_polygon));
+        assert!(first_polygon.intersects(&second_polygon));
+        assert!(second_polygon.intersects(&first_polygon));
     }
 
     #[test]
     fn intersects_intersecting_when_negative() {
-        let first_polygon = Aabb::try_new((-10.0, -10.0), (-5.0, -5.0)).unwrap();
-        let second_polygon = Aabb::try_new((-6.0, -20.0), (-3.0, -3.0)).unwrap();
-        assert!(first_polygon.intersects(second_polygon));
-        assert!(second_polygon.intersects(first_polygon));
+        let first_polygon = Polygon::try_new(vec![
+            Point { x: -10.0, y: -10.0 },
+            Point { x: -5.0, y: -10.0 },
+            Point { x: -5.0, y: -5.0 },
+        ])
+        .unwrap();
+        let second_polygon = Polygon::try_new(vec![
+            Point { x: -6.0, y: -20.0 },
+            Point { x: -3.0, y: -20.0 },
+            Point { x: -3.0, y: -3.0 },
+        ])
+        .unwrap();
+        assert!(first_polygon.intersects(&second_polygon));
+        assert!(second_polygon.intersects(&first_polygon));
     }
 
     #[test]
     fn intersects_intersecting_when_negative_and_positive() {
-        let first_polygon = Aabb::try_new((-5.0, -5.0), (5.0, 5.0)).unwrap();
-        let second_polygon = Aabb::try_new((-6.0, -20.0), (0.0, 2.0)).unwrap();
-        assert!(first_polygon.intersects(second_polygon));
-        assert!(second_polygon.intersects(first_polygon));
+        let first_polygon = Polygon::try_new(vec![
+            Point { x: -5.0, y: -5.0 },
+            Point { x: 5.0, y: -5.0 },
+            Point { x: 5.0, y: 5.0 },
+        ])
+        .unwrap();
+        let second_polygon = Polygon::try_new(vec![
+            Point { x: -6.0, y: -20.0 },
+            Point { x: 0.0, y: -20.0 },
+            Point { x: 0.0, y: 2.0 },
+        ])
+        .unwrap();
+        assert!(first_polygon.intersects(&second_polygon));
+        assert!(second_polygon.intersects(&first_polygon));
     }
 
     #[test]
@@ -672,7 +692,7 @@ mod tests {
             Point { x: 21.0, y: 20.0 },
         ])
         .unwrap();
-        assert!(first_polygon.intersects(second_polygon));
-        assert!(second_polygon.intersects(first_polygon));
+        assert!(first_polygon.intersects(&second_polygon));
+        assert!(second_polygon.intersects(&first_polygon));
     }
 }
