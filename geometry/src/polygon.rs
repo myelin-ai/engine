@@ -195,7 +195,7 @@ impl Intersects for Polygon {
 
                 // If both bounds are outside the other polygon's projection, we are
                 // able to draw a separating axis between them
-                own_min.min(other_min) <= own_max.max(other_max)
+                own_min.max(other_min) <= own_max.min(other_max)
             })
     }
 }
