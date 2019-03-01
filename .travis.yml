@@ -22,4 +22,4 @@ script:
 - cargo doc --no-deps
 
 after_success:
-- bash <(curl -s https://codecov.io/bash) -f lcov.info
+- bash <(curl -s https://codecov.io/bash) -f lcov_*.info

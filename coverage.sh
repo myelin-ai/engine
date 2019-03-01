@@ -2,12 +2,22 @@
 
 set -e
 
-zip -0 "$coverage_zip_file_name" `find . \( -name 'myelin_engine*.gc*' \) -print`
-grcov "$coverage_zip_file_name" \
+zip -0 engine.zip `find . \( -name 'myelin_engine*.gc*' \) -print`
+grcov engine.zip \
        -s engine \
        -t lcov \
        --llvm \
        --branch \
        --ignore-not-existing \
        --ignore-dir '/*' \
-       > lcov.info
+       > lcov_engine.info
+
+zip -0 geometry.zip `find . \( -name 'myelin_geometry*.gc*' \) -print`
+grcov geometry.zip \
+       -s geometry \
+       -t lcov \
+       --llvm \
+       --branch \
+       --ignore-not-existing \
+       --ignore-dir '/*' \
+       > lcov_geometry.info
