@@ -739,7 +739,7 @@ mod tests {
             Point { x: 21.0, y: 20.0 },
         ])
         .unwrap();
-        assert!(first_polygon.intersects(&second_polygon));
-        assert!(second_polygon.intersects(&first_polygon));
+        assert!(!first_polygon.intersects(&second_polygon));
+        assert!(!second_polygon.intersects(&first_polygon));
     }
 }
