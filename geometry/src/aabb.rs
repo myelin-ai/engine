@@ -83,7 +83,7 @@ impl Intersects for Aabb {
         let y_overlaps =
             self.upper_left.y <= other.lower_right.y && self.lower_right.y >= other.upper_left.y;
 
-        x_overlaps || y_overlaps
+        x_overlaps && y_overlaps
     }
 }
 
