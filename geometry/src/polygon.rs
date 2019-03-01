@@ -726,7 +726,7 @@ mod tests {
     }
 
     #[test]
-    fn does_not_intersect_when_appart() {
+    fn does_not_intersect_when_apart() {
         let first_polygon = Polygon::try_new(vec![
             Point { x: 0.0, y: 0.0 },
             Point { x: 10.0, y: 0.0 },
