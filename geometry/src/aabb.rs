@@ -169,7 +169,7 @@ mod tests {
     fn does_not_intersect_when_appart() {
         let first_aabb = Aabb::try_new((0.0, 0.0), (10.0, 10.0)).unwrap();
         let second_aabb = Aabb::try_new((20.0, 0.0), (21.0, 20.0)).unwrap();
-        assert!(first_aabb.intersects(&second_aabb));
-        assert!(second_aabb.intersects(&first_aabb));
+        assert!(!first_aabb.intersects(&second_aabb));
+        assert!(!second_aabb.intersects(&first_aabb));
     }
 }
