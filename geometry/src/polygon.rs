@@ -178,8 +178,7 @@ impl Intersects for Polygon {
         // between two polygons (i.e. separating them), they are not intersecting
 
         // Take all edges
-        !self
-            .edges()
+        self.edges()
             .chain(other.edges())
             // If we can draw a perpendicular (i.e. normal) between them,
             // the polygons are separate
@@ -188,19 +187,15 @@ impl Intersects for Polygon {
             // If the axis has a magnitude of 1, we don't need to divide
             // the scalar projection by it.
             .map(Vector::unit)
-            .any(|axis| {
+            .all(|axis| {
                 // Take the bounds of the line that is created by projecting all
                 // vertices onto the axis
                 let (own_min, own_max) = self.scalar_project_onto_unit_vector(axis);
                 let (other_min, other_max) = other.scalar_project_onto_unit_vector(axis);
 
-                // Check if the bounds are touching the other polygon's projection
-                let min_is_touching_other_projection = own_min >= other_min || own_min <= other_max;
-                let max_is_touching_other_projection = own_max <= other_max || own_max >= other_min;
-
                 // If both bounds are outside the other polygon's projection, we are
                 // able to draw a separating axis between them
-                !min_is_touching_other_projection && !max_is_touching_other_projection
+                own_min.max(other_min) <= own_max.min(other_max)
             })
     }
 }
@@ -698,7 +693,7 @@ mod tests {
         ])
         .unwrap();
         let second_polygon = Polygon::try_new(vec![
-            Point { x: -6.0, y: -20.0 },
+            Point { x: -8.0, y: -20.0 },
             Point { x: -3.0, y: -20.0 },
             Point { x: -3.0, y: -3.0 },
         ])
@@ -739,7 +734,7 @@ mod tests {
             Point { x: 21.0, y: 20.0 },
         ])
         .unwrap();
-        assert!(first_polygon.intersects(&second_polygon));
-        assert!(second_polygon.intersects(&first_polygon));
+        assert!(!first_polygon.intersects(&second_polygon));
+        assert!(!second_polygon.intersects(&first_polygon));
     }
 }

@@ -64,9 +64,11 @@ pub trait World: Debug {
 
     /// Returns all bodies either completely contained or intersecting
     /// with the area.
-    ///
-    /// [`Aabb`]: ./struct.Aabb.html
     fn bodies_in_area(&self, area: Aabb) -> Vec<BodyHandle>;
+
+    /// Returns all bodies either completely contained or intersecting
+    /// with the area.
+    fn bodies_in_polygon(&self, area: Polygon) -> Vec<BodyHandle>;
 }
 
 /// The pure physical representation of an object

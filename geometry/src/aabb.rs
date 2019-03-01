@@ -83,7 +83,7 @@ impl Intersects for Aabb {
         let y_overlaps =
             self.upper_left.y <= other.lower_right.y && self.lower_right.y >= other.upper_left.y;
 
-        x_overlaps || y_overlaps
+        x_overlaps && y_overlaps
     }
 }
 
@@ -169,7 +169,7 @@ mod tests {
     fn does_not_intersect_when_appart() {
         let first_aabb = Aabb::try_new((0.0, 0.0), (10.0, 10.0)).unwrap();
         let second_aabb = Aabb::try_new((20.0, 0.0), (21.0, 20.0)).unwrap();
-        assert!(first_aabb.intersects(&second_aabb));
-        assert!(second_aabb.intersects(&first_aabb));
+        assert!(!first_aabb.intersects(&second_aabb));
+        assert!(!second_aabb.intersects(&first_aabb));
     }
 }
