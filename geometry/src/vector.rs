@@ -121,9 +121,10 @@ impl Vector {
     pub fn project_onto(self, other: Vector) -> Vector {
         let zero_vector = Default::default();
         if self == zero_vector || other == zero_vector {
-            return zero_vector;
+            zero_vector
+        } else {
+            other.unit() * self.dot_product(other) / other.magnitude()
         }
-        other.unit() * self.dot_product(other) / other.magnitude()
     }
 }
 
