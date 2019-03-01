@@ -693,7 +693,7 @@ mod tests {
         ])
         .unwrap();
         let second_polygon = Polygon::try_new(vec![
-            Point { x: -6.0, y: -20.0 },
+            Point { x: -8.0, y: -20.0 },
             Point { x: -3.0, y: -20.0 },
             Point { x: -3.0, y: -3.0 },
         ])
