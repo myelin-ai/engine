@@ -301,18 +301,20 @@ impl World for NphysicsWorld {
     }
 
     fn bodies_in_polygon(&self, area: Polygon) -> Vec<BodyHandle> {
-        let collision_groups = CollisionGroups::new();
         let area_aabb = area.aabb();
 
-        self.physics_world
-            .collider_world()
-            .interferences_with_aabb(&to_ncollide_aabb(area_aabb), &collision_groups)
-            .map(|collision| to_body_handle(collision.handle()))
+        self.bodies_in_area(area_aabb)
+            .into_iter()
             .filter(|&body_handle| {
                 let body = self
                     .body(body_handle)
                     .expect("Internal error: Nphysics returned invalid handle");
-                area.intersects(&body.shape)
+                let occupied_area = body
+                    .shape
+                    .translate(body.location)
+                    .rotate_around_point(body.rotation, body.location);
+
+                area.intersects(&occupied_area)
             })
             .collect()
     }
@@ -621,10 +623,11 @@ mod tests {
 
         world.step();
 
+        const TRIANGLE_SIDE_LENGTH: f64 = 22.0;
         let area = PolygonBuilder::default()
-            .vertex(5.0, -10.0)
-            .vertex(30.0, -10.0)
-            .vertex(20.0, 5.0)
+            .vertex(TRIANGLE_SIDE_LENGTH, 0.0)
+            .vertex(TRIANGLE_SIDE_LENGTH, TRIANGLE_SIDE_LENGTH)
+            .vertex(0.0, TRIANGLE_SIDE_LENGTH)
             .build()
             .unwrap();
         let bodies = world.bodies_in_polygon(area);
