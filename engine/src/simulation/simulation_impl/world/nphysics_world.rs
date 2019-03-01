@@ -623,7 +623,7 @@ mod tests {
 
         world.step();
 
-        const TRIANGLE_SIDE_LENGTH: f64 = 22.0;
+        const TRIANGLE_SIDE_LENGTH: f64 = 23.0;
         let area = PolygonBuilder::default()
             .vertex(TRIANGLE_SIDE_LENGTH, 0.0)
             .vertex(TRIANGLE_SIDE_LENGTH, TRIANGLE_SIDE_LENGTH)
