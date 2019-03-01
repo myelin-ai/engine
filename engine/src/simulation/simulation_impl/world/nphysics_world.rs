@@ -299,6 +299,25 @@ impl World for NphysicsWorld {
             .map(|collision| to_body_handle(collision.handle()))
             .collect()
     }
+
+    fn bodies_in_polygon(&self, area: Polygon) -> Vec<BodyHandle> {
+        let area_aabb = area.aabb();
+
+        self.bodies_in_area(area_aabb)
+            .into_iter()
+            .filter(|&body_handle| {
+                let body = self
+                    .body(body_handle)
+                    .expect("Internal error: Nphysics returned invalid handle");
+                let occupied_area = body
+                    .shape
+                    .translate(body.location)
+                    .rotate_around_point(body.rotation, body.location);
+
+                area.intersects(&occupied_area)
+            })
+            .collect()
+    }
 }
 
 fn to_body_handle(collider_handle: ColliderHandle) -> BodyHandle {
@@ -551,10 +570,10 @@ mod tests {
 
         world.step();
 
-        assert_eq!(
-            vec![handle],
-            world.bodies_in_area(Aabb::try_new((-100.0, -100.0), (100.0, 100.0)).unwrap())
-        );
+        let area = Aabb::try_new((-100.0, -100.0), (100.0, 100.0)).unwrap();
+        let bodies = world.bodies_in_area(area);
+
+        assert_eq!(vec![handle], bodies);
     }
 
     #[test]
@@ -562,15 +581,58 @@ mod tests {
         let rotation_translator = rotation_translator_for_adding_body();
 
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
-        let expected_body = movable_body();
-        let _handle = world.add_body(expected_body.clone());
+        let body = movable_body();
+        let _handle = world.add_body(body);
 
         world.step();
 
-        assert_eq!(
-            Vec::<BodyHandle>::new(),
-            world.bodies_in_area(Aabb::try_new((20.0, 20.0), (30.0, 40.0)).unwrap())
-        );
+        let area = Aabb::try_new((20.0, 20.0), (30.0, 40.0)).unwrap();
+        let bodies = world.bodies_in_area(area);
+
+        assert!(bodies.is_empty());
+    }
+
+    #[test]
+    fn bodies_in_polygon_returns_body_in_area() {
+        let rotation_translator = rotation_translator_for_adding_and_reading_body();
+
+        let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
+        let expected_body = movable_body();
+        let handle = world.add_body(expected_body);
+
+        world.step();
+
+        let area = PolygonBuilder::default()
+            .vertex(-100.0, -100.0)
+            .vertex(100.0, -100.0)
+            .vertex(0.0, 100.0)
+            .build()
+            .unwrap();
+        let bodies = world.bodies_in_polygon(area);
+
+        assert_eq!(vec![handle], bodies);
+    }
+
+    #[test]
+    fn bodies_in_polygon_does_not_return_out_of_range_bodies() {
+        let rotation_translator = rotation_translator_for_adding_and_reading_body();
+
+        let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
+        let body = movable_body();
+        let _handle = world.add_body(body);
+
+        world.step();
+
+        const TRIANGLE_SIDE_LENGTH: f64 = 23.0;
+        let area = PolygonBuilder::default()
+            .vertex(TRIANGLE_SIDE_LENGTH, 0.0)
+            .vertex(TRIANGLE_SIDE_LENGTH, TRIANGLE_SIDE_LENGTH)
+            .vertex(0.0, TRIANGLE_SIDE_LENGTH)
+            .build()
+            .unwrap();
+        let bodies = world.bodies_in_polygon(area);
+
+        assert!(bodies.is_empty())
     }
 
     #[test]

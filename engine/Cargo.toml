@@ -4,7 +4,7 @@ description = """
 This crate contains the physical engine of
 the simulation, as well as the objects that reside
 within it"""
-version = "0.4.0"
+version = "0.4.1"
 authors = [
     "Jan Nils Ferner <jan@myelin.ch>",
     "Mathias Fischler <mathias@myelin.ch>",
@@ -19,7 +19,7 @@ license = "MIT/Apache-2.0"
 keywords = [ "simulation", "2d", "physics" ]
 
 [dependencies]
-myelin-geometry = { path = "../geometry", version = "2.0.0" }
+myelin-geometry = { path = "../geometry", version = "2.1.0" }
 nalgebra = "0.17"
 ncollide2d = "0.18"
 serde = "1.0"
