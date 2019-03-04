@@ -18,7 +18,43 @@ impl ObjectBehavior for StaticBehavior {
 #[test]
 fn simulation_runs() {
     let mut simulation = SimulationBuilder::new().build();
-    let description = ObjectBuilder::default()
+    let description = description();
+
+    let behavior: Box<ObjectBehavior> = Box::new(StaticBehavior::default());
+    simulation.add_object(description, behavior);
+
+    simulation.step();
+    simulation.step();
+}
+
+#[test]
+fn simulation_returns_object() {
+    let mut simulation = SimulationBuilder::new().build();
+    let expected_description = description();
+
+    let behavior: Box<ObjectBehavior> = Box::new(StaticBehavior::default());
+    let object = simulation.add_object(expected_description.clone(), behavior);
+    assert_eq!(expected_description, object.description);
+}
+
+#[test]
+fn simulation_retrieves_object() {
+    let (simulation, id, description) = {
+        let mut simulation = SimulationBuilder::new().build();
+        let expected_description = description();
+
+        let behavior: Box<ObjectBehavior> = Box::new(StaticBehavior::default());
+        let object = simulation.add_object(expected_description.clone(), behavior);
+        let id = object.id;
+        let description = object.description;
+        (simulation, id, description)
+    };
+    let retrieved_object = simulation.object(id).unwrap();
+    assert_eq!(retrieved_object.description, description);
+}
+
+fn description() -> ObjectDescription {
+    ObjectBuilder::default()
         .shape(
             PolygonBuilder::default()
                 .vertex(-5.0, -5.0)
@@ -31,11 +67,5 @@ fn simulation_runs() {
         .location(10.0, 15.0)
         .mobility(Mobility::Immovable)
         .build()
-        .unwrap();
-
-    let behavior: Box<ObjectBehavior> = Box::new(StaticBehavior::default());
-    simulation.add_object(description, behavior);
-
-    simulation.step();
-    simulation.step();
+        .unwrap()
 }
