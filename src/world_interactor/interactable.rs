@@ -13,6 +13,10 @@ pub trait Interactable: Debug {
     /// contained or intersecting with the given area.
     fn objects_in_area(&self, area: Aabb) -> Snapshot<'_>;
 
+    /// Returns read-only descriptions for all objects either completely
+    /// contained or intersecting with the given area.
+    fn objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_>;
+
     /// Returns the amount of time that passed since the last call
     /// to the `step` function of [`Simulation`]
     fn elapsed_time_in_update(&self) -> Duration;

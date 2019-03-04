@@ -47,7 +47,7 @@ pub trait Simulation: Debug {
 
     /// Returns read-only descriptions for all objects either completely
     /// contained or intersecting with the given area.
-    fn objects_in_polygon(&self, area: Polygon) -> Snapshot<'_>;
+    fn objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_>;
 }
 
 /// Unique identifier of an Object
@@ -298,7 +298,7 @@ mod mocks {
             return_value.clone()
         }
 
-        fn objects_in_polygon(&self, area: Polygon) -> Snapshot<'_> {
+        fn objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_> {
             *self.objects_in_polygon_was_called.borrow_mut() = true;
 
             const UNEXPECTED_CALL_ERROR_MESSAGE: &str =
@@ -318,9 +318,9 @@ mod mocks {
             };
 
             assert_eq!(
-                expected_area, area,
+                expected_area, *area,
                 "objects_in_polygon() was called with {:?}, expected {:?}",
-                area, expected_area
+                *area, expected_area
             );
 
             return_value.clone()

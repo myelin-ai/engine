@@ -25,6 +25,10 @@ impl<'a> WorldInteractor for WorldInteractorImpl<'a> {
         self.interactable.objects_in_area(area)
     }
 
+    fn find_objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_> {
+        self.interactable.objects_in_polygon(area)
+    }
+
     fn elapsed_time_in_update(&self) -> Duration {
         self.interactable.elapsed_time_in_update()
     }
@@ -40,7 +44,7 @@ impl<'a> WorldInteractor for WorldInteractorImpl<'a> {
 mod tests {
     use super::*;
     use crate::world_interactor::InteractableMock;
-    use mockiato::partial_eq;
+    use mockiato::{partial_eq, partial_eq_owned};
     use myelin_geometry::{Point, PolygonBuilder};
 
     fn object_description() -> ObjectDescription {
@@ -79,6 +83,36 @@ mod tests {
         let world_interactor = WorldInteractorImpl::new(&interactable, 0);
 
         let objects_in_area = world_interactor.find_objects_in_area(area);
+        assert_eq!(1, objects_in_area.len());
+        assert_eq!(objects[0].id, objects_in_area[0].id);
+        assert_eq!(objects[0].description, objects_in_area[0].description);
+    }
+
+    #[test]
+    fn find_objects_in_polygon_is_propagated() {
+        let object_behavior = ObjectBehaviorMock::new();
+        let objects = vec![Object {
+            id: 125,
+            description: object_description(),
+            behavior: &object_behavior,
+        }];
+        let area = PolygonBuilder::default()
+            .vertex(0.0, 0.0)
+            .vertex(20.0, 60.0)
+            .vertex(150.0, 100.0)
+            .vertex(180.0, 0.0)
+            .vertex(150.0, -100.0)
+            .vertex(20.0, -60.0)
+            .build()
+            .unwrap();
+
+        let mut interactable = InteractableMock::new();
+        interactable
+            .expect_objects_in_polygon(partial_eq_owned(area.clone()))
+            .returns(objects.clone());
+        let world_interactor = WorldInteractorImpl::new(&interactable, 0);
+
+        let objects_in_area = world_interactor.find_objects_in_polygon(&area);
         assert_eq!(1, objects_in_area.len());
         assert_eq!(objects[0].id, objects_in_area[0].id);
         assert_eq!(objects[0].description, objects_in_area[0].description);
