@@ -96,6 +96,7 @@ mod mocks {
     pub struct SimulationMock<'a> {
         expect_step: Option<()>,
         expect_objects_and_return: Option<(Snapshot<'a>,)>,
+        expect_object_and_return: AddObjectExpectation<Id, Option<FullyOwnedObject>>,
         expect_add_object_and_return: AddObjectExpectation<ObjectDescription, FullyOwnedObject>,
         expect_set_simulated_timestep: Option<(f64,)>,
         expect_objects_in_area_and_return: ObjectsInAreaExpectation<Aabb, Snapshot<'a>>,
@@ -103,6 +104,7 @@ mod mocks {
 
         step_was_called: RefCell<bool>,
         objects_was_called: RefCell<bool>,
+        object_was_called: RefCell<bool>,
         add_object_was_called: RefCell<bool>,
         set_simulated_timestep_was_called: RefCell<bool>,
         objects_in_area_was_called: RefCell<bool>,
@@ -217,6 +219,34 @@ mod mocks {
                 .expect("objects() was called unexpectedly");
 
             return_value.clone()
+        }
+
+        fn object(&self, id: Id) -> Option<Object<'_>> {
+            *self.object_was_called.borrow_mut() = true;
+
+            match &self.expect_object_and_return {
+                AddObjectExpectation::None => panic!("object() was called unexpectedly"),
+                AddObjectExpectation::Any(Some((id, description, behavior))) => Some(Object {
+                    id: *id,
+                    description: description.clone(),
+                    behavior: behavior.as_ref(),
+                }),
+                AddObjectExpectation::AtLeastOnce(expected_id, Some(return_value)) => {
+                    assert_eq!(
+                        *expected_id, id,
+                        "add_object() was called with {:?}, expected {:?}",
+                        id, expected_id
+                    );
+
+                    let (id, description, behavior) = return_value;
+                    Some(Object {
+                        id: *id,
+                        description: description.clone(),
+                        behavior: behavior.as_ref(),
+                    })
+                }
+                _ => None,
+            }
         }
 
         fn set_simulated_timestep(&mut self, timestep: f64) {

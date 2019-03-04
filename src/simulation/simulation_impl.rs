@@ -334,6 +334,7 @@ mod tests {
 
     fn world_interactor_factory_fn<'a>(
         _interactable: &'a dyn Interactable,
+        _id: Id,
     ) -> Box<dyn WorldInteractor + 'a> {
         box WorldInteractorMock::new()
     }
