@@ -2,9 +2,8 @@
 
 set -e
 
-zip -0 "$coverage_zip_file_name" `find . \( -name 'myelin_engine*.gc*' \) -print`
-grcov "$coverage_zip_file_name" \
-       -s engine \
+zip -0 engine.zip `find . \( -name 'myelin_engine*.gc*' \) -print`
+grcov engine.zip \
        -t lcov \
        --llvm \
        --branch \
