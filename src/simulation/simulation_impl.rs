@@ -466,12 +466,6 @@ mod tests {
         world
             .expect_add_body(partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
-        world
-            .expect_body(partial_eq(returned_handle))
-            .returns(Some(expected_physical_body));
-        world
-            .expect_is_body_passable(partial_eq(returned_handle))
-            .returns(expected_passable);
 
         let expected_object_description = ObjectBuilder::default()
             .location(expected_location.x, expected_location.y)
@@ -629,16 +623,10 @@ mod tests {
         world
             .expect_add_body(partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
-        world
-            .expect_body(partial_eq(returned_handle))
-            .returns(Some(expected_physical_body.clone()));
         world.expect_step();
         world
             .expect_remove_body(partial_eq(returned_handle))
             .returns(Some(expected_physical_body));
-        world
-            .expect_is_body_passable(partial_eq(returned_handle))
-            .returns(expected_passable);
 
         let mut simulation = SimulationImpl::new(
             world,
@@ -686,12 +674,6 @@ mod tests {
         world
             .expect_add_body(partial_eq(expected_physical_body.clone()))
             .returns(handle_one);
-        world
-            .expect_body(partial_eq(handle_one))
-            .returns(Some(expected_physical_body.clone()));
-        world
-            .expect_is_body_passable(partial_eq(handle_one))
-            .returns(expected_passable);
         world.expect_step();
         world
             .expect_remove_body(partial_eq(handle_two))
@@ -741,13 +723,7 @@ mod tests {
         world
             .expect_add_body(partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
-        world
-            .expect_body(partial_eq(returned_handle))
-            .returns(Some(expected_physical_body.clone()));
         world.expect_step();
-        world
-            .expect_is_body_passable(partial_eq(returned_handle))
-            .returns(expected_passable);
         let expected_force = Force {
             linear: Vector { x: 20.0, y: -5.0 },
             torque: Torque(-8.0),
