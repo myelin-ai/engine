@@ -167,14 +167,6 @@ impl SimulationImpl {
             .to_action_result()
     }
 
-    fn handle_to_object(&self, handle: BodyHandle) -> Option<Object<'_>> {
-        Some(Object {
-            id: handle.0,
-            description: self.handle_to_description(handle)?,
-            behavior: self.handle_to_behavior(handle)?,
-        })
-    }
-
     fn handle_to_behavior(&self, handle: BodyHandle) -> Option<&dyn ObjectBehavior> {
         let ptr = self
             .non_physical_object_data
@@ -264,14 +256,19 @@ impl Simulation for SimulationImpl {
         self.non_physical_object_data
             .keys()
             .map(|&handle| {
-                self.handle_to_object(handle)
+                Simulation::object(self, handle.0)
                     .expect("Handle stored in simulation was not found in world")
             })
             .collect()
     }
 
     fn object(&self, id: Id) -> Option<Object<'_>> {
-        self.handle_to_object(BodyHandle(id))
+        let handle = BodyHandle(id);
+        Some(Object {
+            id: handle.0,
+            description: self.handle_to_description(handle)?,
+            behavior: self.handle_to_behavior(handle)?,
+        })
     }
 
     fn set_simulated_timestep(&mut self, timestep: f64) {
@@ -284,18 +281,18 @@ impl Simulation for SimulationImpl {
             .bodies_in_area(area)
             .into_iter()
             .map(|handle| {
-                self.handle_to_object(handle)
+                Simulation::object(self, handle.0)
                     .expect("Handle stored in simulation was not found in world")
             })
             .collect()
     }
 
-    fn objects_in_polygon(&self, area: Polygon) -> Snapshot<'_> {
+    fn objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_> {
         self.world
             .bodies_in_polygon(area)
             .into_iter()
             .map(|handle| {
-                self.handle_to_object(handle)
+                Simulation::object(self, handle.0)
                     .expect("Handle stored in simulation was not found in world")
             })
             .collect()
@@ -305,6 +302,10 @@ impl Simulation for SimulationImpl {
 impl Interactable for SimulationImpl {
     fn objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
         Simulation::objects_in_area(self, area)
+    }
+
+    fn objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_> {
+        Simulation::objects_in_polygon(self, area)
     }
 
     fn elapsed_time_in_update(&self) -> Duration {
@@ -327,7 +328,7 @@ mod tests {
     use crate::object_builder::ObjectBuilder;
     use crate::simulation::simulation_impl::world::WorldMock;
     use crate::world_interactor::{Interactable, WorldInteractor, WorldInteractorMock};
-    use mockiato::partial_eq;
+    use mockiato::{partial_eq, partial_eq_owned};
     use myelin_geometry::PolygonBuilder;
     use std::thread::sleep;
     use std::time::Instant;
@@ -992,7 +993,7 @@ mod tests {
             .expect_add_body(partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
         world
-            .expect_bodies_in_polygon(partial_eq(area.clone()))
+            .expect_bodies_in_polygon(partial_eq_owned(area.clone()))
             .returns(vec![returned_handle]);
         world
             .expect_body(partial_eq(returned_handle))
@@ -1010,7 +1011,7 @@ mod tests {
         let object_behavior = box ObjectBehaviorMock::new();
         simulation.add_object(object_description.clone(), object_behavior);
 
-        let objects_in_polygon = Simulation::objects_in_polygon(&simulation, area);
+        let objects_in_polygon = Simulation::objects_in_polygon(&simulation, &area);
         assert_eq!(1, objects_in_polygon.len());
         assert_eq!(returned_handle.0, objects_in_polygon[0].id);
         assert_eq!(object_description, objects_in_polygon[0].description);

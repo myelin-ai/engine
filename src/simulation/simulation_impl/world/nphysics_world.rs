@@ -300,7 +300,7 @@ impl World for NphysicsWorld {
             .collect()
     }
 
-    fn bodies_in_polygon(&self, area: Polygon) -> Vec<BodyHandle> {
+    fn bodies_in_polygon(&self, area: &Polygon) -> Vec<BodyHandle> {
         let area_aabb = area.aabb();
 
         self.bodies_in_area(area_aabb)
@@ -608,7 +608,7 @@ mod tests {
             .vertex(0.0, 100.0)
             .build()
             .unwrap();
-        let bodies = world.bodies_in_polygon(area);
+        let bodies = world.bodies_in_polygon(&area);
 
         assert_eq!(vec![handle], bodies);
     }
@@ -630,7 +630,7 @@ mod tests {
             .vertex(0.0, TRIANGLE_SIDE_LENGTH)
             .build()
             .unwrap();
-        let bodies = world.bodies_in_polygon(area);
+        let bodies = world.bodies_in_polygon(&area);
 
         assert!(bodies.is_empty())
     }
