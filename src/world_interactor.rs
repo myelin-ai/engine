@@ -30,4 +30,7 @@ pub trait WorldInteractor: Debug {
     /// Returns the amount of time that passed since the last call
     /// to the `step` function of [`Simulation`]
     fn elapsed_time_in_update(&self) -> Duration;
+
+    /// Returns the complete calling object's description
+    fn own_object(&self) -> Object<'_>;
 }

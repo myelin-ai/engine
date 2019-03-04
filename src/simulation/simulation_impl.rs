@@ -23,7 +23,7 @@ pub use self::builder::SimulationBuilder;
 /// [`SimulationImpl`]: ./struct.SimulationImpl.html
 /// [`WorldInteractor`]: ./../object/trait.WorldInteractor.html
 pub type WorldInteractorFactoryFn =
-    dyn for<'a> Fn(&'a dyn Interactable) -> Box<dyn WorldInteractor + 'a>;
+    dyn for<'a> Fn(&'a dyn Interactable, Id) -> Box<dyn WorldInteractor + 'a>;
 
 /// Factory to retrieve a current [`Instant`], wrapped by [`InstantWrapper`]
 ///
@@ -167,16 +167,12 @@ impl SimulationImpl {
             .to_action_result()
     }
 
-    fn handle_to_object(&self, handle: BodyHandle) -> Object<'_> {
-        Object {
+    fn handle_to_object(&self, handle: BodyHandle) -> Option<Object<'_>> {
+        Some(Object {
             id: handle.0,
-            description: self
-                .handle_to_description(handle)
-                .expect("Handle stored in simulation was not found in world"),
-            behavior: self
-                .handle_to_behavior(handle)
-                .expect("Handle stored in simulation was not found in world"),
-        }
+            description: self.handle_to_description(handle)?,
+            behavior: self.handle_to_behavior(handle)?,
+        })
     }
 
     fn handle_to_behavior(&self, handle: BodyHandle) -> Option<&dyn ObjectBehavior> {
@@ -209,27 +205,14 @@ impl<T> HandleOption for Option<T> {
 
 impl Simulation for SimulationImpl {
     fn step(&mut self) {
-        let object_handle_to_own_description: HashMap<_, _> = self
-            .non_physical_object_data
-            .keys()
-            .map(|&object_handle| {
-                (
-                    object_handle,
-                    self.handle_to_description(object_handle)
-                        .expect("Internal error: Stored handle was invalid"),
-                )
-            })
-            .collect();
         let mut actions = Vec::new();
-
         {
-            let world_interactor = (self.world_interactor_factory_fn)(self);
             for (object_handle, non_physical_object_data) in &self.non_physical_object_data {
-                let own_description = &object_handle_to_own_description[object_handle];
+                let world_interactor = (self.world_interactor_factory_fn)(self, object_handle.0);
                 let action = non_physical_object_data
                     .behavior
                     .borrow_mut()
-                    .step(&own_description, world_interactor.as_ref());
+                    .step(world_interactor.as_ref());
                 if let Some(action) = action {
                     actions.push((*object_handle, action));
                 }
@@ -280,8 +263,15 @@ impl Simulation for SimulationImpl {
     fn objects(&self) -> Snapshot<'_> {
         self.non_physical_object_data
             .keys()
-            .map(|&handle| self.handle_to_object(handle))
+            .map(|&handle| {
+                self.handle_to_object(handle)
+                    .expect("Handle stored in simulation was not found in world")
+            })
             .collect()
+    }
+
+    fn object(&self, id: Id) -> Option<Object<'_>> {
+        self.handle_to_object(BodyHandle(id))
     }
 
     fn set_simulated_timestep(&mut self, timestep: f64) {
@@ -293,7 +283,10 @@ impl Simulation for SimulationImpl {
         self.world
             .bodies_in_area(area)
             .into_iter()
-            .map(|handle| self.handle_to_object(handle))
+            .map(|handle| {
+                self.handle_to_object(handle)
+                    .expect("Handle stored in simulation was not found in world")
+            })
             .collect()
     }
 
@@ -301,7 +294,10 @@ impl Simulation for SimulationImpl {
         self.world
             .bodies_in_polygon(area)
             .into_iter()
-            .map(|handle| self.handle_to_object(handle))
+            .map(|handle| {
+                self.handle_to_object(handle)
+                    .expect("Handle stored in simulation was not found in world")
+            })
             .collect()
     }
 }
@@ -316,6 +312,10 @@ impl Interactable for SimulationImpl {
             Some(last_step_instant) => last_step_instant.to_inner().elapsed(),
             None => Duration::default(),
         }
+    }
+
+    fn object(&self, id: Id) -> Option<Object<'_>> {
+        Simulation::object(self, id)
     }
 }
 

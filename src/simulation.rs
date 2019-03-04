@@ -31,6 +31,9 @@ pub trait Simulation: Debug {
     /// Returns a read-only description of all objects currently inhabiting the simulation.
     fn objects(&self) -> Snapshot<'_>;
 
+    /// Returns a read-only description an object, if the provided ID is valid.
+    fn object(&self, id: Id) -> Option<Object<'_>>;
+
     /// Sets how much time in seconds is simulated for each step.
     /// # Examples
     /// If you want to run a simulation with 60 steps per second, you

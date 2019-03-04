@@ -16,4 +16,7 @@ pub trait Interactable: Debug {
     /// Returns the amount of time that passed since the last call
     /// to the `step` function of [`Simulation`]
     fn elapsed_time_in_update(&self) -> Duration;
+
+    /// Returns an object, if the specified ID is valid
+    fn object(&self, id: Id) -> Option<Object<'_>>;
 }

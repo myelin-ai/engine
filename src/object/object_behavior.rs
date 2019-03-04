@@ -10,11 +10,7 @@ pub use self::mocks::*;
 pub trait ObjectBehavior: Debug + ObjectBehaviorClone {
     /// Returns all actions performed by the object
     /// in the current simulation tick
-    fn step(
-        &mut self,
-        own_description: &ObjectDescription,
-        world_interactor: &dyn WorldInteractor,
-    ) -> Option<Action>;
+    fn step(&mut self, world_interactor: &dyn WorldInteractor) -> Option<Action>;
 
     /// Cast implementation to `Any`.
     /// This is needed in order to downcast trait objects of type `&dyn ObjectBehavior` to
