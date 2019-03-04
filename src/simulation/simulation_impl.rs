@@ -407,6 +407,20 @@ mod tests {
     }
 
     #[test]
+    fn returns_no_object_with_invalid_handle() {
+        let mut world = box WorldMock::new();
+        let returned_handle = BodyHandle(1337);
+        world.expect_body(partial_eq(returned_handle)).returns(None);
+        let simulation = SimulationImpl::new(
+            world,
+            box world_interactor_factory_fn,
+            box instant_wrapper_factory_fn,
+        );
+        let object = Simulation::object(&simulation, 1337);
+        assert!(object.is_none())
+    }
+
+    #[test]
     fn converts_to_physical_body() {
         let mut world = box WorldMock::new();
         let expected_shape = shape();
@@ -538,6 +552,102 @@ mod tests {
 
         let object_description = &objects.iter().next().unwrap().description;
         assert_eq!(expected_object_description, *object_description);
+    }
+
+    #[test]
+    fn retrieves_added_object() {
+        let mut world = box WorldMock::new();
+        let expected_shape = shape();
+        let expected_location = location();
+        let expected_rotation = rotation();
+        let expected_mobility = Mobility::Movable(Vector::default());
+        let expected_passable = false;
+
+        let expected_physical_body = PhysicalBody {
+            shape: expected_shape.clone(),
+            location: expected_location,
+            rotation: expected_rotation,
+            mobility: expected_mobility.clone(),
+            passable: expected_passable,
+        };
+        let returned_handle = BodyHandle(1984);
+        world
+            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .returns(returned_handle);
+        world
+            .expect_body(partial_eq(returned_handle))
+            .returns(Some(expected_physical_body));
+        world
+            .expect_is_body_passable(partial_eq(returned_handle))
+            .returns(expected_passable);
+
+        let mut simulation = SimulationImpl::new(
+            world,
+            box world_interactor_factory_fn,
+            box instant_wrapper_factory_fn,
+        );
+        let object_behavior = ObjectBehaviorMock::new();
+
+        let expected_object_description = ObjectBuilder::default()
+            .location(expected_location.x, expected_location.y)
+            .rotation(expected_rotation)
+            .shape(expected_shape)
+            .mobility(expected_mobility)
+            .passable(expected_passable)
+            .build()
+            .unwrap();
+
+        simulation.add_object(expected_object_description.clone(), box object_behavior);
+
+        let object = Simulation::object(&simulation, returned_handle.0).unwrap();
+
+        let object_description = &object.description;
+        assert_eq!(expected_object_description, *object_description);
+    }
+
+    #[test]
+    fn returns_no_objects_with_invalid_id() {
+        let mut world = box WorldMock::new();
+        let expected_shape = shape();
+        let expected_location = location();
+        let expected_rotation = rotation();
+        let expected_mobility = Mobility::Movable(Vector::default());
+        let expected_passable = false;
+
+        let expected_physical_body = PhysicalBody {
+            shape: expected_shape.clone(),
+            location: expected_location,
+            rotation: expected_rotation,
+            mobility: expected_mobility.clone(),
+            passable: expected_passable,
+        };
+        let returned_handle = BodyHandle(1984);
+        let invalid_handle = BodyHandle(1337);
+        world
+            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .returns(returned_handle);
+        world.expect_body(partial_eq(invalid_handle)).returns(None);
+
+        let mut simulation = SimulationImpl::new(
+            world,
+            box world_interactor_factory_fn,
+            box instant_wrapper_factory_fn,
+        );
+        let object_behavior = ObjectBehaviorMock::new();
+
+        let expected_object_description = ObjectBuilder::default()
+            .location(expected_location.x, expected_location.y)
+            .rotation(expected_rotation)
+            .shape(expected_shape)
+            .mobility(expected_mobility)
+            .passable(expected_passable)
+            .build()
+            .unwrap();
+
+        simulation.add_object(expected_object_description.clone(), box object_behavior);
+
+        let object = Simulation::object(&simulation, invalid_handle.0);
+        assert!(object.is_none())
     }
 
     // Something seems fishy with the following test
