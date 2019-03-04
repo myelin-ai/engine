@@ -68,7 +68,7 @@ pub trait World: Debug {
 
     /// Returns all bodies either completely contained or intersecting
     /// with the area.
-    fn bodies_in_polygon(&self, area: Polygon) -> Vec<BodyHandle>;
+    fn bodies_in_polygon(&self, area: &Polygon) -> Vec<BodyHandle>;
 }
 
 /// The pure physical representation of an object

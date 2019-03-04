@@ -290,7 +290,7 @@ impl Simulation for SimulationImpl {
             .collect()
     }
 
-    fn objects_in_polygon(&self, area: Polygon) -> Snapshot<'_> {
+    fn objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_> {
         self.world
             .bodies_in_polygon(area)
             .into_iter()
@@ -305,6 +305,10 @@ impl Simulation for SimulationImpl {
 impl Interactable for SimulationImpl {
     fn objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
         Simulation::objects_in_area(self, area)
+    }
+
+    fn objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_> {
+        Simulation::objects_in_polygon(self, area)
     }
 
     fn elapsed_time_in_update(&self) -> Duration {
@@ -327,7 +331,7 @@ mod tests {
     use crate::object_builder::ObjectBuilder;
     use crate::simulation::simulation_impl::world::WorldMock;
     use crate::world_interactor::{Interactable, WorldInteractor, WorldInteractorMock};
-    use mockiato::partial_eq;
+    use mockiato::{partial_eq, partial_eq_owned};
     use myelin_geometry::PolygonBuilder;
     use std::thread::sleep;
     use std::time::Instant;
@@ -992,7 +996,7 @@ mod tests {
             .expect_add_body(partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
         world
-            .expect_bodies_in_polygon(partial_eq(area.clone()))
+            .expect_bodies_in_polygon(partial_eq_owned(area.clone()))
             .returns(vec![returned_handle]);
         world
             .expect_body(partial_eq(returned_handle))
@@ -1010,7 +1014,7 @@ mod tests {
         let object_behavior = box ObjectBehaviorMock::new();
         simulation.add_object(object_description.clone(), object_behavior);
 
-        let objects_in_polygon = Simulation::objects_in_polygon(&simulation, area);
+        let objects_in_polygon = Simulation::objects_in_polygon(&simulation, &area);
         assert_eq!(1, objects_in_polygon.len());
         assert_eq!(returned_handle.0, objects_in_polygon[0].id);
         assert_eq!(object_description, objects_in_polygon[0].description);

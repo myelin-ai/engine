@@ -19,13 +19,17 @@ use mockiato::mockable;
 /// [`ObjectBehavior`]: ./trait.ObjectBehavior.html
 #[cfg_attr(any(test, feature = "use-mocks"), mockable)]
 pub trait WorldInteractor: Debug {
-    /// Scans for objects in the area defined by an [`Aabb`].
+    /// Scans for objects in the area defined by an `Aabb`.
     ///
     /// Returns all objects either completely contained or intersecting
-    /// with the area.
-    ///
-    /// [`Aabb`]: ./struct.Aabb.html
+    /// within the area.
     fn find_objects_in_area(&self, area: Aabb) -> Snapshot<'_>;
+
+    /// Scans for objects in the area defined by a `Polygon`.
+    ///
+    /// Returns all objects either completely contained or intersecting
+    /// within the area.
+    fn find_objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_>;
 
     /// Returns the amount of time that passed since the last call
     /// to the `step` function of [`Simulation`]
