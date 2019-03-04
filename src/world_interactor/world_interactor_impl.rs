@@ -81,4 +81,43 @@ mod tests {
         assert_eq!(objects[0].id, objects_in_area[0].id);
         assert_eq!(objects[0].description, objects_in_area[0].description);
     }
+
+    #[test]
+    fn object_is_propagated() {
+        let object_behavior = ObjectBehaviorMock::new();
+        let expected_object = Object {
+            id: 125,
+            description: object_description(),
+            behavior: &object_behavior,
+        };
+
+        let mut interactable = InteractableMock::new();
+        interactable
+            .expect_object(partial_eq(expected_object.id))
+            .returns(Some(expected_object.clone()));
+        let world_interactor = WorldInteractorImpl::new(&interactable, expected_object.id);
+
+        let object = world_interactor.own_object();
+        assert_eq!(expected_object.id, object.id);
+        assert_eq!(expected_object.description, object.description);
+    }
+
+    #[test]
+    #[should_panic]
+    fn object_panics_on_internal_error() {
+        let object_behavior = ObjectBehaviorMock::new();
+        let expected_object = Object {
+            id: 125,
+            description: object_description(),
+            behavior: &object_behavior,
+        };
+
+        let mut interactable = InteractableMock::new();
+        interactable
+            .expect_object(partial_eq(expected_object.id))
+            .returns(None);
+        let world_interactor = WorldInteractorImpl::new(&interactable, expected_object.id);
+
+        let _object = world_interactor.own_object();
+    }
 }

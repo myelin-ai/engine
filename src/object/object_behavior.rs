@@ -63,6 +63,7 @@ mod mocks {
     /// [`ObjectBehavior`]: ../trait.ObjectBehavior.html
     #[derive(Debug, Default, Clone)]
     pub struct ObjectBehaviorMock {
+        #[allow(clippy::option_option)]
         expect_step_and_return: Option<Option<Action>>,
 
         step_was_called: RefCell<bool>,
