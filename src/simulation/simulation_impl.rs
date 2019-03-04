@@ -96,7 +96,7 @@ impl SimulationImpl {
     /// ));
     /// let simulation = SimulationImpl::new(
     ///     world,
-    ///     Box::new(|simulation| Box::new(WorldInteractorImpl::new(simulation))),
+    ///     Box::new(|simulation, id| Box::new(WorldInteractorImpl::new(simulation, id))),
     ///     Box::new(|| Box::new(InstantWrapperImpl::new(Instant::now()))),
     /// );
     /// ```
