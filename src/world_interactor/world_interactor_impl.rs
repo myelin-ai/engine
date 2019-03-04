@@ -8,14 +8,15 @@ use std::time::Duration;
 #[derive(Debug)]
 pub struct WorldInteractorImpl<'a> {
     interactable: &'a dyn Interactable,
+    id: Id,
 }
 
 impl<'a> WorldInteractorImpl<'a> {
     /// Creates a new instance of [`WorldInteractorImpl`].
     ///
     /// [`WorldInteractorImpl`]: ./struct.WorldInteractorImpl.html
-    pub fn new(interactable: &'a dyn Interactable) -> Self {
-        Self { interactable }
+    pub fn new(interactable: &'a dyn Interactable, id: Id) -> Self {
+        Self { interactable, id }
     }
 }
 
@@ -26,6 +27,12 @@ impl<'a> WorldInteractor for WorldInteractorImpl<'a> {
 
     fn elapsed_time_in_update(&self) -> Duration {
         self.interactable.elapsed_time_in_update()
+    }
+
+    fn own_object(&self) -> Object<'_> {
+        self.interactable
+            .object(self.id)
+            .expect("Internal error: Own ID stored in WorldInteractorImpl was invalid")
     }
 }
 
@@ -69,11 +76,50 @@ mod tests {
         interactable
             .expect_objects_in_area(partial_eq(area))
             .returns(objects.clone());
-        let world_interactor = WorldInteractorImpl::new(&interactable);
+        let world_interactor = WorldInteractorImpl::new(&interactable, 0);
 
         let objects_in_area = world_interactor.find_objects_in_area(area);
         assert_eq!(1, objects_in_area.len());
         assert_eq!(objects[0].id, objects_in_area[0].id);
         assert_eq!(objects[0].description, objects_in_area[0].description);
+    }
+
+    #[test]
+    fn object_is_propagated() {
+        let object_behavior = ObjectBehaviorMock::new();
+        let expected_object = Object {
+            id: 125,
+            description: object_description(),
+            behavior: &object_behavior,
+        };
+
+        let mut interactable = InteractableMock::new();
+        interactable
+            .expect_object(partial_eq(expected_object.id))
+            .returns(Some(expected_object.clone()));
+        let world_interactor = WorldInteractorImpl::new(&interactable, expected_object.id);
+
+        let object = world_interactor.own_object();
+        assert_eq!(expected_object.id, object.id);
+        assert_eq!(expected_object.description, object.description);
+    }
+
+    #[test]
+    #[should_panic]
+    fn object_panics_on_internal_error() {
+        let object_behavior = ObjectBehaviorMock::new();
+        let expected_object = Object {
+            id: 125,
+            description: object_description(),
+            behavior: &object_behavior,
+        };
+
+        let mut interactable = InteractableMock::new();
+        interactable
+            .expect_object(partial_eq(expected_object.id))
+            .returns(None);
+        let world_interactor = WorldInteractorImpl::new(&interactable, expected_object.id);
+
+        let _object = world_interactor.own_object();
     }
 }

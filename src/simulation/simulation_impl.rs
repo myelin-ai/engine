@@ -23,7 +23,7 @@ pub use self::builder::SimulationBuilder;
 /// [`SimulationImpl`]: ./struct.SimulationImpl.html
 /// [`WorldInteractor`]: ./../object/trait.WorldInteractor.html
 pub type WorldInteractorFactoryFn =
-    dyn for<'a> Fn(&'a dyn Interactable) -> Box<dyn WorldInteractor + 'a>;
+    dyn for<'a> Fn(&'a dyn Interactable, Id) -> Box<dyn WorldInteractor + 'a>;
 
 /// Factory to retrieve a current [`Instant`], wrapped by [`InstantWrapper`]
 ///
@@ -96,7 +96,7 @@ impl SimulationImpl {
     /// ));
     /// let simulation = SimulationImpl::new(
     ///     world,
-    ///     Box::new(|simulation| Box::new(WorldInteractorImpl::new(simulation))),
+    ///     Box::new(|simulation, id| Box::new(WorldInteractorImpl::new(simulation, id))),
     ///     Box::new(|| Box::new(InstantWrapperImpl::new(Instant::now()))),
     /// );
     /// ```
@@ -167,16 +167,12 @@ impl SimulationImpl {
             .to_action_result()
     }
 
-    fn handle_to_object(&self, handle: BodyHandle) -> Object<'_> {
-        Object {
+    fn handle_to_object(&self, handle: BodyHandle) -> Option<Object<'_>> {
+        Some(Object {
             id: handle.0,
-            description: self
-                .handle_to_description(handle)
-                .expect("Handle stored in simulation was not found in world"),
-            behavior: self
-                .handle_to_behavior(handle)
-                .expect("Handle stored in simulation was not found in world"),
-        }
+            description: self.handle_to_description(handle)?,
+            behavior: self.handle_to_behavior(handle)?,
+        })
     }
 
     fn handle_to_behavior(&self, handle: BodyHandle) -> Option<&dyn ObjectBehavior> {
@@ -209,27 +205,14 @@ impl<T> HandleOption for Option<T> {
 
 impl Simulation for SimulationImpl {
     fn step(&mut self) {
-        let object_handle_to_own_description: HashMap<_, _> = self
-            .non_physical_object_data
-            .keys()
-            .map(|&object_handle| {
-                (
-                    object_handle,
-                    self.handle_to_description(object_handle)
-                        .expect("Internal error: Stored handle was invalid"),
-                )
-            })
-            .collect();
         let mut actions = Vec::new();
-
         {
-            let world_interactor = (self.world_interactor_factory_fn)(self);
             for (object_handle, non_physical_object_data) in &self.non_physical_object_data {
-                let own_description = &object_handle_to_own_description[object_handle];
+                let world_interactor = (self.world_interactor_factory_fn)(self, object_handle.0);
                 let action = non_physical_object_data
                     .behavior
                     .borrow_mut()
-                    .step(&own_description, world_interactor.as_ref());
+                    .step(world_interactor.as_ref());
                 if let Some(action) = action {
                     actions.push((*object_handle, action));
                 }
@@ -280,8 +263,15 @@ impl Simulation for SimulationImpl {
     fn objects(&self) -> Snapshot<'_> {
         self.non_physical_object_data
             .keys()
-            .map(|&handle| self.handle_to_object(handle))
+            .map(|&handle| {
+                self.handle_to_object(handle)
+                    .expect("Handle stored in simulation was not found in world")
+            })
             .collect()
+    }
+
+    fn object(&self, id: Id) -> Option<Object<'_>> {
+        self.handle_to_object(BodyHandle(id))
     }
 
     fn set_simulated_timestep(&mut self, timestep: f64) {
@@ -293,7 +283,10 @@ impl Simulation for SimulationImpl {
         self.world
             .bodies_in_area(area)
             .into_iter()
-            .map(|handle| self.handle_to_object(handle))
+            .map(|handle| {
+                self.handle_to_object(handle)
+                    .expect("Handle stored in simulation was not found in world")
+            })
             .collect()
     }
 
@@ -301,7 +294,10 @@ impl Simulation for SimulationImpl {
         self.world
             .bodies_in_polygon(area)
             .into_iter()
-            .map(|handle| self.handle_to_object(handle))
+            .map(|handle| {
+                self.handle_to_object(handle)
+                    .expect("Handle stored in simulation was not found in world")
+            })
             .collect()
     }
 }
@@ -316,6 +312,10 @@ impl Interactable for SimulationImpl {
             Some(last_step_instant) => last_step_instant.to_inner().elapsed(),
             None => Duration::default(),
         }
+    }
+
+    fn object(&self, id: Id) -> Option<Object<'_>> {
+        Simulation::object(self, id)
     }
 }
 
@@ -334,6 +334,7 @@ mod tests {
 
     fn world_interactor_factory_fn<'a>(
         _interactable: &'a dyn Interactable,
+        _id: Id,
     ) -> Box<dyn WorldInteractor + 'a> {
         box WorldInteractorMock::new()
     }
@@ -406,6 +407,20 @@ mod tests {
     }
 
     #[test]
+    fn returns_no_object_with_invalid_handle() {
+        let mut world = box WorldMock::new();
+        let returned_handle = BodyHandle(1337);
+        world.expect_body(partial_eq(returned_handle)).returns(None);
+        let simulation = SimulationImpl::new(
+            world,
+            box world_interactor_factory_fn,
+            box instant_wrapper_factory_fn,
+        );
+        let object = Simulation::object(&simulation, 1337);
+        assert!(object.is_none())
+    }
+
+    #[test]
     fn converts_to_physical_body() {
         let mut world = box WorldMock::new();
         let expected_shape = shape();
@@ -465,12 +480,6 @@ mod tests {
         world
             .expect_add_body(partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
-        world
-            .expect_body(partial_eq(returned_handle))
-            .returns(Some(expected_physical_body));
-        world
-            .expect_is_body_passable(partial_eq(returned_handle))
-            .returns(expected_passable);
 
         let expected_object_description = ObjectBuilder::default()
             .location(expected_location.x, expected_location.y)
@@ -482,7 +491,7 @@ mod tests {
             .unwrap();
 
         let mut object_behavior = ObjectBehaviorMock::new();
-        object_behavior.expect_step_and_return(&expected_object_description, None);
+        object_behavior.expect_step_and_return(None);
 
         let mut simulation = SimulationImpl::new(
             box world,
@@ -545,6 +554,102 @@ mod tests {
         assert_eq!(expected_object_description, *object_description);
     }
 
+    #[test]
+    fn retrieves_added_object() {
+        let mut world = box WorldMock::new();
+        let expected_shape = shape();
+        let expected_location = location();
+        let expected_rotation = rotation();
+        let expected_mobility = Mobility::Movable(Vector::default());
+        let expected_passable = false;
+
+        let expected_physical_body = PhysicalBody {
+            shape: expected_shape.clone(),
+            location: expected_location,
+            rotation: expected_rotation,
+            mobility: expected_mobility.clone(),
+            passable: expected_passable,
+        };
+        let returned_handle = BodyHandle(1984);
+        world
+            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .returns(returned_handle);
+        world
+            .expect_body(partial_eq(returned_handle))
+            .returns(Some(expected_physical_body));
+        world
+            .expect_is_body_passable(partial_eq(returned_handle))
+            .returns(expected_passable);
+
+        let mut simulation = SimulationImpl::new(
+            world,
+            box world_interactor_factory_fn,
+            box instant_wrapper_factory_fn,
+        );
+        let object_behavior = ObjectBehaviorMock::new();
+
+        let expected_object_description = ObjectBuilder::default()
+            .location(expected_location.x, expected_location.y)
+            .rotation(expected_rotation)
+            .shape(expected_shape)
+            .mobility(expected_mobility)
+            .passable(expected_passable)
+            .build()
+            .unwrap();
+
+        simulation.add_object(expected_object_description.clone(), box object_behavior);
+
+        let object = Simulation::object(&simulation, returned_handle.0).unwrap();
+
+        let object_description = &object.description;
+        assert_eq!(expected_object_description, *object_description);
+    }
+
+    #[test]
+    fn returns_no_objects_with_invalid_id() {
+        let mut world = box WorldMock::new();
+        let expected_shape = shape();
+        let expected_location = location();
+        let expected_rotation = rotation();
+        let expected_mobility = Mobility::Movable(Vector::default());
+        let expected_passable = false;
+
+        let expected_physical_body = PhysicalBody {
+            shape: expected_shape.clone(),
+            location: expected_location,
+            rotation: expected_rotation,
+            mobility: expected_mobility.clone(),
+            passable: expected_passable,
+        };
+        let returned_handle = BodyHandle(1984);
+        let invalid_handle = BodyHandle(1337);
+        world
+            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .returns(returned_handle);
+        world.expect_body(partial_eq(invalid_handle)).returns(None);
+
+        let mut simulation = SimulationImpl::new(
+            world,
+            box world_interactor_factory_fn,
+            box instant_wrapper_factory_fn,
+        );
+        let object_behavior = ObjectBehaviorMock::new();
+
+        let expected_object_description = ObjectBuilder::default()
+            .location(expected_location.x, expected_location.y)
+            .rotation(expected_rotation)
+            .shape(expected_shape)
+            .mobility(expected_mobility)
+            .passable(expected_passable)
+            .build()
+            .unwrap();
+
+        simulation.add_object(expected_object_description.clone(), box object_behavior);
+
+        let object = Simulation::object(&simulation, invalid_handle.0);
+        assert!(object.is_none())
+    }
+
     // Something seems fishy with the following test
     // It fails because the expected step from the child
     // is not called.
@@ -595,15 +700,12 @@ mod tests {
             .unwrap();
 
         let mut child_object_behavior = ObjectBehaviorMock::new();
-        child_object_behavior.expect_step_and_return(&expected_object_description, None);
+        child_object_behavior.expect_step_and_return(None);
 
-        object_behavior.expect_step_and_return(
-            &expected_object_description,
-            Some(Action::Spawn(
-                expected_object_description.clone(),
-                box child_object_behavior,
-            )),
-        );
+        object_behavior.expect_step_and_return(Some(Action::Spawn(
+            expected_object_description.clone(),
+            box child_object_behavior,
+        )));
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
 
@@ -631,16 +733,10 @@ mod tests {
         world
             .expect_add_body(partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
-        world
-            .expect_body(partial_eq(returned_handle))
-            .returns(Some(expected_physical_body.clone()));
         world.expect_step();
         world
             .expect_remove_body(partial_eq(returned_handle))
             .returns(Some(expected_physical_body));
-        world
-            .expect_is_body_passable(partial_eq(returned_handle))
-            .returns(expected_passable);
 
         let mut simulation = SimulationImpl::new(
             world,
@@ -659,8 +755,7 @@ mod tests {
             .build()
             .unwrap();
 
-        object_behavior
-            .expect_step_and_return(&expected_object_description, Some(Action::DestroySelf));
+        object_behavior.expect_step_and_return(Some(Action::DestroySelf));
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
 
@@ -689,12 +784,6 @@ mod tests {
         world
             .expect_add_body(partial_eq(expected_physical_body.clone()))
             .returns(handle_one);
-        world
-            .expect_body(partial_eq(handle_one))
-            .returns(Some(expected_physical_body.clone()));
-        world
-            .expect_is_body_passable(partial_eq(handle_one))
-            .returns(expected_passable);
         world.expect_step();
         world
             .expect_remove_body(partial_eq(handle_two))
@@ -717,10 +806,7 @@ mod tests {
             .build()
             .unwrap();
 
-        object_behavior.expect_step_and_return(
-            &expected_object_description,
-            Some(Action::Destroy(handle_two.0)),
-        );
+        object_behavior.expect_step_and_return(Some(Action::Destroy(handle_two.0)));
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
 
@@ -747,13 +833,7 @@ mod tests {
         world
             .expect_add_body(partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
-        world
-            .expect_body(partial_eq(returned_handle))
-            .returns(Some(expected_physical_body.clone()));
         world.expect_step();
-        world
-            .expect_is_body_passable(partial_eq(returned_handle))
-            .returns(expected_passable);
         let expected_force = Force {
             linear: Vector { x: 20.0, y: -5.0 },
             torque: Torque(-8.0),
@@ -782,10 +862,7 @@ mod tests {
             .build()
             .unwrap();
 
-        object_behavior.expect_step_and_return(
-            &expected_object_description,
-            Some(Action::ApplyForce(expected_force)),
-        );
+        object_behavior.expect_step_and_return(Some(Action::ApplyForce(expected_force)));
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
 

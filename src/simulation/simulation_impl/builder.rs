@@ -83,8 +83,9 @@ impl SimulationBuilder {
         box SimulationImpl::new(
             self.world
                 .unwrap_or_else(|| box NphysicsWorldBuilder::default().build()),
-            self.world_interactor_factory_fn
-                .unwrap_or_else(|| box |simulation| box WorldInteractorImpl::new(simulation)),
+            self.world_interactor_factory_fn.unwrap_or_else(|| {
+                box |simulation, id| box WorldInteractorImpl::new(simulation, id)
+            }),
             self.instant_wrapper_factory_fn
                 .unwrap_or_else(|| box || box InstantWrapperImpl::new(Instant::now())),
         )

@@ -10,11 +10,7 @@ pub use self::mocks::*;
 pub trait ObjectBehavior: Debug + ObjectBehaviorClone {
     /// Returns all actions performed by the object
     /// in the current simulation tick
-    fn step(
-        &mut self,
-        own_description: &ObjectDescription,
-        world_interactor: &dyn WorldInteractor,
-    ) -> Option<Action>;
+    fn step(&mut self, world_interactor: &dyn WorldInteractor) -> Option<Action>;
 
     /// Cast implementation to `Any`.
     /// This is needed in order to downcast trait objects of type `&dyn ObjectBehavior` to
@@ -67,7 +63,8 @@ mod mocks {
     /// [`ObjectBehavior`]: ../trait.ObjectBehavior.html
     #[derive(Debug, Default, Clone)]
     pub struct ObjectBehaviorMock {
-        expect_step_and_return: Option<(ObjectDescription, Option<Action>)>,
+        #[allow(clippy::option_option)]
+        expect_step_and_return: Option<Option<Action>>,
 
         step_was_called: RefCell<bool>,
     }
@@ -79,33 +76,19 @@ mod mocks {
         }
 
         /// Expect a call to `step`
-        pub fn expect_step_and_return(
-            &mut self,
-            own_description: &ObjectDescription,
-            return_value: Option<Action>,
-        ) {
-            self.expect_step_and_return = Some((own_description.clone(), return_value));
+        pub fn expect_step_and_return(&mut self, return_value: Option<Action>) {
+            self.expect_step_and_return = Some(return_value);
         }
     }
 
     impl ObjectBehavior for ObjectBehaviorMock {
-        fn step(
-            &mut self,
-            own_description: &ObjectDescription,
-            _world_interactor: &dyn WorldInteractor,
-        ) -> Option<Action> {
+        fn step(&mut self, _world_interactor: &dyn WorldInteractor) -> Option<Action> {
             *self.step_was_called.borrow_mut() = true;
 
-            let (expected_own_description, return_value) = self
+            let return_value = self
                 .expect_step_and_return
                 .clone()
                 .expect("step() was called unexpectedly");
-
-            assert_eq!(
-                expected_own_description, *own_description,
-                "step() was called with {:?}, expected {:?}",
-                own_description, expected_own_description
-            );
 
             return_value.clone()
         }
