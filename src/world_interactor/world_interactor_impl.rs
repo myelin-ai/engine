@@ -30,7 +30,9 @@ impl<'a> WorldInteractor for WorldInteractorImpl<'a> {
     }
 
     fn own_object(&self) -> Object<'_> {
-        self.interactable.object(self.id).unwrap()
+        self.interactable
+            .object(self.id)
+            .expect("Internal error: Own ID stored in WorldInteractorImpl was invalid")
     }
 }
 
