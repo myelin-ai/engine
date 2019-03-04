@@ -483,7 +483,7 @@ mod tests {
             .unwrap();
 
         let mut object_behavior = ObjectBehaviorMock::new();
-        object_behavior.expect_step_and_return(&expected_object_description, None);
+        object_behavior.expect_step_and_return(None);
 
         let mut simulation = SimulationImpl::new(
             box world,
@@ -596,15 +596,12 @@ mod tests {
             .unwrap();
 
         let mut child_object_behavior = ObjectBehaviorMock::new();
-        child_object_behavior.expect_step_and_return(&expected_object_description, None);
+        child_object_behavior.expect_step_and_return(None);
 
-        object_behavior.expect_step_and_return(
-            &expected_object_description,
-            Some(Action::Spawn(
-                expected_object_description.clone(),
-                box child_object_behavior,
-            )),
-        );
+        object_behavior.expect_step_and_return(Some(Action::Spawn(
+            expected_object_description.clone(),
+            box child_object_behavior,
+        )));
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
 
@@ -660,8 +657,7 @@ mod tests {
             .build()
             .unwrap();
 
-        object_behavior
-            .expect_step_and_return(&expected_object_description, Some(Action::DestroySelf));
+        object_behavior.expect_step_and_return(Some(Action::DestroySelf));
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
 
@@ -718,10 +714,7 @@ mod tests {
             .build()
             .unwrap();
 
-        object_behavior.expect_step_and_return(
-            &expected_object_description,
-            Some(Action::Destroy(handle_two.0)),
-        );
+        object_behavior.expect_step_and_return(Some(Action::Destroy(handle_two.0)));
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
 
@@ -783,10 +776,7 @@ mod tests {
             .build()
             .unwrap();
 
-        object_behavior.expect_step_and_return(
-            &expected_object_description,
-            Some(Action::ApplyForce(expected_force)),
-        );
+        object_behavior.expect_step_and_return(Some(Action::ApplyForce(expected_force)));
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
 

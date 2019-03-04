@@ -6,11 +6,7 @@ use std::any::Any;
 struct StaticBehavior;
 
 impl ObjectBehavior for StaticBehavior {
-    fn step(
-        &mut self,
-        _own_description: &ObjectDescription,
-        _world_interactor: &dyn WorldInteractor,
-    ) -> Option<Action> {
+    fn step(&mut self, _world_interactor: &dyn WorldInteractor) -> Option<Action> {
         None
     }
 
