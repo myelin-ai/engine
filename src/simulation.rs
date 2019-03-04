@@ -226,26 +226,34 @@ mod mocks {
 
             match &self.expect_object_and_return {
                 AddObjectExpectation::None => panic!("object() was called unexpectedly"),
-                AddObjectExpectation::Any(Some((id, description, behavior))) => Some(Object {
-                    id: *id,
-                    description: description.clone(),
-                    behavior: behavior.as_ref(),
-                }),
-                AddObjectExpectation::AtLeastOnce(expected_id, Some(return_value)) => {
+                AddObjectExpectation::Any(return_value) => {
+                    if let Some((id, description, behavior)) = return_value {
+                        Some(Object {
+                            id: *id,
+                            description: description.clone(),
+                            behavior: behavior.as_ref(),
+                        })
+                    } else {
+                        None
+                    }
+                }
+                AddObjectExpectation::AtLeastOnce(expected_id, return_value) => {
                     assert_eq!(
                         *expected_id, id,
-                        "add_object() was called with {:?}, expected {:?}",
+                        "object() was called with {:?}, expected {:?}",
                         id, expected_id
                     );
 
-                    let (id, description, behavior) = return_value;
-                    Some(Object {
-                        id: *id,
-                        description: description.clone(),
-                        behavior: behavior.as_ref(),
-                    })
+                    if let Some((id, description, behavior)) = return_value {
+                        Some(Object {
+                            id: *id,
+                            description: description.clone(),
+                            behavior: behavior.as_ref(),
+                        })
+                    } else {
+                        None
+                    }
                 }
-                _ => None,
             }
         }
 
