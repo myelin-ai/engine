@@ -1,6 +1,8 @@
 /target
 **/*.rs.bk
 
+Cargo.lock
+
 # Code coverage
 ccov.zip
 lcov.info
