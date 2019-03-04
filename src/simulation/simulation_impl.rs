@@ -167,14 +167,6 @@ impl SimulationImpl {
             .to_action_result()
     }
 
-    fn handle_to_object(&self, handle: BodyHandle) -> Option<Object<'_>> {
-        Some(Object {
-            id: handle.0,
-            description: self.handle_to_description(handle)?,
-            behavior: self.handle_to_behavior(handle)?,
-        })
-    }
-
     fn handle_to_behavior(&self, handle: BodyHandle) -> Option<&dyn ObjectBehavior> {
         let ptr = self
             .non_physical_object_data
@@ -264,14 +256,19 @@ impl Simulation for SimulationImpl {
         self.non_physical_object_data
             .keys()
             .map(|&handle| {
-                self.handle_to_object(handle)
+                Simulation::object(self, handle.0)
                     .expect("Handle stored in simulation was not found in world")
             })
             .collect()
     }
 
     fn object(&self, id: Id) -> Option<Object<'_>> {
-        self.handle_to_object(BodyHandle(id))
+        let handle = BodyHandle(id);
+        Some(Object {
+            id: handle.0,
+            description: self.handle_to_description(handle)?,
+            behavior: self.handle_to_behavior(handle)?,
+        })
     }
 
     fn set_simulated_timestep(&mut self, timestep: f64) {
@@ -284,7 +281,7 @@ impl Simulation for SimulationImpl {
             .bodies_in_area(area)
             .into_iter()
             .map(|handle| {
-                self.handle_to_object(handle)
+                Simulation::object(self, handle.0)
                     .expect("Handle stored in simulation was not found in world")
             })
             .collect()
@@ -295,7 +292,7 @@ impl Simulation for SimulationImpl {
             .bodies_in_polygon(area)
             .into_iter()
             .map(|handle| {
-                self.handle_to_object(handle)
+                Simulation::object(self, handle.0)
                     .expect("Handle stored in simulation was not found in world")
             })
             .collect()
