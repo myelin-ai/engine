@@ -13,3 +13,7 @@
 - Move `own_description` from the signature of `ObjectBehavior::step` to the new function `WorldInteractor::own_object(&self) -> Object<'_>`
     - This also allows access to an object's own ID
 - Support object retrieval with an ID via `Simulation::object(&self, id: Id) -> Option<Object<'_>>`
+
+## 0.6.0
+- Actually expose the collision checks added in 0.4.1 in `WorldInteractor`
+- Improve performance by using references to `Polygon`s everywhere
