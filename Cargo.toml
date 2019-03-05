@@ -24,7 +24,7 @@ nalgebra = "0.17"
 ncollide2d = "0.18"
 serde = "1.0"
 serde_derive = "1.0"
-alga = "0.7"
+alga = "0.8"
 nameof = "1.0"
 mockiato = { version = "0.2", optional = true }
 
