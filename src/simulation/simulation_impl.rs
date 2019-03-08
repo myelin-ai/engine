@@ -297,6 +297,17 @@ impl Simulation for SimulationImpl {
             })
             .collect()
     }
+
+    fn objects_in_ray(&self, origin: Point, direction: Vector) -> Snapshot<'_> {
+        self.world
+            .bodies_in_ray(origin, direction)
+            .into_iter()
+            .map(|handle| {
+                Simulation::object(self, handle.0)
+                    .expect("Handle stored in simulation was not found in world")
+            })
+            .collect()
+    }
 }
 
 impl Interactable for SimulationImpl {
@@ -1012,6 +1023,43 @@ mod tests {
         simulation.add_object(object_description.clone(), object_behavior);
 
         let objects_in_polygon = Simulation::objects_in_polygon(&simulation, &area);
+        assert_eq!(1, objects_in_polygon.len());
+        assert_eq!(returned_handle.0, objects_in_polygon[0].id);
+        assert_eq!(object_description, objects_in_polygon[0].description);
+    }
+
+    #[test]
+    fn propagates_objects_in_ray() {
+        let mut world = WorldMock::new();
+        let (expected_physical_body, object_description) = object();
+
+        let origin = Point { x: 5.0, y: 10.0 };
+        let direction = Vector { x: 3.0, y: -5.0 };
+
+        let returned_handle = BodyHandle(1234);
+        world
+            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .returns(returned_handle);
+        world
+            .expect_bodies_in_ray(partial_eq(origin), partial_eq(direction))
+            .returns(vec![returned_handle]);
+        world
+            .expect_body(partial_eq(returned_handle))
+            .returns(Some(expected_physical_body.clone()));
+        world
+            .expect_is_body_passable(partial_eq(returned_handle))
+            .returns(expected_physical_body.passable);
+
+        let mut simulation = SimulationImpl::new(
+            box world,
+            box world_interactor_factory_fn,
+            box instant_wrapper_factory_fn,
+        );
+
+        let object_behavior = box ObjectBehaviorMock::new();
+        simulation.add_object(object_description.clone(), object_behavior);
+
+        let objects_in_polygon = Simulation::objects_in_ray(&simulation, origin, direction);
         assert_eq!(1, objects_in_polygon.len());
         assert_eq!(returned_handle.0, objects_in_polygon[0].id);
         assert_eq!(object_description, objects_in_polygon[0].description);
