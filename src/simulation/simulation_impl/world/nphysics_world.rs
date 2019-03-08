@@ -16,6 +16,7 @@ use crate::prelude::*;
 use nalgebra::base::{Scalar, Vector2};
 use ncollide2d::bounding_volume::AABB as NcollideAabb;
 use ncollide2d::math::Point as NcollidePoint;
+use ncollide2d::query::Ray;
 use ncollide2d::shape::{ConvexPolygon, ShapeHandle};
 use ncollide2d::world::{CollisionGroups, CollisionObjectHandle};
 use nphysics2d::algebra::ForceType;
@@ -322,11 +323,13 @@ impl World for NphysicsWorld {
     fn bodies_in_ray(&self, origin: Point, ray: Vector) -> Vec<BodyHandle> {
         let collision_groups = CollisionGroups::new();
 
-        let ray = unimplemented!();
+        let origin = to_ncollide_point(origin);
+        let direction = to_ncollide_vector(ray);
+        let ray = Ray::new(origin, direction);
 
         self.physics_world
             .collider_world()
-            .interferences_with_ray(ray, &collision_groups)
+            .interferences_with_ray(&ray, &collision_groups)
             .map(|(collider, _)| to_body_handle(collider.handle()))
             .collect()
     }
@@ -349,6 +352,10 @@ fn to_ncollide_aabb(aabb: Aabb) -> NcollideAabb<f64> {
 
 fn to_ncollide_point(point: Point) -> NcollidePoint<f64> {
     NcollidePoint::from_slice(&[point.x, point.y])
+}
+
+fn to_ncollide_vector(vector: Vector) -> Vector2<f64> {
+    Vector2::new(vector.x, vector.y)
 }
 
 #[cfg(test)]
