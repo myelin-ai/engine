@@ -297,6 +297,17 @@ impl Simulation for SimulationImpl {
             })
             .collect()
     }
+
+    fn objects_in_ray(&self, ray: Vector) -> Snapshot<'_> {
+        self.world
+            .bodies_in_ray(ray)
+            .into_iter()
+            .map(|handle| {
+                Simulation::object(self, handle.0)
+                    .expect("Handle stored in simulation was not found in world")
+            })
+            .collect()
+    }
 }
 
 impl Interactable for SimulationImpl {

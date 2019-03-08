@@ -296,7 +296,7 @@ impl World for NphysicsWorld {
         self.physics_world
             .collider_world()
             .interferences_with_aabb(&to_ncollide_aabb(area), &collision_groups)
-            .map(|collision| to_body_handle(collision.handle()))
+            .map(|collider| to_body_handle(collider.handle()))
             .collect()
     }
 
@@ -316,6 +316,18 @@ impl World for NphysicsWorld {
 
                 area.intersects(&occupied_area)
             })
+            .collect()
+    }
+
+    fn bodies_in_ray(&self, ray: Vector) -> Vec<BodyHandle> {
+        let collision_groups = CollisionGroups::new();
+
+        let ray = unimplemented!();
+
+        self.physics_world
+            .collider_world()
+            .interferences_with_ray(ray, &collision_groups)
+            .map(|(collider, _)| to_body_handle(collider.handle()))
             .collect()
     }
 }
