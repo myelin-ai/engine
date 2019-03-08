@@ -48,6 +48,10 @@ pub trait Simulation: Debug {
     /// Returns read-only descriptions for all objects either completely
     /// contained or intersecting with the given area.
     fn objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_>;
+
+    /// Returns read-only descriptions for all objects
+    /// intersecting with the given vector.
+    fn objects_in_ray(&self, ray: Vector) -> Snapshot<'_>;
 }
 
 /// Unique identifier of an Object
@@ -101,6 +105,7 @@ mod mocks {
         expect_set_simulated_timestep: Option<(f64,)>,
         expect_objects_in_area_and_return: ObjectsInAreaExpectation<Aabb, Snapshot<'a>>,
         expect_objects_in_polygon_and_return: ObjectsInAreaExpectation<Polygon, Snapshot<'a>>,
+        expect_objects_in_ray_and_return: ObjectsInAreaExpectation<Vector, Snapshot<'a>>,
 
         step_was_called: RefCell<bool>,
         objects_was_called: RefCell<bool>,
@@ -109,6 +114,7 @@ mod mocks {
         set_simulated_timestep_was_called: RefCell<bool>,
         objects_in_area_was_called: RefCell<bool>,
         objects_in_polygon_was_called: RefCell<bool>,
+        objects_in_ray_was_called: RefCell<bool>,
     }
 
     /// A helper tuple with an owned [`ObjectBehavior`], used to assemble an [`Object`] in mocks.
@@ -325,6 +331,33 @@ mod mocks {
 
             return_value.clone()
         }
+
+        fn objects_in_ray(&self, ray: Vector) -> Snapshot<'_> {
+            *self.objects_in_ray_was_called.borrow_mut() = true;
+
+            const UNEXPECTED_CALL_ERROR_MESSAGE: &str = "objects_in_ray() was called unexpectedly";
+
+            let (expected_ray, return_value) = match self.expect_objects_in_ray_and_return {
+                ObjectsInAreaExpectation::None => panic!(UNEXPECTED_CALL_ERROR_MESSAGE),
+                ObjectsInAreaExpectation::AtLeastOnce(ref expected_ray, ref return_value) => {
+                    (expected_ray.clone(), return_value.clone())
+                }
+                ObjectsInAreaExpectation::Sequence(ref expected_calls_and_return_values) => {
+                    expected_calls_and_return_values
+                        .borrow_mut()
+                        .pop_front()
+                        .expect(UNEXPECTED_CALL_ERROR_MESSAGE)
+                }
+            };
+
+            assert_eq!(
+                expected_ray, ray,
+                "objects_in_ray() was called with {:?}, expected {:?}",
+                ray, expected_ray
+            );
+
+            return_value.clone()
+        }
     }
 
     impl<'a> Drop for SimulationMock<'a> {
@@ -371,6 +404,15 @@ mod mocks {
                 assert!(
                     *self.objects_in_polygon_was_called.borrow(),
                     "objects_in_polygon() was not called, but expected"
+                );
+            }
+
+            if let ObjectsInAreaExpectation::AtLeastOnce(..)
+            | ObjectsInAreaExpectation::Sequence(..) = self.expect_objects_in_ray_and_return
+            {
+                assert!(
+                    *self.objects_in_ray_was_called.borrow(),
+                    "objects_in_ray() was not called, but expected"
                 );
             }
         }
