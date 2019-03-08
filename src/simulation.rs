@@ -347,20 +347,20 @@ mod mocks {
 
             const UNEXPECTED_CALL_ERROR_MESSAGE: &str = "objects_in_ray() was called unexpectedly";
 
-            let ((expected_origin, expected_direction), return_value) = match self
-                .expect_objects_in_ray_and_return
-            {
-                ObjectsInAreaExpectation::None => panic!(UNEXPECTED_CALL_ERROR_MESSAGE),
-                ObjectsInAreaExpectation::AtLeastOnce(ref expected_direction, ref return_value) => {
-                    (expected_direction.clone(), return_value.clone())
-                }
-                ObjectsInAreaExpectation::Sequence(ref expected_calls_and_return_values) => {
-                    expected_calls_and_return_values
-                        .borrow_mut()
-                        .pop_front()
-                        .expect(UNEXPECTED_CALL_ERROR_MESSAGE)
-                }
-            };
+            let ((expected_origin, expected_direction), return_value) =
+                match self.expect_objects_in_ray_and_return {
+                    ObjectsInAreaExpectation::None => panic!(UNEXPECTED_CALL_ERROR_MESSAGE),
+                    ObjectsInAreaExpectation::AtLeastOnce(
+                        ref expected_parameters,
+                        ref return_value,
+                    ) => (*expected_parameters, return_value.clone()),
+                    ObjectsInAreaExpectation::Sequence(ref expected_calls_and_return_values) => {
+                        expected_calls_and_return_values
+                            .borrow_mut()
+                            .pop_front()
+                            .expect(UNEXPECTED_CALL_ERROR_MESSAGE)
+                    }
+                };
 
             assert_eq!(
                 expected_direction, direction,
