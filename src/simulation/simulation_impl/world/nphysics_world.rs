@@ -319,7 +319,7 @@ impl World for NphysicsWorld {
             .collect()
     }
 
-    fn bodies_in_ray(&self, ray: Vector) -> Vec<BodyHandle> {
+    fn bodies_in_ray(&self, origin: Point, ray: Vector) -> Vec<BodyHandle> {
         let collision_groups = CollisionGroups::new();
 
         let ray = unimplemented!();
