@@ -362,6 +362,7 @@ fn to_ncollide_vector(vector: Vector) -> Vector2<f64> {
 mod tests {
     use super::*;
     use mockiato::partial_eq;
+    use mockiato::ExpectedCalls;
     use std::f64::consts::FRAC_PI_2;
 
     const DEFAULT_TIMESTEP: f64 = 1.0;
@@ -655,6 +656,50 @@ mod tests {
     }
 
     #[test]
+    fn bodies_in_ray_returns_bodies_in_area() {
+        let rotation_translator = rotation_translator_for_adding_and_reading_body();
+
+        let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
+        let first_body = movable_body();
+        let first_handle = world.add_body(first_body);
+        let second_body = PhysicalBody {
+            location: Point { x: 15.0, y: 10.0 },
+            ..movable_body()
+        };
+        let second_handle = world.add_body(second_body);
+
+        world.step();
+
+        let origin = Point { x: -4.0, y: -4.0 };
+        let direction = Vector { x: 10.0, y: 5.0 };
+        let bodies = world.bodies_in_ray(origin, direction);
+
+        assert_eq!(vec![second_handle, first_handle], bodies);
+    }
+
+    #[test]
+    fn bodies_in_ray_does_not_return_out_of_range_bodies() {
+        let rotation_translator = rotation_translator_for_adding_and_reading_body();
+
+        let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
+        let first_body = movable_body();
+        let _first_handle = world.add_body(first_body);
+        let second_body = PhysicalBody {
+            location: Point { x: 15.0, y: 10.0 },
+            ..movable_body()
+        };
+        let _second_handle = world.add_body(second_body);
+
+        world.step();
+
+        let origin = Point { x: -4.0, y: -4.0 };
+        let direction = Vector { x: -10.0, y: -5.0 };
+        let bodies = world.bodies_in_ray(origin, direction);
+
+        assert!(bodies.is_empty());
+    }
+
+    #[test]
     fn force_does_nothing_before_step() {
         let rotation_translator = NphysicsRotationTranslatorImpl::default();
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
@@ -801,6 +846,7 @@ mod tests {
         let mut rotation_translator = NphysicsRotationTranslatorMock::new();
         rotation_translator
             .expect_to_nphysics_rotation(partial_eq(Radians::try_new(FRAC_PI_2).unwrap()))
+            .times(ExpectedCalls::any())
             .returns(FRAC_PI_2);
         rotation_translator
     }
@@ -810,6 +856,7 @@ mod tests {
         let mut rotation_translator = rotation_translator_for_adding_body();
         rotation_translator
             .expect_to_radians(partial_eq(FRAC_PI_2))
+            .times(ExpectedCalls::any())
             .returns(Ok(Radians::try_new(FRAC_PI_2).unwrap()));
         rotation_translator
     }
