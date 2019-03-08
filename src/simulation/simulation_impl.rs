@@ -1033,8 +1033,8 @@ mod tests {
         let mut world = WorldMock::new();
         let (expected_physical_body, object_description) = object();
 
-        let origin = Point::from((5.0, 10.0));
-        let direction = Vector::from(Point::from((3.0, -5.0)));
+        let origin = Point { x: 5.0, y: 10.0 };
+        let direction = Vector { x: 3.0, y: -5.0 };
 
         let returned_handle = BodyHandle(1234);
         world
