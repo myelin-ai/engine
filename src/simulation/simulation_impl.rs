@@ -298,9 +298,9 @@ impl Simulation for SimulationImpl {
             .collect()
     }
 
-    fn objects_in_ray(&self, origin: Point, ray: Vector) -> Snapshot<'_> {
+    fn objects_in_ray(&self, origin: Point, direction: Vector) -> Snapshot<'_> {
         self.world
-            .bodies_in_ray(origin, ray)
+            .bodies_in_ray(origin, direction)
             .into_iter()
             .map(|handle| {
                 Simulation::object(self, handle.0)

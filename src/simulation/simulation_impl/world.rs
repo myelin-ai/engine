@@ -71,7 +71,7 @@ pub trait World: Debug {
     fn bodies_in_polygon(&self, area: &Polygon) -> Vec<BodyHandle>;
 
     /// Returns all bodies intersecting the given vector.
-    fn bodies_in_ray(&self, origin: Point, ray: Vector) -> Vec<BodyHandle>;
+    fn bodies_in_ray(&self, origin: Point, direction: Vector) -> Vec<BodyHandle>;
 }
 
 /// The pure physical representation of an object

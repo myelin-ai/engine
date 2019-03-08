@@ -320,11 +320,11 @@ impl World for NphysicsWorld {
             .collect()
     }
 
-    fn bodies_in_ray(&self, origin: Point, ray: Vector) -> Vec<BodyHandle> {
+    fn bodies_in_ray(&self, origin: Point, direction: Vector) -> Vec<BodyHandle> {
         let collision_groups = CollisionGroups::new();
 
         let origin = to_ncollide_point(origin);
-        let direction = to_ncollide_vector(ray);
+        let direction = to_ncollide_vector(direction);
         let ray = Ray::new(origin, direction);
 
         self.physics_world

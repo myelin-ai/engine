@@ -51,7 +51,7 @@ pub trait Simulation: Debug {
 
     /// Returns read-only descriptions for all objects
     /// intersecting with the given vector.
-    fn objects_in_ray(&self, origin: Point, ray: Vector) -> Snapshot<'_>;
+    fn objects_in_ray(&self, origin: Point, direction: Vector) -> Snapshot<'_>;
 }
 
 /// Unique identifier of an Object
@@ -342,29 +342,30 @@ mod mocks {
             return_value.clone()
         }
 
-        fn objects_in_ray(&self, origin: Point, ray: Vector) -> Snapshot<'_> {
+        fn objects_in_ray(&self, origin: Point, direction: Vector) -> Snapshot<'_> {
             *self.objects_in_ray_was_called.borrow_mut() = true;
 
             const UNEXPECTED_CALL_ERROR_MESSAGE: &str = "objects_in_ray() was called unexpectedly";
 
-            let ((expected_origin, expected_ray), return_value) =
-                match self.expect_objects_in_ray_and_return {
-                    ObjectsInAreaExpectation::None => panic!(UNEXPECTED_CALL_ERROR_MESSAGE),
-                    ObjectsInAreaExpectation::AtLeastOnce(ref expected_ray, ref return_value) => {
-                        (expected_ray.clone(), return_value.clone())
-                    }
-                    ObjectsInAreaExpectation::Sequence(ref expected_calls_and_return_values) => {
-                        expected_calls_and_return_values
-                            .borrow_mut()
-                            .pop_front()
-                            .expect(UNEXPECTED_CALL_ERROR_MESSAGE)
-                    }
-                };
+            let ((expected_origin, expected_direction), return_value) = match self
+                .expect_objects_in_ray_and_return
+            {
+                ObjectsInAreaExpectation::None => panic!(UNEXPECTED_CALL_ERROR_MESSAGE),
+                ObjectsInAreaExpectation::AtLeastOnce(ref expected_direction, ref return_value) => {
+                    (expected_direction.clone(), return_value.clone())
+                }
+                ObjectsInAreaExpectation::Sequence(ref expected_calls_and_return_values) => {
+                    expected_calls_and_return_values
+                        .borrow_mut()
+                        .pop_front()
+                        .expect(UNEXPECTED_CALL_ERROR_MESSAGE)
+                }
+            };
 
             assert_eq!(
-                expected_ray, ray,
-                "objects_in_ray() was called with ray = {:?}, expected {:?}",
-                ray, expected_ray
+                expected_direction, direction,
+                "objects_in_ray() was called with direction = {:?}, expected {:?}",
+                direction, expected_direction
             );
 
             assert_eq!(
