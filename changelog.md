@@ -17,3 +17,6 @@
 ## 0.6.0
 - Actually expose the collision checks added in 0.4.1 in `WorldInteractor`
 - Improve performance by using references to `Polygon`s everywhere
+
+## 0.6.1
+- Add raycast support via `Simulation::objects_in_ray(&self, origin: Point, direction: Vector) -> Snapshot<'_>;`
