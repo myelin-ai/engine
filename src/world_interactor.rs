@@ -31,6 +31,10 @@ pub trait WorldInteractor: Debug {
     /// within the area.
     fn find_objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_>;
 
+    /// Returns read-only descriptions for all objects
+    /// intersecting with the given vector.
+    fn find_objects_in_ray(&self, origin: Point, direction: Vector) -> Snapshot<'_>;
+
     /// Returns the amount of time that passed since the last call
     /// to the `step` function of [`Simulation`]
     fn elapsed_time_in_update(&self) -> Duration;
