@@ -12,6 +12,8 @@
 )]
 #![cfg_attr(test, allow(clippy::float_cmp))]
 
+pub use myelin_geometry as geometry;
+
 pub mod object;
 mod object_builder;
 pub mod prelude;
