@@ -19,7 +19,7 @@ license = "MIT/Apache-2.0"
 keywords = [ "simulation", "2d", "physics" ]
 
 [dependencies]
-myelin-geometry = "2.1.0"
+myelin-geometry = "2.3"
 nalgebra = "0.17"
 ncollide2d = "0.18"
 serde = "1.0"
