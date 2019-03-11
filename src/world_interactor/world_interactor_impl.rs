@@ -136,7 +136,7 @@ mod tests {
 
         let mut interactable = InteractableMock::new();
         interactable
-            .expect_objects_in_ray(partial_eq(origin.clone()), partial_eq(direction.clone()))
+            .expect_objects_in_ray(partial_eq(origin), partial_eq(direction))
             .returns(objects.clone());
         let world_interactor = WorldInteractorImpl::new(&interactable, 0);
 
