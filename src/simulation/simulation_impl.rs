@@ -319,6 +319,10 @@ impl Interactable for SimulationImpl {
         Simulation::objects_in_polygon(self, area)
     }
 
+    fn objects_in_ray(&self, origin: Point, direction: Vector) -> Snapshot<'_> {
+        Simulation::objects_in_ray(self, origin, direction)
+    }
+
     fn elapsed_time_in_update(&self) -> Duration {
         match &self.last_step_instant {
             Some(last_step_instant) => last_step_instant.to_inner().elapsed(),

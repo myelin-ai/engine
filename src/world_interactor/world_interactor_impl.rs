@@ -29,6 +29,10 @@ impl<'a> WorldInteractor for WorldInteractorImpl<'a> {
         self.interactable.objects_in_polygon(area)
     }
 
+    fn find_objects_in_ray(&self, origin: Point, direction: Vector) -> Snapshot<'_> {
+        self.interactable.objects_in_ray(origin, direction)
+    }
+
     fn elapsed_time_in_update(&self) -> Duration {
         self.interactable.elapsed_time_in_update()
     }
@@ -113,6 +117,30 @@ mod tests {
         let world_interactor = WorldInteractorImpl::new(&interactable, 0);
 
         let objects_in_area = world_interactor.find_objects_in_polygon(&area);
+        assert_eq!(1, objects_in_area.len());
+        assert_eq!(objects[0].id, objects_in_area[0].id);
+        assert_eq!(objects[0].description, objects_in_area[0].description);
+    }
+
+    #[test]
+    fn find_objects_in_ray_is_propagated() {
+        let object_behavior = ObjectBehaviorMock::new();
+        let objects = vec![Object {
+            id: 125,
+            description: object_description(),
+            behavior: &object_behavior,
+        }];
+
+        let origin = Point { x: 5.0, y: 10.0 };
+        let direction = Vector { x: 3.0, y: -5.0 };
+
+        let mut interactable = InteractableMock::new();
+        interactable
+            .expect_objects_in_ray(partial_eq(origin), partial_eq(direction))
+            .returns(objects.clone());
+        let world_interactor = WorldInteractorImpl::new(&interactable, 0);
+
+        let objects_in_area = world_interactor.find_objects_in_ray(origin, direction);
         assert_eq!(1, objects_in_area.len());
         assert_eq!(objects[0].id, objects_in_area[0].id);
         assert_eq!(objects[0].description, objects_in_area[0].description);
