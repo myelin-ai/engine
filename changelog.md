@@ -20,3 +20,6 @@
 
 ## 0.6.1
 - Add raycast support via `Simulation::objects_in_ray(&self, origin: Point, direction: Vector) -> Snapshot<'_>;`
+
+## 0.7.0
+- Re-export `myelin_geometry` as `geometry`
