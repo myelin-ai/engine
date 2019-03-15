@@ -57,11 +57,6 @@ pub trait World: Debug {
     /// does not block the thread if called faster than expected.
     fn set_simulated_timestep(&mut self, timestep: f64);
 
-    /// Checks if the given [`BodyHandle`] is marked passable
-    ///
-    /// [`BodyHandle`]: ./struct.BodyHandle.html
-    fn is_body_passable(&self, body_handle: BodyHandle) -> bool;
-
     /// Returns all bodies either completely contained or intersecting
     /// with the area.
     fn bodies_in_area(&self, area: Aabb) -> Vec<BodyHandle>;

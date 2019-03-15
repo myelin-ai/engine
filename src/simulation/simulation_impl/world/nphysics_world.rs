@@ -27,8 +27,6 @@ use nphysics2d::object::{BodyPartHandle, Collider, ColliderDesc, ColliderHandle,
 use nphysics2d::volumetric::Volumetric;
 use nphysics2d::world::World as PhysicsWorld;
 
-use std::collections::HashSet;
-
 /// An implementation of [`World`] that uses nphysics
 /// in the background.
 ///
@@ -37,7 +35,6 @@ use std::collections::HashSet;
 pub struct NphysicsWorld {
     physics_world: PhysicsWorldWrapper,
     rotation_translator: Box<dyn NphysicsRotationTranslator>,
-    passable_bodies: HashSet<BodyHandle>,
 }
 
 impl NphysicsWorld {
@@ -61,12 +58,9 @@ impl NphysicsWorld {
 
         physics_world.set_timestep(timestep);
 
-        let passable_bodies = HashSet::new();
-
         Self {
             physics_world,
             rotation_translator,
-            passable_bodies,
         }
     }
 
@@ -141,8 +135,9 @@ impl NphysicsWorld {
     }
 
     fn passable(&self, collider: &Collider<f64>) -> bool {
-        let body_handle = to_body_handle(collider.handle());
-        self.passable_bodies.contains(&body_handle)
+        collider
+            .collision_groups()
+            .is_member_of(PASSABLE_BODY_COLLISION_GROUP)
     }
 }
 
@@ -267,13 +262,7 @@ impl World for NphysicsWorld {
             }
         };
 
-        let body_handle = to_body_handle(handle);
-
-        if body.passable {
-            self.passable_bodies.insert(body_handle);
-        }
-
-        body_handle
+        to_body_handle(handle)
     }
 
     #[must_use]
@@ -281,9 +270,6 @@ impl World for NphysicsWorld {
         let physical_body = self.body(body_handle)?;
         let collider_handle = to_collider_handle(body_handle);
         let nphysics_body_handle = self.physics_world.collider_body_handle(collider_handle)?;
-        if physical_body.passable {
-            self.passable_bodies.remove(&body_handle);
-        }
         self.physics_world.remove_bodies(&[nphysics_body_handle]);
         Some(physical_body)
     }
@@ -324,10 +310,6 @@ impl World for NphysicsWorld {
 
     fn set_simulated_timestep(&mut self, timestep: f64) {
         self.physics_world.set_timestep(timestep);
-    }
-
-    fn is_body_passable(&self, body_handle: BodyHandle) -> bool {
-        self.passable_bodies.contains(&body_handle)
     }
 
     fn bodies_in_area(&self, area: Aabb) -> Vec<BodyHandle> {

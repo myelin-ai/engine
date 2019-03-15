@@ -123,7 +123,7 @@ impl SimulationImpl {
             location: physics_body.location,
             rotation: physics_body.rotation,
             mobility: physics_body.mobility,
-            passable: self.world.is_body_passable(body_handle),
+            passable: physics_body.passable,
             associated_data: non_physical_object_data.associated_data.clone(),
         })
     }
@@ -537,9 +537,6 @@ mod tests {
         world
             .expect_body(partial_eq(returned_handle))
             .returns(Some(expected_physical_body));
-        world
-            .expect_is_body_passable(partial_eq(returned_handle))
-            .returns(expected_passable);
 
         let mut simulation = SimulationImpl::new(
             world,
@@ -589,9 +586,6 @@ mod tests {
         world
             .expect_body(partial_eq(returned_handle))
             .returns(Some(expected_physical_body));
-        world
-            .expect_is_body_passable(partial_eq(returned_handle))
-            .returns(expected_passable);
 
         let mut simulation = SimulationImpl::new(
             world,
@@ -941,9 +935,6 @@ mod tests {
         world
             .expect_body(partial_eq(returned_handle))
             .returns(Some(expected_physical_body.clone()));
-        world
-            .expect_is_body_passable(partial_eq(returned_handle))
-            .returns(expected_physical_body.passable);
 
         let mut simulation = SimulationImpl::new(
             box world,
@@ -1009,9 +1000,6 @@ mod tests {
         world
             .expect_body(partial_eq(returned_handle))
             .returns(Some(expected_physical_body.clone()));
-        world
-            .expect_is_body_passable(partial_eq(returned_handle))
-            .returns(expected_physical_body.passable);
 
         let mut simulation = SimulationImpl::new(
             box world,
@@ -1046,9 +1034,6 @@ mod tests {
         world
             .expect_body(partial_eq(returned_handle))
             .returns(Some(expected_physical_body.clone()));
-        world
-            .expect_is_body_passable(partial_eq(returned_handle))
-            .returns(expected_physical_body.passable);
 
         let mut simulation = SimulationImpl::new(
             box world,
