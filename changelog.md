@@ -24,6 +24,9 @@
 ## 0.7.0
 - Re-export `myelin_geometry` as `geometry`
 
+## 0.8.0
+- Expose `objects_in_ray` through `WorldIterator::find_objects_in_ray`
+
 ## TBD
 - `World::is_body_passable` has been removed. Use the `PhysicalBody::passable` (returned by `World::body`) instead.
 - The `passable` field on objects is respected by `NphysicsWorld`:
