@@ -176,6 +176,37 @@ fn translate_shape(shape: &Polygon) -> ShapeHandle<f64> {
     ShapeHandle::new(ConvexPolygon::try_new(points).expect("Polygon was not convex"))
 }
 
+const NON_PASSABLE_BODY_COLLISION_GROUP: usize = 1;
+const PASSABLE_BODY_COLLISION_GROUP: usize = 2;
+const QUERYING_COLLISION_GROUP: usize = 3;
+
+fn passable_bodies_collision_groups() -> CollisionGroups {
+    CollisionGroups::new()
+        .with_membership(&[PASSABLE_BODY_COLLISION_GROUP])
+        .with_blacklist(&[PASSABLE_BODY_COLLISION_GROUP])
+}
+
+fn non_passable_bodies_collision_groups() -> CollisionGroups {
+    let mut collision_groups = CollisionGroups::new()
+        .with_membership(&[NON_PASSABLE_BODY_COLLISION_GROUP])
+        .with_blacklist(&[PASSABLE_BODY_COLLISION_GROUP]);
+    collision_groups.enable_self_interaction();
+    collision_groups
+}
+
+fn querying_collision_groups() -> CollisionGroups {
+    // We can't query with the default collision groups membership (all groups)
+    // because the passable and non-passable groups blacklist each other.
+    // This means that we would find nothing. That's why we're using a separate collision
+    // group that whitelists all other groups.
+    CollisionGroups::new()
+        .with_membership(&[QUERYING_COLLISION_GROUP])
+        .with_whitelist(&[
+            NON_PASSABLE_BODY_COLLISION_GROUP,
+            PASSABLE_BODY_COLLISION_GROUP,
+        ])
+}
+
 impl World for NphysicsWorld {
     fn step(&mut self) {
         self.physics_world.step();
@@ -197,11 +228,18 @@ impl World for NphysicsWorld {
         /// Arbitrary value
         const MASS_OF_BODY_IN_KG: f64 = 20.0;
 
+        let collision_groups = if body.passable {
+            passable_bodies_collision_groups()
+        } else {
+            non_passable_bodies_collision_groups()
+        };
+
         let handle = match body.mobility {
             Mobility::Immovable => ColliderDesc::new(shape)
                 .margin(COLLIDER_MARGIN)
                 .position(isometry)
                 .material(material)
+                .collision_groups(collision_groups)
                 .build_with_parent(BodyPartHandle::ground(), &mut self.physics_world)
                 .expect("Internal nphysics error: Ground handle was invalid")
                 .handle(),
@@ -219,6 +257,7 @@ impl World for NphysicsWorld {
                     .margin(COLLIDER_MARGIN)
                     .position(Isometry::identity())
                     .material(material)
+                    .collision_groups(collision_groups)
                     .build_with_parent(rigid_body_handle, &mut self.physics_world)
                     .expect(
                         "Internal nphysics error: Handle of rigid body that was just built is \
@@ -292,7 +331,7 @@ impl World for NphysicsWorld {
     }
 
     fn bodies_in_area(&self, area: Aabb) -> Vec<BodyHandle> {
-        let collision_groups = CollisionGroups::new();
+        let collision_groups = querying_collision_groups();
 
         self.physics_world
             .collider_world()
@@ -321,7 +360,7 @@ impl World for NphysicsWorld {
     }
 
     fn bodies_in_ray(&self, origin: Point, direction: Vector) -> Vec<BodyHandle> {
-        let collision_groups = CollisionGroups::new();
+        let collision_groups = querying_collision_groups();
 
         let origin = to_ncollide_point(origin);
         let direction = to_ncollide_vector(direction);
