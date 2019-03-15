@@ -23,3 +23,8 @@
 
 ## 0.7.0
 - Re-export `myelin_geometry` as `geometry`
+
+## TBD
+- `World::is_body_passable` has been removed. Use the `PhysicalBody::passable` (returned by `World::body`) instead.
+- The `passable` field on objects is respected by `NphysicsWorld`:
+  Passable objects can overlap with other objects including other passable objects.
