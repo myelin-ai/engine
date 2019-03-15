@@ -717,6 +717,24 @@ mod tests {
     }
 
     #[test]
+    fn bodies_in_ray_returns_passable_bodies_in_area() {
+        let mut world = NphysicsWorld::with_timestep(
+            DEFAULT_TIMESTEP,
+            box NphysicsRotationTranslatorImpl::default(),
+        );
+        let first_body = passable_body();
+        let first_handle = world.add_body(first_body);
+
+        world.step();
+
+        let origin = Point { x: -4.0, y: -4.0 };
+        let direction = Vector { x: 10.0, y: 5.0 };
+        let bodies = world.bodies_in_ray(origin, direction);
+
+        assert_eq!(vec![first_handle], bodies);
+    }
+
+    #[test]
     fn bodies_in_ray_does_not_return_out_of_range_bodies() {
         let rotation_translator = rotation_translator_for_adding_and_reading_body();
 
