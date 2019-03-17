@@ -794,7 +794,31 @@ mod tests {
     }
 
     #[test]
-    fn body_can_move_into_passable_body() {
+    fn non_passable_body_can_move_into_passable_body() {
+        test_body_can_move_into_passable_body(
+            PhysicalBody {
+                location: Point { x: 15.0, y: 5.0 },
+                ..physical_body()
+            },
+            Point { x: 13.0, y: 5.0 },
+        );
+    }
+
+    #[test]
+    fn passable_body_can_move_into_other_passable_body() {
+        test_body_can_move_into_passable_body(
+            PhysicalBody {
+                location: Point { x: 15.0, y: 5.0 },
+                ..passable_body()
+            },
+            Point { x: 13.0, y: 5.0 },
+        );
+    }
+
+    fn test_body_can_move_into_passable_body(
+        moving_body: PhysicalBody,
+        expected_location_after_moving: Point,
+    ) {
         let rotation_translator = NphysicsRotationTranslatorImpl::default();
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
 
@@ -804,62 +828,24 @@ mod tests {
         };
         let non_passable_body_handle = world.add_body(non_passable_body.clone());
 
-        let passable_body = passable_body();
-        let passable_body_handle = world.add_body(passable_body.clone());
+        let moving_body_handle = world.add_body(moving_body.clone());
 
         let force = Force {
             torque: Torque::default(),
             linear: Vector { x: -40.0, y: 0.0 },
         };
-
-        let expected_location_after_applying_force = Point { x: 13.0, y: 5.0 };
 
         world.apply_force(non_passable_body_handle, force);
         world.step();
 
         assert_eq!(
-            expected_location_after_applying_force,
+            expected_location_after_moving,
             world.body(non_passable_body_handle).unwrap().location
         );
 
         assert_eq!(
-            passable_body.location,
-            world.body(passable_body_handle).unwrap().location
-        );
-    }
-
-    #[test]
-    fn passable_body_can_move_into_other_passable_body() {
-        let rotation_translator = NphysicsRotationTranslatorImpl::default();
-        let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
-
-        let moving_body = PhysicalBody {
-            location: Point { x: 15.0, y: 5.0 },
-            ..passable_body()
-        };
-        let moving_body_handle = world.add_body(moving_body.clone());
-
-        let passable_body = passable_body();
-        let passable_body_handle = world.add_body(passable_body.clone());
-
-        let force = Force {
-            torque: Torque::default(),
-            linear: Vector { x: -40.0, y: 0.0 },
-        };
-
-        let expected_location_after_applying_force = Point { x: 13.0, y: 5.0 };
-
-        world.apply_force(moving_body_handle, force);
-        world.step();
-
-        assert_eq!(
-            expected_location_after_applying_force,
+            moving_body.location,
             world.body(moving_body_handle).unwrap().location
-        );
-
-        assert_eq!(
-            passable_body.location,
-            world.body(passable_body_handle).unwrap().location
         );
     }
 
