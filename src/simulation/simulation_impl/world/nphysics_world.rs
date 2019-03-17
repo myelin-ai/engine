@@ -762,12 +762,23 @@ mod tests {
     }
 
     #[test]
-    fn body_can_move_out_of_passable_body() {
+    fn passable_body_can_move_out_of_passable_body() {
+        test_body_can_move_out_of_passable_body(passable_body(), Point { x: 7.0, y: 7.0 });
+    }
+
+    #[test]
+    fn non_passable_body_can_move_out_of_passable_body() {
+        test_body_can_move_out_of_passable_body(physical_body(), Point { x: 7.0, y: 7.0 });
+    }
+
+    fn test_body_can_move_out_of_passable_body(
+        moving_body: PhysicalBody,
+        expected_location_after_moving: Point,
+    ) {
         let rotation_translator = NphysicsRotationTranslatorImpl::default();
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
 
-        let non_passable_body = physical_body();
-        let non_passable_body_handle = world.add_body(non_passable_body.clone());
+        let moving_body_handle = world.add_body(moving_body.clone());
 
         let passable_body = passable_body();
         let passable_body_handle = world.add_body(passable_body.clone());
@@ -777,14 +788,12 @@ mod tests {
             linear: Vector { x: 40.0, y: 40.0 },
         };
 
-        let expected_location_after_applying_force = Point { x: 7.0, y: 7.0 };
-
-        world.apply_force(non_passable_body_handle, force);
+        world.apply_force(moving_body_handle, force);
         world.step();
 
         assert_eq!(
-            expected_location_after_applying_force,
-            world.body(non_passable_body_handle).unwrap().location
+            expected_location_after_moving,
+            world.body(moving_body_handle).unwrap().location
         );
 
         assert_eq!(
