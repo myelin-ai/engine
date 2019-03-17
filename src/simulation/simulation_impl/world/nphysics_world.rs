@@ -11,8 +11,8 @@ pub mod rotation_translator;
 use self::physics_world_wrapper::PhysicsWorldWrapper;
 use self::rotation_translator::*;
 use super::{BodyHandle, PhysicalBody, World};
-
 use crate::prelude::*;
+use crate::private::Sealed;
 use nalgebra::base::{Scalar, Vector2};
 use ncollide2d::bounding_volume::AABB as NcollideAabb;
 use ncollide2d::math::Point as NcollidePoint;
@@ -26,7 +26,6 @@ use nphysics2d::math::{Isometry, Point as NPhysicsPoint, Vector as NPhysicsVecto
 use nphysics2d::object::{BodyPartHandle, Collider, ColliderDesc, ColliderHandle, RigidBodyDesc};
 use nphysics2d::volumetric::Volumetric;
 use nphysics2d::world::World as PhysicsWorld;
-
 use std::collections::HashSet;
 
 /// An implementation of [`World`] that uses nphysics
@@ -175,6 +174,8 @@ fn translate_shape(shape: &Polygon) -> ShapeHandle<f64> {
 
     ShapeHandle::new(ConvexPolygon::try_new(points).expect("Polygon was not convex"))
 }
+
+impl Sealed for NphysicsWorld {}
 
 impl World for NphysicsWorld {
     fn step(&mut self) {

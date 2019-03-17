@@ -1,10 +1,8 @@
-use std::any::Any;
-use std::fmt::Debug;
-
-use crate::prelude::*;
-
 #[cfg(any(test, feature = "use-mocks"))]
 pub use self::mocks::*;
+use crate::prelude::*;
+use std::any::Any;
+use std::fmt::Debug;
 
 /// Behavior of an object
 pub trait ObjectBehavior: Debug + ObjectBehaviorClone {
