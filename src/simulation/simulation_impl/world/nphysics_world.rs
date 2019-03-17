@@ -603,10 +603,21 @@ mod tests {
 
     #[test]
     fn bodies_in_area_returns_body_in_area() {
+        test_bodies_in_area_returns_body_in_area(movable_body());
+    }
+
+    #[test]
+    fn bodies_in_area_returns_passable_body_in_area() {
+        test_bodies_in_area_returns_body_in_area(PhysicalBody {
+            passable: true,
+            ..movable_body()
+        });
+    }
+
+    fn test_bodies_in_area_returns_body_in_area(expected_body: PhysicalBody) {
         let rotation_translator = rotation_translator_for_adding_body();
 
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
-        let expected_body = movable_body();
         let handle = world.add_body(expected_body);
 
         world.step();
