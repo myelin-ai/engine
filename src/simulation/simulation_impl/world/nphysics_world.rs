@@ -496,6 +496,22 @@ mod tests {
     }
 
     #[test]
+    fn returns_correct_passable_body() {
+        let rotation_translator = rotation_translator_for_adding_and_reading_body();
+
+        let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
+        let expected_body = PhysicalBody {
+            passable: true,
+            ..movable_body()
+        };
+        let handle = world.add_body(expected_body.clone());
+
+        let actual_body = world.body(handle);
+
+        assert_eq!(Some(expected_body), actual_body)
+    }
+
+    #[test]
     fn returns_correct_grounded_body() {
         let rotation_translator = rotation_translator_for_adding_and_reading_body();
 
