@@ -26,3 +26,6 @@
 
 ## 0.8.0
 - Expose `objects_in_ray` through `WorldIterator::find_objects_in_ray`
+
+## TBD
+- All traits except `ObjectBehavior` have been sealed and can therefore no longer be implemented by other crates.
