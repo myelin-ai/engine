@@ -1,6 +1,9 @@
 //! Trait and implementation for [`WorldInteractor`]
 
 use crate::prelude::*;
+use crate::private::Sealed;
+#[cfg(any(test, feature = "use-mocks"))]
+use mockiato::mockable;
 use std::fmt::Debug;
 use std::time::Duration;
 
@@ -10,15 +13,14 @@ pub use self::world_interactor_impl::*;
 mod interactable;
 pub use self::interactable::*;
 
-#[cfg(any(test, feature = "use-mocks"))]
-use mockiato::mockable;
-
 /// Provides information to an [`ObjectBehavior`] about
 /// the world it is placed in.
 ///
+/// This trait is sealed and cannot be implemented by downstream crates.
+///
 /// [`ObjectBehavior`]: ./trait.ObjectBehavior.html
 #[cfg_attr(any(test, feature = "use-mocks"), mockable)]
-pub trait WorldInteractor: Debug {
+pub trait WorldInteractor: Debug + Sealed {
     /// Scans for objects in the area defined by an `Aabb`.
     ///
     /// Returns all objects either completely contained or intersecting
@@ -42,3 +44,6 @@ pub trait WorldInteractor: Debug {
     /// Returns the complete calling object's description
     fn own_object(&self) -> Object<'_>;
 }
+
+#[cfg(any(test, feature = "use-mocks"))]
+impl Sealed for WorldInteractorMock<'_> {}
