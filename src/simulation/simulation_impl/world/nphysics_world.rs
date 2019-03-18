@@ -26,7 +26,6 @@ use nphysics2d::math::{Isometry, Point as NPhysicsPoint, Vector as NPhysicsVecto
 use nphysics2d::object::{BodyPartHandle, Collider, ColliderDesc, ColliderHandle, RigidBodyDesc};
 use nphysics2d::volumetric::Volumetric;
 use nphysics2d::world::World as PhysicsWorld;
-use std::collections::HashSet;
 
 /// An implementation of [`World`] that uses nphysics
 /// in the background.
@@ -36,7 +35,6 @@ use std::collections::HashSet;
 pub struct NphysicsWorld {
     physics_world: PhysicsWorldWrapper,
     rotation_translator: Box<dyn NphysicsRotationTranslator>,
-    passable_bodies: HashSet<BodyHandle>,
 }
 
 impl NphysicsWorld {
@@ -60,12 +58,9 @@ impl NphysicsWorld {
 
         physics_world.set_timestep(timestep);
 
-        let passable_bodies = HashSet::new();
-
         Self {
             physics_world,
             rotation_translator,
-            passable_bodies,
         }
     }
 
@@ -140,8 +135,9 @@ impl NphysicsWorld {
     }
 
     fn passable(&self, collider: &Collider<f64>) -> bool {
-        let body_handle = to_body_handle(collider.handle());
-        self.passable_bodies.contains(&body_handle)
+        collider
+            .collision_groups()
+            .is_member_of(PASSABLE_BODY_COLLISION_GROUP)
     }
 }
 
@@ -175,6 +171,37 @@ fn translate_shape(shape: &Polygon) -> ShapeHandle<f64> {
     ShapeHandle::new(ConvexPolygon::try_new(points).expect("Polygon was not convex"))
 }
 
+const NON_PASSABLE_BODY_COLLISION_GROUP: usize = 1;
+const PASSABLE_BODY_COLLISION_GROUP: usize = 2;
+const QUERYING_COLLISION_GROUP: usize = 3;
+
+fn passable_bodies_collision_groups() -> CollisionGroups {
+    CollisionGroups::new()
+        .with_membership(&[PASSABLE_BODY_COLLISION_GROUP])
+        .with_blacklist(&[PASSABLE_BODY_COLLISION_GROUP])
+}
+
+fn non_passable_bodies_collision_groups() -> CollisionGroups {
+    let mut collision_groups = CollisionGroups::new()
+        .with_membership(&[NON_PASSABLE_BODY_COLLISION_GROUP])
+        .with_blacklist(&[PASSABLE_BODY_COLLISION_GROUP]);
+    collision_groups.enable_self_interaction();
+    collision_groups
+}
+
+fn querying_collision_groups() -> CollisionGroups {
+    // We can't query with the default collision groups membership (all groups)
+    // because the passable and non-passable groups blacklist each other.
+    // This means that we would find nothing. That's why we're using a separate collision
+    // group that whitelists all other groups.
+    CollisionGroups::new()
+        .with_membership(&[QUERYING_COLLISION_GROUP])
+        .with_whitelist(&[
+            NON_PASSABLE_BODY_COLLISION_GROUP,
+            PASSABLE_BODY_COLLISION_GROUP,
+        ])
+}
+
 impl Sealed for NphysicsWorld {}
 
 impl World for NphysicsWorld {
@@ -198,11 +225,14 @@ impl World for NphysicsWorld {
         /// Arbitrary value
         const MASS_OF_BODY_IN_KG: f64 = 20.0;
 
+        let collision_groups = collision_groups_for_body(&body);
+
         let handle = match body.mobility {
             Mobility::Immovable => ColliderDesc::new(shape)
                 .margin(COLLIDER_MARGIN)
                 .position(isometry)
                 .material(material)
+                .collision_groups(collision_groups)
                 .build_with_parent(BodyPartHandle::ground(), &mut self.physics_world)
                 .expect("Internal nphysics error: Ground handle was invalid")
                 .handle(),
@@ -220,6 +250,7 @@ impl World for NphysicsWorld {
                     .margin(COLLIDER_MARGIN)
                     .position(Isometry::identity())
                     .material(material)
+                    .collision_groups(collision_groups)
                     .build_with_parent(rigid_body_handle, &mut self.physics_world)
                     .expect(
                         "Internal nphysics error: Handle of rigid body that was just built is \
@@ -229,13 +260,7 @@ impl World for NphysicsWorld {
             }
         };
 
-        let body_handle = to_body_handle(handle);
-
-        if body.passable {
-            self.passable_bodies.insert(body_handle);
-        }
-
-        body_handle
+        to_body_handle(handle)
     }
 
     #[must_use]
@@ -243,9 +268,6 @@ impl World for NphysicsWorld {
         let physical_body = self.body(body_handle)?;
         let collider_handle = to_collider_handle(body_handle);
         let nphysics_body_handle = self.physics_world.collider_body_handle(collider_handle)?;
-        if physical_body.passable {
-            self.passable_bodies.remove(&body_handle);
-        }
         self.physics_world.remove_bodies(&[nphysics_body_handle]);
         Some(physical_body)
     }
@@ -288,12 +310,8 @@ impl World for NphysicsWorld {
         self.physics_world.set_timestep(timestep);
     }
 
-    fn is_body_passable(&self, body_handle: BodyHandle) -> bool {
-        self.passable_bodies.contains(&body_handle)
-    }
-
     fn bodies_in_area(&self, area: Aabb) -> Vec<BodyHandle> {
-        let collision_groups = CollisionGroups::new();
+        let collision_groups = querying_collision_groups();
 
         self.physics_world
             .collider_world()
@@ -322,7 +340,7 @@ impl World for NphysicsWorld {
     }
 
     fn bodies_in_ray(&self, origin: Point, direction: Vector) -> Vec<BodyHandle> {
-        let collision_groups = CollisionGroups::new();
+        let collision_groups = querying_collision_groups();
 
         let origin = to_ncollide_point(origin);
         let direction = to_ncollide_vector(direction);
@@ -333,6 +351,14 @@ impl World for NphysicsWorld {
             .interferences_with_ray(&ray, &collision_groups)
             .map(|(collider, _)| to_body_handle(collider.handle()))
             .collect()
+    }
+}
+
+fn collision_groups_for_body(body: &PhysicalBody) -> CollisionGroups {
+    if body.passable {
+        passable_bodies_collision_groups()
+    } else {
+        non_passable_bodies_collision_groups()
     }
 }
 
@@ -476,6 +502,22 @@ mod tests {
     }
 
     #[test]
+    fn returns_correct_passable_body() {
+        let rotation_translator = rotation_translator_for_adding_and_reading_body();
+
+        let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
+        let expected_body = PhysicalBody {
+            passable: true,
+            ..movable_body()
+        };
+        let handle = world.add_body(expected_body.clone());
+
+        let actual_body = world.body(handle);
+
+        assert_eq!(Some(expected_body), actual_body)
+    }
+
+    #[test]
     fn returns_correct_grounded_body() {
         let rotation_translator = rotation_translator_for_adding_and_reading_body();
 
@@ -583,10 +625,21 @@ mod tests {
 
     #[test]
     fn bodies_in_area_returns_body_in_area() {
+        test_bodies_in_area_returns_body_in_area(movable_body());
+    }
+
+    #[test]
+    fn bodies_in_area_returns_passable_body_in_area() {
+        test_bodies_in_area_returns_body_in_area(PhysicalBody {
+            passable: true,
+            ..movable_body()
+        });
+    }
+
+    fn test_bodies_in_area_returns_body_in_area(expected_body: PhysicalBody) {
         let rotation_translator = rotation_translator_for_adding_body();
 
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
-        let expected_body = movable_body();
         let handle = world.add_body(expected_body);
 
         world.step();
@@ -615,10 +668,21 @@ mod tests {
 
     #[test]
     fn bodies_in_polygon_returns_body_in_area() {
+        test_bodies_in_polygon_returns_body_in_area(movable_body());
+    }
+
+    #[test]
+    fn bodies_in_polygon_returns_passable_body_in_area() {
+        test_bodies_in_polygon_returns_body_in_area(PhysicalBody {
+            passable: true,
+            ..movable_body()
+        });
+    }
+
+    fn test_bodies_in_polygon_returns_body_in_area(expected_body: PhysicalBody) {
         let rotation_translator = rotation_translator_for_adding_and_reading_body();
 
         let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
-        let expected_body = movable_body();
         let handle = world.add_body(expected_body);
 
         world.step();
@@ -679,6 +743,24 @@ mod tests {
     }
 
     #[test]
+    fn bodies_in_ray_returns_passable_bodies_in_area() {
+        let mut world = NphysicsWorld::with_timestep(
+            DEFAULT_TIMESTEP,
+            box NphysicsRotationTranslatorImpl::default(),
+        );
+        let first_body = passable_body();
+        let first_handle = world.add_body(first_body);
+
+        world.step();
+
+        let origin = Point { x: -4.0, y: -4.0 };
+        let direction = Vector { x: 10.0, y: 5.0 };
+        let bodies = world.bodies_in_ray(origin, direction);
+
+        assert_eq!(vec![first_handle], bodies);
+    }
+
+    #[test]
     fn bodies_in_ray_does_not_return_out_of_range_bodies() {
         let rotation_translator = rotation_translator_for_adding_and_reading_body();
 
@@ -721,6 +803,103 @@ mod tests {
 
         let actual_body = world.body(handle);
         assert_eq!(Some(expected_object), actual_body);
+    }
+
+    #[test]
+    fn passable_body_can_move_out_of_passable_body() {
+        test_body_can_move_out_of_passable_body(passable_body(), Point { x: 7.0, y: 7.0 });
+    }
+
+    #[test]
+    fn non_passable_body_can_move_out_of_passable_body() {
+        test_body_can_move_out_of_passable_body(physical_body(), Point { x: 7.0, y: 7.0 });
+    }
+
+    fn test_body_can_move_out_of_passable_body(
+        moving_body: PhysicalBody,
+        expected_location_after_moving: Point,
+    ) {
+        let rotation_translator = NphysicsRotationTranslatorImpl::default();
+        let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
+
+        let moving_body_handle = world.add_body(moving_body.clone());
+
+        let passable_body = passable_body();
+        let passable_body_handle = world.add_body(passable_body.clone());
+
+        let force = Force {
+            torque: Torque::default(),
+            linear: Vector { x: 40.0, y: 40.0 },
+        };
+
+        world.apply_force(moving_body_handle, force);
+        world.step();
+
+        assert_eq!(
+            expected_location_after_moving,
+            world.body(moving_body_handle).unwrap().location
+        );
+
+        assert_eq!(
+            passable_body.location,
+            world.body(passable_body_handle).unwrap().location
+        );
+    }
+
+    #[test]
+    fn non_passable_body_can_move_into_passable_body() {
+        test_body_can_move_into_passable_body(
+            PhysicalBody {
+                location: Point { x: 15.0, y: 5.0 },
+                ..physical_body()
+            },
+            Point { x: 13.0, y: 5.0 },
+        );
+    }
+
+    #[test]
+    fn passable_body_can_move_into_other_passable_body() {
+        test_body_can_move_into_passable_body(
+            PhysicalBody {
+                location: Point { x: 15.0, y: 5.0 },
+                ..passable_body()
+            },
+            Point { x: 13.0, y: 5.0 },
+        );
+    }
+
+    fn test_body_can_move_into_passable_body(
+        moving_body: PhysicalBody,
+        expected_location_after_moving: Point,
+    ) {
+        let rotation_translator = NphysicsRotationTranslatorImpl::default();
+        let mut world = NphysicsWorld::with_timestep(DEFAULT_TIMESTEP, box rotation_translator);
+
+        let non_passable_body = PhysicalBody {
+            location: Point { x: 15.0, y: 5.0 },
+            ..physical_body()
+        };
+        let non_passable_body_handle = world.add_body(non_passable_body.clone());
+
+        let moving_body_handle = world.add_body(moving_body.clone());
+
+        let force = Force {
+            torque: Torque::default(),
+            linear: Vector { x: -40.0, y: 0.0 },
+        };
+
+        world.apply_force(non_passable_body_handle, force);
+        world.step();
+
+        assert_eq!(
+            expected_location_after_moving,
+            world.body(non_passable_body_handle).unwrap().location
+        );
+
+        assert_eq!(
+            moving_body.location,
+            world.body(moving_body_handle).unwrap().location
+        );
     }
 
     #[test]
@@ -907,6 +1086,22 @@ mod tests {
                 .build()
                 .unwrap(),
             passable: false,
+        }
+    }
+
+    fn passable_body() -> PhysicalBody {
+        PhysicalBody {
+            location: Point { x: 5.0, y: 5.0 },
+            rotation: Radians::default(),
+            mobility: Mobility::Movable(Vector::default()),
+            shape: PolygonBuilder::default()
+                .vertex(-5.0, -5.0)
+                .vertex(-5.0, 5.0)
+                .vertex(5.0, 5.0)
+                .vertex(5.0, -5.0)
+                .build()
+                .unwrap(),
+            passable: true,
         }
     }
 }
