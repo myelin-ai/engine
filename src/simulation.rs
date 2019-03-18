@@ -2,20 +2,22 @@
 
 mod simulation_impl;
 
-pub use self::simulation_impl::*;
-use crate::prelude::*;
-use std::fmt::Debug;
-
 #[cfg(any(test, feature = "use-mocks"))]
 pub use self::mocks::*;
+pub use self::simulation_impl::*;
+use crate::prelude::*;
+use crate::private::Sealed;
+use std::fmt::Debug;
 
 /// A Simulation that can be filled with [`Object`] on
 /// which it will apply physical rules when calling [`step`].
 /// This trait represents our API.
 ///
+/// This trait is sealed and cannot be implemented by downstream crates.
+///
 /// [`Object`]: ./object/struct.Object.html
 /// [`step`]: ./trait.Simulation.html#tymethod.step
-pub trait Simulation: Debug {
+pub trait Simulation: Debug + Sealed {
     /// Advance the simulation by one tick. This will apply
     /// forces to the objects, handle collisions and allow them to
     /// take action.
@@ -189,6 +191,8 @@ mod mocks {
             );
         }
     }
+
+    impl<'a> Sealed for SimulationMock<'a> {}
 
     impl<'a> Simulation for SimulationMock<'a> {
         fn step(&mut self) {

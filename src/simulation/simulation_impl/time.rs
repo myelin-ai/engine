@@ -1,5 +1,6 @@
 //! Functionality for dealing with time measurement
 
+use crate::private::Sealed;
 #[cfg(any(test, feature = "use-mocks"))]
 use mockiato::mockable;
 use std::fmt::Debug;
@@ -7,9 +8,11 @@ use std::time::{Duration, Instant};
 
 /// Wrapper for [`Instant`], used to mock elapsed time
 ///
+/// This trait is sealed and cannot be implemented by downstream crates.
+///
 /// [`Instant`]: https://doc.rust-lang.org/std/time/struct.Instant.html
 #[cfg_attr(any(test, feature = "use-mocks"), mockable)]
-pub trait InstantWrapper: Debug {
+pub trait InstantWrapper: Debug + Sealed {
     /// Returns the amount of time elapsed from another instant to this one.
     /// # Panics
     /// This function will panic if `earlier` is later than `self`.
@@ -23,6 +26,9 @@ pub trait InstantWrapper: Debug {
     /// [`Instant`]: https://doc.rust-lang.org/std/time/struct.Instant.html
     fn to_inner(&self) -> Instant;
 }
+
+#[cfg(any(test, feature = "use-mocks"))]
+impl Sealed for InstantWrapperMock<'_> {}
 
 /// A simple wrapper around an [`Instant`],
 /// passing functions to it with no additional functionality.
@@ -39,6 +45,8 @@ impl InstantWrapperImpl {
         Self { instant }
     }
 }
+
+impl Sealed for InstantWrapperImpl {}
 
 impl InstantWrapper for InstantWrapperImpl {
     fn duration_since(&self, earlier: &dyn InstantWrapper) -> Duration {
