@@ -223,11 +223,7 @@ impl World for NphysicsWorld {
         /// Arbitrary value
         const MASS_OF_BODY_IN_KG: f64 = 20.0;
 
-        let collision_groups = if body.passable {
-            passable_bodies_collision_groups()
-        } else {
-            non_passable_bodies_collision_groups()
-        };
+        let collision_groups = collision_groups_for_body(&body);
 
         let handle = match body.mobility {
             Mobility::Immovable => ColliderDesc::new(shape)
@@ -353,6 +349,14 @@ impl World for NphysicsWorld {
             .interferences_with_ray(&ray, &collision_groups)
             .map(|(collider, _)| to_body_handle(collider.handle()))
             .collect()
+    }
+}
+
+fn collision_groups_for_body(body: &PhysicalBody) -> CollisionGroups {
+    if body.passable {
+        passable_bodies_collision_groups()
+    } else {
+        non_passable_bodies_collision_groups()
     }
 }
 
