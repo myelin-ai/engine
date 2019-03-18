@@ -1,20 +1,22 @@
 //! Trait and implementation of [`NphysicsRotationTranslator`]
 
 use crate::prelude::*;
-use std::error::Error;
-use std::fmt::{self, Debug};
-
+use crate::private::Sealed;
 #[cfg(any(test, feature = "use-mocks"))]
 use mockiato::mockable;
+use std::error::Error;
+use std::fmt::{self, Debug};
 
 mod rotation_translator_impl;
 pub use self::rotation_translator_impl::*;
 
 /// This trait translates the rotation from [`Radians`] to the range (-π; π] defined by nphysics
 ///
+/// This trait is sealed and cannot be implemented by downstream crates.
+///
 /// [`Radians`]: ../../object/struct.Radians.html
 #[cfg_attr(any(test, feature = "use-mocks"), mockable)]
-pub trait NphysicsRotationTranslator: Debug {
+pub trait NphysicsRotationTranslator: Debug + Sealed {
     /// Converts an `orientation` into a representation that is suitable for nphysics
     fn to_nphysics_rotation(&self, orientation: Radians) -> f64;
 
@@ -26,6 +28,9 @@ pub trait NphysicsRotationTranslator: Debug {
         nphysics_rotation: f64,
     ) -> Result<Radians, NphysicsRotationTranslatorError>;
 }
+
+#[cfg(any(test, feature = "use-mocks"))]
+impl Sealed for NphysicsRotationTranslatorMock<'_> {}
 
 /// The reason why a rotation could not be translated
 #[derive(Debug, Clone, PartialEq)]

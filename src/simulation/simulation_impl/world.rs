@@ -4,16 +4,21 @@ mod nphysics_world;
 
 pub use self::nphysics_world::*;
 use crate::object::*;
+use crate::private::Sealed;
+#[cfg(any(test, feature = "use-mocks"))]
+use mockiato::mockable;
 use myelin_geometry::*;
 use std::fmt::Debug;
 
 /// A container for [`PhysicalBodies`] that will apply
 /// physical laws to them on [`step`]
 ///
+/// This trait is sealed and cannot be implemented by downstream crates.
+///
 /// [`PhysicalBodies`]: ./struct.PhysicalBody.html
 /// [`step`]: ./trait.World.html#tymethod.step
-#[cfg_attr(test, mockiato::mockable)]
-pub trait World: Debug {
+#[cfg_attr(any(test, feature = "use-mocks"), mockable)]
+pub trait World: Debug + Sealed {
     /// Advance the simulation by one tick. This will apply
     /// forces to the objects and handle collisions;
     fn step(&mut self);
@@ -68,6 +73,9 @@ pub trait World: Debug {
     /// Returns all bodies intersecting the given vector.
     fn bodies_in_ray(&self, origin: Point, direction: Vector) -> Vec<BodyHandle>;
 }
+
+#[cfg(any(test, feature = "use-mocks"))]
+impl Sealed for WorldMock<'_> {}
 
 /// The pure physical representation of an object
 /// that can be placed within a [`World`]

@@ -11,8 +11,8 @@ pub mod rotation_translator;
 use self::physics_world_wrapper::PhysicsWorldWrapper;
 use self::rotation_translator::*;
 use super::{BodyHandle, PhysicalBody, World};
-
 use crate::prelude::*;
+use crate::private::Sealed;
 use nalgebra::base::{Scalar, Vector2};
 use ncollide2d::bounding_volume::AABB as NcollideAabb;
 use ncollide2d::math::Point as NcollidePoint;
@@ -201,6 +201,8 @@ fn querying_collision_groups() -> CollisionGroups {
             PASSABLE_BODY_COLLISION_GROUP,
         ])
 }
+
+impl Sealed for NphysicsWorld {}
 
 impl World for NphysicsWorld {
     fn step(&mut self) {

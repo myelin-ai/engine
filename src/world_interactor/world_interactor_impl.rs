@@ -1,5 +1,6 @@
 use super::Interactable;
 use crate::prelude::*;
+use crate::private::Sealed;
 use std::time::Duration;
 
 /// Default implementation of [`WorldInteractor`].
@@ -19,6 +20,8 @@ impl<'a> WorldInteractorImpl<'a> {
         Self { interactable, id }
     }
 }
+
+impl Sealed for WorldInteractorImpl<'_> {}
 
 impl<'a> WorldInteractor for WorldInteractorImpl<'a> {
     fn find_objects_in_area(&self, area: Aabb) -> Snapshot<'_> {

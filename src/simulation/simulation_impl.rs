@@ -8,6 +8,7 @@ pub mod world;
 use self::time::InstantWrapper;
 use self::world::{BodyHandle, PhysicalBody, World};
 use crate::prelude::*;
+use crate::private::Sealed;
 use crate::world_interactor::Interactable;
 use nameof::name_of_type;
 use std::cell::RefCell;
@@ -194,6 +195,8 @@ impl<T> HandleOption for Option<T> {
         self.map(|_| ()).ok_or(ActionError::InvalidHandle)
     }
 }
+
+impl Sealed for SimulationImpl {}
 
 impl Simulation for SimulationImpl {
     fn step(&mut self) {

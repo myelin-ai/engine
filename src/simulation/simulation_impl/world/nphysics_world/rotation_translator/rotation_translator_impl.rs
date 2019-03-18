@@ -1,12 +1,15 @@
 //! Implementation for [`NphysicsRotationTranslator`]
 
 use super::{NphysicsRotationTranslator, NphysicsRotationTranslatorError};
+use crate::private::Sealed;
 use myelin_geometry::Radians;
 use std::f64::consts::PI;
 
 /// Translates the rotation from [`Radians`] to the range (-π; π] defined by nphysics
 #[derive(Default, Debug)]
 pub struct NphysicsRotationTranslatorImpl {}
+
+impl Sealed for NphysicsRotationTranslatorImpl {}
 
 impl NphysicsRotationTranslator for NphysicsRotationTranslatorImpl {
     fn to_nphysics_rotation(&self, orientation: Radians) -> f64 {
