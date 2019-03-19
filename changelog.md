@@ -32,3 +32,4 @@
 - The `passable` field on objects is respected by `NphysicsWorld`:
   Passable objects can overlap with other objects including other passable objects.
 - All traits except `ObjectBehavior` have been sealed and can therefore no longer be implemented by other crates.
+- The trait `NphysicsRotationTranslator` has been removed.
