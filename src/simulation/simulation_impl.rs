@@ -82,19 +82,13 @@ impl SimulationImpl {
     /// ```
     /// use myelin_engine::prelude::*;
     /// use myelin_engine::simulation::time::InstantWrapperImpl;
-    /// use myelin_engine::simulation::world::{
-    ///     rotation_translator::NphysicsRotationTranslatorImpl, NphysicsWorld,
-    /// };
+    /// use myelin_engine::simulation::world::NphysicsWorld;
     /// use myelin_engine::simulation::SimulationImpl;
     /// use myelin_engine::world_interactor::WorldInteractorImpl;
     /// use std::sync::{Arc, RwLock};
     /// use std::time::Instant;
     ///
-    /// let rotation_translator = NphysicsRotationTranslatorImpl::default();
-    /// let world = Box::new(NphysicsWorld::with_timestep(
-    ///     1.0,
-    ///     Box::new(rotation_translator),
-    /// ));
+    /// let world = Box::new(NphysicsWorld::with_timestep(1.0));
     /// let simulation = SimulationImpl::new(
     ///     world,
     ///     Box::new(|simulation, id| Box::new(WorldInteractorImpl::new(simulation, id))),
