@@ -27,7 +27,7 @@
 ## 0.8.0
 - Expose `objects_in_ray` through `WorldIterator::find_objects_in_ray`
 
-## TBD
+## 0.9.0
 - `World::is_body_passable` has been removed. Use `PhysicalBody::passable` (returned by `World::body`) instead.
 - The `passable` field on objects is respected by `NphysicsWorld`:
   Passable objects can overlap with other objects including other passable objects.
