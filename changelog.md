@@ -33,3 +33,6 @@
   Passable objects can overlap with other objects including other passable objects.
 - All traits except `ObjectBehavior` have been sealed and can therefore no longer be implemented by other crates.
 - The trait `NphysicsRotationTranslator` has been removed to simplify the internal API.
+
+## TBD
+- Mockiato has been updated to `0.3`
