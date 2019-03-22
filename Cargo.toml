@@ -4,7 +4,7 @@ description = """
 This crate contains the physical engine of
 the simulation, as well as the objects that reside
 within it"""
-version = "0.9.0"
+version = "0.10.0"
 authors = [
     "Jan Nils Ferner <jan@myelin.ch>",
     "Mathias Fischler <mathias@myelin.ch>",

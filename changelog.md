@@ -36,3 +36,4 @@
 
 ## TBD
 - Mockiato has been updated to `0.3`
+- `geometry` has been updated to `2.4`
