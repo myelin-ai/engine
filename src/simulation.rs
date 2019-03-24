@@ -7,6 +7,8 @@ pub use self::mocks::*;
 pub use self::simulation_impl::*;
 use crate::prelude::*;
 use crate::private::Sealed;
+#[cfg(any(test, feature = "use-mocks"))]
+use nearly_eq::NearlyEq;
 use std::fmt::Debug;
 
 /// A Simulation that can be filled with [`Object`] on
@@ -128,7 +130,7 @@ mod mocks {
     impl<'a> SimulationMock<'a> {
         /// Construct a new `SimulationMock`
         pub fn new() -> Self {
-            Default::default()
+            Self::default()
         }
 
         /// Expect a call to `step`
@@ -284,11 +286,12 @@ mod mocks {
                 .expect_set_simulated_timestep
                 .expect("set_simulated_timestep() was called unexpectedly");
 
-            assert_eq!(
-                expected_timestep, timestep,
+            assert!(
+                NearlyEq::eq(&expected_timestep, &timestep, &f64::eps()),
                 "set_simulated_timestep() was called with {:?}, expected {:?}",
-                timestep, expected_timestep
-            );
+                timestep,
+                expected_timestep
+            )
         }
 
         fn objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
