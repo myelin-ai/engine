@@ -206,7 +206,7 @@ mod test {
         assert_eq!(
             Err(ObjectBuilderError {
                 missing_shape: true,
-                ..Default::default()
+                ..ObjectBuilderError::default()
             }),
             result
         );
@@ -231,7 +231,7 @@ mod test {
         assert_eq!(
             Err(ObjectBuilderError {
                 missing_location: true,
-                ..Default::default()
+                ..ObjectBuilderError::default()
             }),
             result
         );
@@ -256,7 +256,7 @@ mod test {
         assert_eq!(
             Err(ObjectBuilderError {
                 missing_mobility: true,
-                ..Default::default()
+                ..ObjectBuilderError::default()
             }),
             result
         );
