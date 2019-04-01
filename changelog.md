@@ -35,5 +35,5 @@
 - The trait `NphysicsRotationTranslator` has been removed to simplify the internal API.
 
 ## TBD
-- Mockiato has been updated to `0.3`
+- Mockiato has been updated to `0.4`
 - `geometry` has been updated to `2.4`
