@@ -34,6 +34,9 @@
 - All traits except `ObjectBehavior` have been sealed and can therefore no longer be implemented by other crates.
 - The trait `NphysicsRotationTranslator` has been removed to simplify the internal API.
 
-## TBD
-- Mockiato has been updated to `0.4`
+## 0.10.0
+- Mockiato has been updated to `0.3`
 - `geometry` has been updated to `2.4`
+
+## 0.11.0
+- Mockiato has been updated to `0.4`
