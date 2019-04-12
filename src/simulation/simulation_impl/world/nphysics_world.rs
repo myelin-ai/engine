@@ -56,11 +56,11 @@ impl NphysicsWorld {
     fn get_body_from_handle(&self, collider_handle: ColliderHandle) -> Option<PhysicalBody> {
         let collider = self.physics_world.collider(collider_handle)?;
 
-        let shape = self.get_shape(&collider);
-        let location = self.get_location(&collider);
-        let rotation = self.get_rotation(&collider);
-        let mobility = self.get_mobility(&collider);
-        let passable = self.passable(&collider);
+        let shape = self.get_shape(collider);
+        let location = self.get_location(collider);
+        let rotation = self.get_rotation(collider);
+        let mobility = self.get_mobility(collider);
+        let passable = self.passable(collider);
 
         Some(PhysicalBody {
             shape,

@@ -70,7 +70,7 @@ mod mocks {
     impl ObjectBehaviorMock {
         /// Construt a new `ObjectBehaviorMock`
         pub fn new() -> Self {
-            Default::default()
+            Self::default()
         }
 
         /// Expect a call to `step`
