@@ -6,12 +6,15 @@ use std::fmt::Debug;
 
 /// Behavior of an object
 #[cfg_attr(any(test, feature = "use-mocks"), mockable(static_references))]
-pub trait ObjectBehavior: Debug + ObjectBehaviorClone {
+pub trait ObjectBehavior: Debug + ObjectBehaviorClone + ObjectBehaviorAsAny {
     /// Returns all actions performed by the object
     /// in the current simulation tick
     fn step(&mut self, world_interactor: &dyn WorldInteractor) -> Option<Action>;
+}
 
-    /// Cast implementation to `Any`.
+/// Cast implementation to [`Any`] for [`ObjectBehavior`].
+pub trait ObjectBehaviorAsAny {
+    /// Cast implementation to [`Any`].
     /// This is needed in order to downcast trait objects of type `&dyn ObjectBehavior` to
     /// concrete types.
     ///
@@ -23,6 +26,15 @@ pub trait ObjectBehavior: Debug + ObjectBehaviorClone {
     /// ```
     /// [Additional information](https://stackoverflow.com/a/47642317/5903309)
     fn as_any(&self) -> &'_ dyn Any;
+}
+
+impl<T> ObjectBehaviorAsAny for T
+where
+    T: ObjectBehavior + 'static,
+{
+    default fn as_any(&self) -> &'_ dyn Any {
+        self
+    }
 }
 
 /// Supertrait used to make sure that all implementors
@@ -55,26 +67,13 @@ impl Clone for Box<dyn ObjectBehavior> {
 mod tests {
     use super::*;
 
-    #[derive(Clone, Debug)]
-    struct ObjectBehaviorStub;
-
-    impl ObjectBehavior for ObjectBehaviorStub {
-        fn step(&mut self, _: &dyn WorldInteractor) -> Option<Action> {
-            None
-        }
-
-        fn as_any(&self) -> &'_ dyn Any {
-            self
-        }
-    }
-
     #[test]
     fn object_behavior_can_be_downcast() {
-        let object_behavior: Box<dyn ObjectBehavior> = box ObjectBehaviorStub;
+        let object_behavior: Box<dyn ObjectBehavior> = box ObjectBehaviorMock::new();
 
         let object_behavior_as_any = object_behavior.as_any();
-        let downcast_behavior = object_behavior_as_any.downcast_ref::<ObjectBehaviorStub>();
+        let downcast_behavior = object_behavior_as_any.downcast_ref();
 
-        let _unwrapped_downcast_behavior: &ObjectBehaviorStub = downcast_behavior.unwrap();
+        let _unwrapped_downcast_behavior: &ObjectBehaviorMock<'_> = downcast_behavior.unwrap();
     }
 }

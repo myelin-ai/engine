@@ -1,6 +1,5 @@
 use myelin_engine::prelude::*;
 use myelin_engine::simulation::SimulationBuilder;
-use std::any::Any;
 
 #[derive(Debug, Clone, Default)]
 struct StaticBehavior;
@@ -8,10 +7,6 @@ struct StaticBehavior;
 impl ObjectBehavior for StaticBehavior {
     fn step(&mut self, _world_interactor: &dyn WorldInteractor) -> Option<Action> {
         None
-    }
-
-    fn as_any(&self) -> &'_ dyn Any {
-        self
     }
 }
 
