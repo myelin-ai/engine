@@ -27,7 +27,7 @@ pub struct Object<'a> {
 /// during a simulation step
 ///
 /// [`Object`]: ./trait.Object.html
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Action {
     /// Apply the specified force to the object
     ApplyForce(Force),
@@ -37,19 +37,6 @@ pub enum Action {
     Destroy(Id),
     /// Destroy the object
     DestroySelf,
-}
-
-impl Clone for Action {
-    fn clone(&self) -> Action {
-        match self {
-            Action::ApplyForce(force) => Action::ApplyForce(force.clone()),
-            Action::Spawn(object_description, object_behavior) => {
-                Action::Spawn(object_description.clone(), object_behavior.clone_box())
-            }
-            Action::Destroy(body_handle) => Action::Destroy(*body_handle),
-            Action::DestroySelf => Action::DestroySelf,
-        }
-    }
 }
 
 /// The behaviourless description of an object that has
