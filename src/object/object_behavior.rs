@@ -1,16 +1,20 @@
-#[cfg(any(test, feature = "use-mocks"))]
-pub use self::mocks::*;
 use crate::prelude::*;
+#[cfg(any(test, feature = "use-mocks"))]
+use mockiato::mockable;
 use std::any::Any;
 use std::fmt::Debug;
 
 /// Behavior of an object
-pub trait ObjectBehavior: Debug + ObjectBehaviorClone {
+#[cfg_attr(any(test, feature = "use-mocks"), mockable(static_references))]
+pub trait ObjectBehavior: Debug + ObjectBehaviorClone + ObjectBehaviorAsAny {
     /// Returns all actions performed by the object
     /// in the current simulation tick
     fn step(&mut self, world_interactor: &dyn WorldInteractor) -> Option<Action>;
+}
 
-    /// Cast implementation to `Any`.
+/// Cast implementation to [`Any`] for [`ObjectBehavior`].
+pub trait ObjectBehaviorAsAny {
+    /// Cast implementation to [`Any`].
     /// This is needed in order to downcast trait objects of type `&dyn ObjectBehavior` to
     /// concrete types.
     ///
@@ -22,6 +26,15 @@ pub trait ObjectBehavior: Debug + ObjectBehaviorClone {
     /// ```
     /// [Additional information](https://stackoverflow.com/a/47642317/5903309)
     fn as_any(&self) -> &'_ dyn Any;
+}
+
+impl<T> ObjectBehaviorAsAny for T
+where
+    T: ObjectBehavior + 'static,
+{
+    default fn as_any(&self) -> &'_ dyn Any {
+        self
+    }
 }
 
 /// Supertrait used to make sure that all implementors
@@ -50,66 +63,6 @@ impl Clone for Box<dyn ObjectBehavior> {
     }
 }
 
-#[cfg(any(test, feature = "use-mocks"))]
-mod mocks {
-    use super::*;
-    use std::cell::RefCell;
-    use std::thread::panicking;
-
-    /// Mock for [`ObjectBehavior`]
-    ///
-    /// [`ObjectBehavior`]: ../trait.ObjectBehavior.html
-    #[derive(Debug, Default, Clone)]
-    pub struct ObjectBehaviorMock {
-        #[allow(clippy::option_option)]
-        expect_step_and_return: Option<Option<Action>>,
-
-        step_was_called: RefCell<bool>,
-    }
-
-    impl ObjectBehaviorMock {
-        /// Construt a new `ObjectBehaviorMock`
-        pub fn new() -> Self {
-            Self::default()
-        }
-
-        /// Expect a call to `step`
-        pub fn expect_step_and_return(&mut self, return_value: Option<Action>) {
-            self.expect_step_and_return = Some(return_value);
-        }
-    }
-
-    impl ObjectBehavior for ObjectBehaviorMock {
-        fn step(&mut self, _world_interactor: &dyn WorldInteractor) -> Option<Action> {
-            *self.step_was_called.borrow_mut() = true;
-
-            let return_value = self
-                .expect_step_and_return
-                .clone()
-                .expect("step() was called unexpectedly");
-
-            return_value.clone()
-        }
-
-        fn as_any(&self) -> &'_ dyn Any {
-            self
-        }
-    }
-
-    impl Drop for ObjectBehaviorMock {
-        fn drop(&mut self) {
-            if panicking() {
-                return;
-            }
-
-            assert!(
-                self.expect_step_and_return.is_some() == *self.step_was_called.borrow(),
-                "step() was not called, but expected"
-            );
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -119,8 +72,8 @@ mod tests {
         let object_behavior: Box<dyn ObjectBehavior> = box ObjectBehaviorMock::new();
 
         let object_behavior_as_any = object_behavior.as_any();
-        let downcast_behavior = object_behavior_as_any.downcast_ref::<ObjectBehaviorMock>();
+        let downcast_behavior = object_behavior_as_any.downcast_ref();
 
-        let _unwrapped_downcast_behavior: &ObjectBehaviorMock = downcast_behavior.unwrap();
+        let _unwrapped_downcast_behavior: &ObjectBehaviorMock<'_> = downcast_behavior.unwrap();
     }
 }
