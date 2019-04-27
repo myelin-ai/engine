@@ -4,6 +4,7 @@
 
 use super::time::InstantWrapperImpl;
 use super::{InstantWrapperFactoryFn, World, WorldInteractorFactoryFn};
+use crate::object::AssociatedObjectData;
 use crate::simulation::simulation_impl::world::builder::NphysicsWorldBuilder;
 use crate::simulation::simulation_impl::SimulationImpl;
 use crate::simulation::Simulation;
@@ -24,25 +25,46 @@ use std::time::Instant;
 /// ```
 ///
 /// [`Simulation`]: ./../trait.Simulation.html
-#[derive(Default)]
-pub struct SimulationBuilder {
+pub struct SimulationBuilder<T>
+where
+    T: AssociatedObjectData,
+{
     world: Option<Box<dyn World>>,
-    world_interactor_factory_fn: Option<Box<WorldInteractorFactoryFn>>,
+    world_interactor_factory_fn: Option<Box<WorldInteractorFactoryFn<T>>>,
     instant_wrapper_factory_fn: Option<Box<InstantWrapperFactoryFn>>,
 }
 
-impl Debug for SimulationBuilder {
+impl<T> Debug for SimulationBuilder<T>
+where
+    T: AssociatedObjectData,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct(name_of_type!(SimulationBuilder))
+        f.debug_struct(name_of_type!(SimulationBuilder<T>))
             .field("world", &self.world)
             .finish()
     }
 }
 
-impl SimulationBuilder {
+impl<T> Default for SimulationBuilder<T>
+where
+    T: AssociatedObjectData,
+{
+    fn default() -> Self {
+        Self {
+            world: None,
+            world_interactor_factory_fn: None,
+            instant_wrapper_factory_fn: None,
+        }
+    }
+}
+
+impl<T> SimulationBuilder<T>
+where
+    T: AssociatedObjectData,
+{
     /// Creates a new builder by calling SimulationBuilder::default()
-    pub fn new() -> SimulationBuilder {
-        SimulationBuilder::default()
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Sets the [`World`] which the [`Simulation`] is going to use.
@@ -61,7 +83,7 @@ impl SimulationBuilder {
     /// [`WorldInteractorFactoryFn`]: ../simulation_impl/trait.WorldInteractorFactoryFn.html
     pub fn world_interactor_factory_fn(
         &mut self,
-        world_interactor_factory_fn: Box<WorldInteractorFactoryFn>,
+        world_interactor_factory_fn: Box<WorldInteractorFactoryFn<T>>,
     ) {
         self.world_interactor_factory_fn = Some(world_interactor_factory_fn)
     }
@@ -79,7 +101,10 @@ impl SimulationBuilder {
     /// Builds the [`Simulation`].
     ///
     /// [`Simulation`]: ./../trait.Simulation.html
-    pub fn build(self) -> Box<dyn Simulation> {
+    pub fn build<'a>(self) -> Box<dyn Simulation<T> + 'a>
+    where
+        T: 'a,
+    {
         box SimulationImpl::new(
             self.world
                 .unwrap_or_else(|| box NphysicsWorldBuilder::default().build()),

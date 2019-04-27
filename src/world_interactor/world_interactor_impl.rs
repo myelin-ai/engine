@@ -7,32 +7,41 @@ use std::time::Duration;
 ///
 /// [`WorldInteractor`]: ./../object/trait.WorldInteractor.html
 #[derive(Debug)]
-pub struct WorldInteractorImpl<'a> {
-    interactable: &'a dyn Interactable,
+pub struct WorldInteractorImpl<'a, T>
+where
+    T: AssociatedObjectData,
+{
+    interactable: &'a dyn Interactable<T>,
     id: Id,
 }
 
-impl<'a> WorldInteractorImpl<'a> {
+impl<'a, T> WorldInteractorImpl<'a, T>
+where
+    T: AssociatedObjectData,
+{
     /// Creates a new instance of [`WorldInteractorImpl`].
     ///
     /// [`WorldInteractorImpl`]: ./struct.WorldInteractorImpl.html
-    pub fn new(interactable: &'a dyn Interactable, id: Id) -> Self {
+    pub fn new(interactable: &'a dyn Interactable<T>, id: Id) -> Self {
         Self { interactable, id }
     }
 }
 
-impl Sealed for WorldInteractorImpl<'_> {}
+impl<T> Sealed for WorldInteractorImpl<'_, T> where T: AssociatedObjectData {}
 
-impl<'a> WorldInteractor for WorldInteractorImpl<'a> {
-    fn find_objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
+impl<'a, T> WorldInteractor<T> for WorldInteractorImpl<'a, T>
+where
+    T: AssociatedObjectData,
+{
+    fn find_objects_in_area(&self, area: Aabb) -> Snapshot<'_, T> {
         self.interactable.objects_in_area(area)
     }
 
-    fn find_objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_> {
+    fn find_objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_, T> {
         self.interactable.objects_in_polygon(area)
     }
 
-    fn find_objects_in_ray(&self, origin: Point, direction: Vector) -> Snapshot<'_> {
+    fn find_objects_in_ray(&self, origin: Point, direction: Vector) -> Snapshot<'_, T> {
         self.interactable.objects_in_ray(origin, direction)
     }
 
@@ -40,7 +49,7 @@ impl<'a> WorldInteractor for WorldInteractorImpl<'a> {
         self.interactable.elapsed_time_in_update()
     }
 
-    fn own_object(&self) -> Object<'_> {
+    fn own_object(&self) -> Object<'_, T> {
         self.interactable
             .object(self.id)
             .expect("Internal error: Own ID stored in WorldInteractorImpl was invalid")
@@ -54,7 +63,7 @@ mod tests {
     use mockiato::{partial_eq, partial_eq_owned};
     use myelin_geometry::{Point, PolygonBuilder};
 
-    fn object_description() -> ObjectDescription {
+    fn object_description() -> ObjectDescription<()> {
         ObjectBuilder::default()
             .location(10.0, 10.0)
             .mobility(Mobility::Immovable)

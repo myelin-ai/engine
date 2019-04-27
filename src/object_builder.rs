@@ -39,16 +39,22 @@ pub struct ObjectBuilderError {
 ///     .unwrap();
 /// ```
 #[derive(Default, Debug)]
-pub struct ObjectBuilder {
+pub struct ObjectBuilder<T>
+where
+    T: AssociatedObjectData,
+{
     shape: Option<Polygon>,
     location: Option<Point>,
     rotation: Option<Radians>,
     mobility: Option<Mobility>,
     passable: bool,
-    associated_data: Vec<u8>,
+    associated_data: T,
 }
 
-impl ObjectBuilder {
+impl<T> ObjectBuilder<T>
+where
+    T: AssociatedObjectData,
+{
     /// # Examples
     /// ```
     /// use myelin_engine::prelude::*;
@@ -118,7 +124,7 @@ impl ObjectBuilder {
     ///
     /// let builder = ObjectBuilder::default().associated_data(String::from("Foo").into_bytes());
     /// ```
-    pub fn associated_data(&mut self, associated_data: Vec<u8>) -> &mut Self {
+    pub fn associated_data(&mut self, associated_data: T) -> &mut Self {
         self.associated_data = associated_data;
         self
     }
@@ -149,7 +155,7 @@ impl ObjectBuilder {
     ///     .build()
     ///     .unwrap();
     /// ```
-    pub fn build(&mut self) -> Result<ObjectDescription, ObjectBuilderError> {
+    pub fn build(&mut self) -> Result<ObjectDescription<T>, ObjectBuilderError> {
         let error = ObjectBuilderError {
             missing_shape: self.shape.is_none(),
             missing_location: self.location.is_none(),
@@ -169,8 +175,11 @@ impl ObjectBuilder {
     }
 }
 
-impl From<ObjectDescription> for ObjectBuilder {
-    fn from(object_description: ObjectDescription) -> Self {
+impl<T> From<ObjectDescription<T>> for ObjectBuilder<T>
+where
+    T: AssociatedObjectData,
+{
+    fn from(object_description: ObjectDescription<T>) -> Self {
         let ObjectDescription {
             shape,
             location,
