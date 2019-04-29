@@ -101,7 +101,7 @@ where
     /// use std::time::Instant;
     ///
     /// let world = Box::new(NphysicsWorld::with_timestep(1.0));
-    /// let simulation = SimulationImpl::new(
+    /// let simulation = SimulationImpl::<()>::new(
     ///     world,
     ///     Box::new(|simulation, id| Box::new(WorldInteractorImpl::new(simulation, id))),
     ///     Box::new(|| Box::new(InstantWrapperImpl::new(Instant::now()))),
@@ -216,7 +216,7 @@ where
                 let action = non_physical_object_data
                     .behavior
                     .borrow_mut()
-                    .step(world_interactor.as_ref());
+                    .step(world_interactor);
                 if let Some(action) = action {
                     actions.push((*object_handle, action));
                 }

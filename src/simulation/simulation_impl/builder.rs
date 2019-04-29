@@ -21,7 +21,7 @@ use std::time::Instant;
 /// ```
 /// use myelin_engine::simulation::SimulationBuilder;
 ///
-/// let simulation = SimulationBuilder::new().build();
+/// let simulation = SimulationBuilder::<()>::new().build();
 /// ```
 ///
 /// [`Simulation`]: ./../trait.Simulation.html

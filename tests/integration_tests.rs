@@ -4,8 +4,11 @@ use myelin_engine::simulation::SimulationBuilder;
 #[derive(Debug, Clone, Default)]
 struct StaticBehavior;
 
-impl ObjectBehavior for StaticBehavior {
-    fn step(&mut self, _world_interactor: &dyn WorldInteractor) -> Option<Action> {
+impl<T> ObjectBehavior<T> for StaticBehavior
+where
+    T: AssociatedObjectData,
+{
+    fn step(&mut self, _world_interactor: Box<dyn WorldInteractor<T> + '_>) -> Option<Action<T>> {
         None
     }
 }
@@ -15,7 +18,7 @@ fn simulation_runs() {
     let mut simulation = SimulationBuilder::new().build();
     let description = description();
 
-    let behavior: Box<ObjectBehavior> = Box::new(StaticBehavior::default());
+    let behavior: Box<dyn ObjectBehavior<_>> = Box::new(StaticBehavior::default());
     simulation.add_object(description, behavior);
 
     simulation.step();
@@ -27,7 +30,7 @@ fn simulation_returns_object() {
     let mut simulation = SimulationBuilder::new().build();
     let expected_description = description();
 
-    let behavior: Box<ObjectBehavior> = Box::new(StaticBehavior::default());
+    let behavior: Box<dyn ObjectBehavior<_>> = Box::new(StaticBehavior::default());
     let object = simulation.add_object(expected_description.clone(), behavior);
     assert_eq!(expected_description, object.description);
 }
@@ -38,7 +41,7 @@ fn simulation_retrieves_object() {
         let mut simulation = SimulationBuilder::new().build();
         let expected_description = description();
 
-        let behavior: Box<ObjectBehavior> = Box::new(StaticBehavior::default());
+        let behavior: Box<dyn ObjectBehavior<_>> = Box::new(StaticBehavior::default());
         let object = simulation.add_object(expected_description.clone(), behavior);
         let id = object.id;
         let description = object.description;
@@ -48,7 +51,7 @@ fn simulation_retrieves_object() {
     assert_eq!(retrieved_object.description, description);
 }
 
-fn description() -> ObjectDescription {
+fn description() -> ObjectDescription<()> {
     ObjectBuilder::default()
         .shape(
             PolygonBuilder::default()

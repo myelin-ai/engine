@@ -188,7 +188,7 @@ mod tests {
             behavior: &object_behavior,
         };
 
-        let mut interactable = InteractableMock::new();
+        let mut interactable = InteractableMock::<()>::new();
         interactable
             .expect_object(partial_eq(expected_object.id))
             .returns(None);

@@ -12,7 +12,7 @@ where
 {
     /// Returns all actions performed by the object
     /// in the current simulation tick
-    fn step(&mut self, world_interactor: &dyn WorldInteractor<T>) -> Option<Action<T>>;
+    fn step(&mut self, world_interactor: Box<dyn WorldInteractor<T> + '_>) -> Option<Action<T>>;
 }
 
 /// Cast implementation to [`Any`] for [`ObjectBehavior`].
@@ -83,11 +83,11 @@ mod tests {
 
     #[test]
     fn object_behavior_can_be_downcast() {
-        let object_behavior: Box<dyn ObjectBehavior> = box ObjectBehaviorMock::new();
+        let object_behavior: Box<dyn ObjectBehavior<()>> = box ObjectBehaviorMock::new();
 
         let object_behavior_as_any = object_behavior.as_any();
         let downcast_behavior = object_behavior_as_any.downcast_ref();
 
-        let _unwrapped_downcast_behavior: &ObjectBehaviorMock<'_> = downcast_behavior.unwrap();
+        let _unwrapped_downcast_behavior: &ObjectBehaviorMock<'_, ()> = downcast_behavior.unwrap();
     }
 }

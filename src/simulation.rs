@@ -67,4 +67,4 @@ pub type Id = usize;
 pub type Snapshot<'a, T> = Vec<Object<'a, T>>;
 
 #[cfg(any(test, feature = "use-mocks"))]
-impl Sealed for SimulationMock<'_> {}
+impl<T> Sealed for SimulationMock<'_, T> where T: AssociatedObjectData {}
