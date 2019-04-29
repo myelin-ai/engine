@@ -83,15 +83,7 @@ where
 
 /// Required bounds for [`ObjectDescription::associated_data`].
 /// This trait is automatically implemented for all types that satisfy the supertraits.
-pub trait AssociatedObjectData:
-    Clone + Debug + PartialEq + Serialize + for<'de> Deserialize<'de>
-{
-}
-
-impl<T> AssociatedObjectData for T where
-    T: Clone + Debug + PartialEq + Serialize + for<'de> Deserialize<'de>
-{
-}
+pub trait AssociatedObjectData = Clone + Debug + PartialEq + Serialize + for<'de> Deserialize<'de>;
 
 /// An object's mobility and, if present, its
 /// current velocity as a vector
