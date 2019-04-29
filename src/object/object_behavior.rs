@@ -6,14 +6,20 @@ use std::fmt::Debug;
 
 /// Behavior of an object
 #[cfg_attr(any(test, feature = "use-mocks"), mockable(static_references))]
-pub trait ObjectBehavior: Debug + ObjectBehaviorClone + ObjectBehaviorAsAny {
+pub trait ObjectBehavior<T>: Debug + ObjectBehaviorClone<T> + ObjectBehaviorAsAny<T>
+where
+    T: AssociatedObjectData,
+{
     /// Returns all actions performed by the object
     /// in the current simulation tick
-    fn step(&mut self, world_interactor: &dyn WorldInteractor) -> Option<Action>;
+    fn step(&mut self, world_interactor: Box<dyn WorldInteractor<T> + '_>) -> Option<Action<T>>;
 }
 
 /// Cast implementation to [`Any`] for [`ObjectBehavior`].
-pub trait ObjectBehaviorAsAny {
+pub trait ObjectBehaviorAsAny<T>
+where
+    T: AssociatedObjectData,
+{
     /// Cast implementation to [`Any`].
     /// This is needed in order to downcast trait objects of type `&dyn ObjectBehavior` to
     /// concrete types.
@@ -28,9 +34,10 @@ pub trait ObjectBehaviorAsAny {
     fn as_any(&self) -> &'_ dyn Any;
 }
 
-impl<T> ObjectBehaviorAsAny for T
+impl<O, T> ObjectBehaviorAsAny<T> for O
 where
-    T: ObjectBehavior + 'static,
+    O: ObjectBehavior<T> + 'static,
+    T: AssociatedObjectData,
 {
     default fn as_any(&self) -> &'_ dyn Any {
         self
@@ -44,20 +51,27 @@ where
 /// [`ObjectBehavior`]: ./trait.ObjectBehavior.html
 /// [`Clone`]: https://doc.rust-lang.org/nightly/std/clone/trait.Clone.html
 #[doc(hidden)]
-pub trait ObjectBehaviorClone {
-    fn clone_box(&self) -> Box<dyn ObjectBehavior>;
+pub trait ObjectBehaviorClone<T>
+where
+    T: AssociatedObjectData,
+{
+    fn clone_box(&self) -> Box<dyn ObjectBehavior<T>>;
 }
 
-impl<T> ObjectBehaviorClone for T
+impl<Behaviour, AssociatedData> ObjectBehaviorClone<AssociatedData> for Behaviour
 where
-    T: ObjectBehavior + Clone + 'static,
+    Behaviour: ObjectBehavior<AssociatedData> + Clone + 'static,
+    AssociatedData: AssociatedObjectData,
 {
-    default fn clone_box(&self) -> Box<dyn ObjectBehavior> {
+    default fn clone_box(&self) -> Box<dyn ObjectBehavior<AssociatedData>> {
         box self.clone()
     }
 }
 
-impl Clone for Box<dyn ObjectBehavior> {
+impl<T> Clone for Box<dyn ObjectBehavior<T>>
+where
+    T: AssociatedObjectData,
+{
     fn clone(&self) -> Self {
         self.clone_box()
     }
@@ -69,11 +83,11 @@ mod tests {
 
     #[test]
     fn object_behavior_can_be_downcast() {
-        let object_behavior: Box<dyn ObjectBehavior> = box ObjectBehaviorMock::new();
+        let object_behavior: Box<dyn ObjectBehavior<()>> = box ObjectBehaviorMock::new();
 
         let object_behavior_as_any = object_behavior.as_any();
         let downcast_behavior = object_behavior_as_any.downcast_ref();
 
-        let _unwrapped_downcast_behavior: &ObjectBehaviorMock<'_> = downcast_behavior.unwrap();
+        let _unwrapped_downcast_behavior: &ObjectBehaviorMock<'_, ()> = downcast_behavior.unwrap();
     }
 }

@@ -5,6 +5,7 @@
 #![feature(specialization)]
 #![feature(non_exhaustive)]
 #![feature(box_syntax)]
+#![feature(trait_alias)]
 #![warn(missing_docs, clippy::dbg_macro, clippy::unimplemented)]
 #![deny(
     rust_2018_idioms,

@@ -23,8 +23,8 @@ pub use self::builder::SimulationBuilder;
 ///
 /// [`SimulationImpl`]: ./struct.SimulationImpl.html
 /// [`WorldInteractor`]: ./../object/trait.WorldInteractor.html
-pub type WorldInteractorFactoryFn =
-    dyn for<'a> Fn(&'a dyn Interactable, Id) -> Box<dyn WorldInteractor + 'a>;
+pub type WorldInteractorFactoryFn<T> =
+    dyn for<'a> Fn(&'a dyn Interactable<T>, Id) -> Box<dyn WorldInteractor<T> + 'a>;
 
 /// Factory to retrieve a current [`Instant`], wrapped by [`InstantWrapper`]
 ///
@@ -36,17 +36,23 @@ pub type InstantWrapperFactoryFn = dyn Fn() -> Box<dyn InstantWrapper>;
 ///
 /// [`Simulation`]: ./../trait.Simulation.html
 /// [`World`]: ./trait.World.html
-pub struct SimulationImpl {
+pub struct SimulationImpl<T>
+where
+    T: AssociatedObjectData,
+{
     world: Box<dyn World>,
-    non_physical_object_data: HashMap<BodyHandle, NonPhysicalObjectData>,
-    world_interactor_factory_fn: Box<WorldInteractorFactoryFn>,
+    non_physical_object_data: HashMap<BodyHandle, NonPhysicalObjectData<T>>,
+    world_interactor_factory_fn: Box<WorldInteractorFactoryFn<T>>,
     instant_wrapper_factory_fn: Box<InstantWrapperFactoryFn>,
     last_step_instant: Option<Box<dyn InstantWrapper>>,
 }
 
-impl Debug for SimulationImpl {
+impl<T> Debug for SimulationImpl<T>
+where
+    T: AssociatedObjectData,
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct(name_of_type!(SimulationImpl))
+        f.debug_struct(name_of_type!(SimulationImpl<T>))
             .field("world", &self.world)
             .field("non_physical_object_data", &self.non_physical_object_data)
             .finish()
@@ -54,9 +60,12 @@ impl Debug for SimulationImpl {
 }
 
 #[derive(Debug)]
-struct NonPhysicalObjectData {
-    pub(crate) behavior: RefCell<Box<dyn ObjectBehavior>>,
-    pub(crate) associated_data: Vec<u8>,
+struct NonPhysicalObjectData<T>
+where
+    T: AssociatedObjectData,
+{
+    pub(crate) behavior: RefCell<Box<dyn ObjectBehavior<T>>>,
+    pub(crate) associated_data: T,
 }
 
 /// An error that can occur whenever an action is performed
@@ -76,7 +85,10 @@ impl Error for ActionError {}
 
 type ActionResult = Result<(), ActionError>;
 
-impl SimulationImpl {
+impl<T> SimulationImpl<T>
+where
+    T: AssociatedObjectData,
+{
     /// Create a new SimulationImpl by injecting a [`World`]
     /// # Examples
     /// ```
@@ -89,7 +101,7 @@ impl SimulationImpl {
     /// use std::time::Instant;
     ///
     /// let world = Box::new(NphysicsWorld::with_timestep(1.0));
-    /// let simulation = SimulationImpl::new(
+    /// let simulation = SimulationImpl::<()>::new(
     ///     world,
     ///     Box::new(|simulation, id| Box::new(WorldInteractorImpl::new(simulation, id))),
     ///     Box::new(|| Box::new(InstantWrapperImpl::new(Instant::now()))),
@@ -98,7 +110,7 @@ impl SimulationImpl {
     /// [`World`]: ./trait.World.html
     pub fn new(
         world: Box<dyn World>,
-        world_interactor_factory_fn: Box<WorldInteractorFactoryFn>,
+        world_interactor_factory_fn: Box<WorldInteractorFactoryFn<T>>,
         instant_wrapper_factory_fn: Box<InstantWrapperFactoryFn>,
     ) -> Self {
         Self {
@@ -110,7 +122,7 @@ impl SimulationImpl {
         }
     }
 
-    fn handle_to_description(&self, body_handle: BodyHandle) -> Option<ObjectDescription> {
+    fn handle_to_description(&self, body_handle: BodyHandle) -> Option<ObjectDescription<T>> {
         let physics_body = self.world.body(body_handle)?;
         let non_physical_object_data = self.non_physical_object_data.get(&body_handle)?;
         Some(ObjectDescription {
@@ -123,7 +135,7 @@ impl SimulationImpl {
         })
     }
 
-    fn handle_action(&mut self, body_handle: BodyHandle, action: Action) -> ActionResult {
+    fn handle_action(&mut self, body_handle: BodyHandle, action: Action<T>) -> ActionResult {
         match action {
             Action::Spawn(object_description, object_behavior) => {
                 self.spawn(object_description, object_behavior)
@@ -136,8 +148,8 @@ impl SimulationImpl {
 
     fn spawn(
         &mut self,
-        object_description: ObjectDescription,
-        object_behavior: Box<dyn ObjectBehavior>,
+        object_description: ObjectDescription<T>,
+        object_behavior: Box<dyn ObjectBehavior<T>>,
     ) -> ActionResult {
         self.add_object(object_description, object_behavior);
         Ok(())
@@ -162,7 +174,7 @@ impl SimulationImpl {
             .to_action_result()
     }
 
-    fn handle_to_behavior(&self, handle: BodyHandle) -> Option<&dyn ObjectBehavior> {
+    fn handle_to_behavior(&self, handle: BodyHandle) -> Option<&dyn ObjectBehavior<T>> {
         let ptr = self
             .non_physical_object_data
             .get(&handle)?
@@ -190,9 +202,12 @@ impl<T> HandleOption for Option<T> {
     }
 }
 
-impl Sealed for SimulationImpl {}
+impl<T> Sealed for SimulationImpl<T> where T: AssociatedObjectData {}
 
-impl Simulation for SimulationImpl {
+impl<T> Simulation<T> for SimulationImpl<T>
+where
+    T: AssociatedObjectData,
+{
     fn step(&mut self) {
         let mut actions = Vec::new();
         {
@@ -201,7 +216,7 @@ impl Simulation for SimulationImpl {
                 let action = non_physical_object_data
                     .behavior
                     .borrow_mut()
-                    .step(world_interactor.as_ref());
+                    .step(world_interactor);
                 if let Some(action) = action {
                     actions.push((*object_handle, action));
                 }
@@ -218,9 +233,9 @@ impl Simulation for SimulationImpl {
 
     fn add_object(
         &mut self,
-        object_description: ObjectDescription,
-        object_behavior: Box<dyn ObjectBehavior>,
-    ) -> Object<'_> {
+        object_description: ObjectDescription<T>,
+        object_behavior: Box<dyn ObjectBehavior<T>>,
+    ) -> Object<'_, T> {
         let returned_object_descripton = object_description.clone();
 
         let physical_body = PhysicalBody {
@@ -249,7 +264,7 @@ impl Simulation for SimulationImpl {
         }
     }
 
-    fn objects(&self) -> Snapshot<'_> {
+    fn objects(&self) -> Snapshot<'_, T> {
         self.non_physical_object_data
             .keys()
             .map(|&handle| {
@@ -259,7 +274,7 @@ impl Simulation for SimulationImpl {
             .collect()
     }
 
-    fn object(&self, id: Id) -> Option<Object<'_>> {
+    fn object(&self, id: Id) -> Option<Object<'_, T>> {
         let handle = BodyHandle(id);
         Some(Object {
             id: handle.0,
@@ -273,7 +288,7 @@ impl Simulation for SimulationImpl {
         self.world.set_simulated_timestep(timestep)
     }
 
-    fn objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
+    fn objects_in_area(&self, area: Aabb) -> Snapshot<'_, T> {
         self.world
             .bodies_in_area(area)
             .into_iter()
@@ -284,7 +299,7 @@ impl Simulation for SimulationImpl {
             .collect()
     }
 
-    fn objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_> {
+    fn objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_, T> {
         self.world
             .bodies_in_polygon(area)
             .into_iter()
@@ -295,7 +310,7 @@ impl Simulation for SimulationImpl {
             .collect()
     }
 
-    fn objects_in_ray(&self, origin: Point, direction: Vector) -> Snapshot<'_> {
+    fn objects_in_ray(&self, origin: Point, direction: Vector) -> Snapshot<'_, T> {
         self.world
             .bodies_in_ray(origin, direction)
             .into_iter()
@@ -307,16 +322,19 @@ impl Simulation for SimulationImpl {
     }
 }
 
-impl Interactable for SimulationImpl {
-    fn objects_in_area(&self, area: Aabb) -> Snapshot<'_> {
+impl<T> Interactable<T> for SimulationImpl<T>
+where
+    T: AssociatedObjectData,
+{
+    fn objects_in_area(&self, area: Aabb) -> Snapshot<'_, T> {
         Simulation::objects_in_area(self, area)
     }
 
-    fn objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_> {
+    fn objects_in_polygon(&self, area: &Polygon) -> Snapshot<'_, T> {
         Simulation::objects_in_polygon(self, area)
     }
 
-    fn objects_in_ray(&self, origin: Point, direction: Vector) -> Snapshot<'_> {
+    fn objects_in_ray(&self, origin: Point, direction: Vector) -> Snapshot<'_, T> {
         Simulation::objects_in_ray(self, origin, direction)
     }
 
@@ -327,7 +345,7 @@ impl Interactable for SimulationImpl {
         }
     }
 
-    fn object(&self, id: Id) -> Option<Object<'_>> {
+    fn object(&self, id: Id) -> Option<Object<'_, T>> {
         Simulation::object(self, id)
     }
 }
@@ -347,9 +365,9 @@ mod tests {
     use std::time::Instant;
 
     fn world_interactor_factory_fn<'a>(
-        _interactable: &'a dyn Interactable,
+        _interactable: &'a dyn Interactable<()>,
         _id: Id,
-    ) -> Box<dyn WorldInteractor + 'a> {
+    ) -> Box<dyn WorldInteractor<()> + 'a> {
         box WorldInteractorMock::new()
     }
 
@@ -1060,7 +1078,7 @@ mod tests {
         assert_eq!(object_description, objects_in_polygon[0].description);
     }
 
-    fn object() -> (PhysicalBody, ObjectDescription) {
+    fn object() -> (PhysicalBody, ObjectDescription<()>) {
         let expected_shape = shape();
         let expected_location = location();
         let expected_rotation = rotation();

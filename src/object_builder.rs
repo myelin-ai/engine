@@ -22,7 +22,7 @@ pub struct ObjectBuilderError {
 /// use myelin_engine::prelude::*;
 /// use std::f64::consts::FRAC_PI_2;
 ///
-/// let object = ObjectBuilder::default()
+/// let object = ObjectBuilder::<()>::default()
 ///     .shape(
 ///         PolygonBuilder::default()
 ///             .vertex(-50.0, -50.0)
@@ -39,21 +39,27 @@ pub struct ObjectBuilderError {
 ///     .unwrap();
 /// ```
 #[derive(Default, Debug)]
-pub struct ObjectBuilder {
+pub struct ObjectBuilder<T>
+where
+    T: AssociatedObjectData,
+{
     shape: Option<Polygon>,
     location: Option<Point>,
     rotation: Option<Radians>,
     mobility: Option<Mobility>,
     passable: bool,
-    associated_data: Vec<u8>,
+    associated_data: T,
 }
 
-impl ObjectBuilder {
+impl<T> ObjectBuilder<T>
+where
+    T: AssociatedObjectData,
+{
     /// # Examples
     /// ```
     /// use myelin_engine::prelude::*;
     ///
-    /// ObjectBuilder::default().shape(
+    /// ObjectBuilder::<()>::default().shape(
     ///     PolygonBuilder::default()
     ///         .vertex(-50.0, -50.0)
     ///         .vertex(50.0, -50.0)
@@ -72,7 +78,7 @@ impl ObjectBuilder {
     /// ```
     /// use myelin_engine::prelude::*;
     ///
-    /// ObjectBuilder::default().location(3.0, 2.0);
+    /// ObjectBuilder::<()>::default().location(3.0, 2.0);
     /// ```
     pub fn location(&mut self, x: f64, y: f64) -> &mut Self {
         self.location = Some(Point { x, y });
@@ -83,7 +89,7 @@ impl ObjectBuilder {
     /// ```
     /// use myelin_engine::prelude::*;
     ///
-    /// ObjectBuilder::default().mobility(Mobility::Movable(Vector { x: -12.0, y: 4.0 }));
+    /// ObjectBuilder::<()>::default().mobility(Mobility::Movable(Vector { x: -12.0, y: 4.0 }));
     /// ```
     pub fn mobility(&mut self, mobility: Mobility) -> &mut Self {
         self.mobility = Some(mobility);
@@ -94,7 +100,7 @@ impl ObjectBuilder {
     /// ```
     /// use myelin_engine::prelude::*;
     ///
-    /// ObjectBuilder::default().rotation(Radians::try_new(4.5).unwrap());
+    /// ObjectBuilder::<()>::default().rotation(Radians::try_new(4.5).unwrap());
     /// ```
     pub fn rotation(&mut self, rotation: Radians) -> &mut Self {
         self.rotation = Some(rotation);
@@ -105,7 +111,7 @@ impl ObjectBuilder {
     /// ```
     /// use myelin_engine::prelude::*;
     ///
-    /// let builder = ObjectBuilder::default();
+    /// let builder = ObjectBuilder::<()>::default();
     /// ```
     pub fn passable(&mut self, passable: bool) -> &mut Self {
         self.passable = passable;
@@ -116,9 +122,9 @@ impl ObjectBuilder {
     /// ```
     /// use myelin_engine::prelude::*;
     ///
-    /// let builder = ObjectBuilder::default().associated_data(String::from("Foo").into_bytes());
+    /// let builder = ObjectBuilder::<String>::default().associated_data(String::from("Foo"));
     /// ```
-    pub fn associated_data(&mut self, associated_data: Vec<u8>) -> &mut Self {
+    pub fn associated_data(&mut self, associated_data: T) -> &mut Self {
         self.associated_data = associated_data;
         self
     }
@@ -133,7 +139,7 @@ impl ObjectBuilder {
     /// use myelin_engine::prelude::*;
     /// use std::f64::consts::FRAC_PI_2;
     ///
-    /// let object = ObjectBuilder::default()
+    /// let object = ObjectBuilder::<()>::default()
     ///     .shape(
     ///         PolygonBuilder::default()
     ///             .vertex(-50.0, -50.0)
@@ -149,7 +155,7 @@ impl ObjectBuilder {
     ///     .build()
     ///     .unwrap();
     /// ```
-    pub fn build(&mut self) -> Result<ObjectDescription, ObjectBuilderError> {
+    pub fn build(&mut self) -> Result<ObjectDescription<T>, ObjectBuilderError> {
         let error = ObjectBuilderError {
             missing_shape: self.shape.is_none(),
             missing_location: self.location.is_none(),
@@ -169,8 +175,11 @@ impl ObjectBuilder {
     }
 }
 
-impl From<ObjectDescription> for ObjectBuilder {
-    fn from(object_description: ObjectDescription) -> Self {
+impl<T> From<ObjectDescription<T>> for ObjectBuilder<T>
+where
+    T: AssociatedObjectData,
+{
+    fn from(object_description: ObjectDescription<T>) -> Self {
         let ObjectDescription {
             shape,
             location,
@@ -197,7 +206,7 @@ mod test {
 
     #[test]
     fn test_object_builder_should_error_for_missing_shape() {
-        let result = ObjectBuilder::default()
+        let result = ObjectBuilder::<()>::default()
             .location(10.0, 10.0)
             .rotation(Radians::try_new(0.0).unwrap())
             .mobility(Mobility::Immovable)
@@ -214,7 +223,7 @@ mod test {
 
     #[test]
     fn test_object_builder_should_error_for_missing_location() {
-        let result = ObjectBuilder::default()
+        let result = ObjectBuilder::<()>::default()
             .shape(
                 PolygonBuilder::default()
                     .vertex(0.0, 0.0)
@@ -239,7 +248,7 @@ mod test {
 
     #[test]
     fn test_object_builder_should_error_for_missing_mobility() {
-        let result = ObjectBuilder::default()
+        let result = ObjectBuilder::<()>::default()
             .shape(
                 PolygonBuilder::default()
                     .vertex(0.0, 0.0)
@@ -291,7 +300,7 @@ mod test {
 
             mobility: Mobility::Immovable,
             passable: false,
-            associated_data: Vec::new(),
+            associated_data: (),
         };
 
         assert_eq!(Ok(expected), result);
@@ -328,7 +337,7 @@ mod test {
 
             mobility: Mobility::Immovable,
             passable: true,
-            associated_data: Vec::new(),
+            associated_data: (),
         };
 
         assert_eq!(Ok(expected), result);
@@ -364,7 +373,7 @@ mod test {
 
             mobility: Mobility::Immovable,
             passable: false,
-            associated_data: Vec::new(),
+            associated_data: (),
         };
 
         assert_eq!(Ok(expected), result);
@@ -372,7 +381,7 @@ mod test {
 
     #[test]
     fn test_object_builder_should_error_with_everything_missing() {
-        let result = ObjectBuilder::default().build();
+        let result = ObjectBuilder::<()>::default().build();
 
         assert_eq!(
             Err(ObjectBuilderError {
@@ -414,7 +423,7 @@ mod test {
             ])
             .unwrap(),
             passable: false,
-            associated_data: Vec::new(),
+            associated_data: (),
         };
 
         assert_eq!(Ok(expected), result);
@@ -435,7 +444,7 @@ mod test {
             ])
             .unwrap(),
             passable: true,
-            associated_data: Vec::new(),
+            associated_data: (),
         };
 
         assert_eq!(
