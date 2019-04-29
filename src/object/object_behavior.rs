@@ -58,12 +58,12 @@ where
     fn clone_box(&self) -> Box<dyn ObjectBehavior<T>>;
 }
 
-impl<O, T> ObjectBehaviorClone<T> for O
+impl<Behaviour, AssociatedData> ObjectBehaviorClone<AssociatedData> for Behaviour
 where
-    O: ObjectBehavior<T> + Clone + 'static,
-    T: AssociatedObjectData,
+    Behaviour: ObjectBehavior<AssociatedData> + Clone + 'static,
+    AssociatedData: AssociatedObjectData,
 {
-    default fn clone_box(&self) -> Box<dyn ObjectBehavior<T>> {
+    default fn clone_box(&self) -> Box<dyn ObjectBehavior<AssociatedData>> {
         box self.clone()
     }
 }
