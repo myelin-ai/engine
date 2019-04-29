@@ -25,7 +25,7 @@ ncollide2d = "0.19"
 serde = { version = "1.0", features = ["derive"] }
 alga = "0.9"
 nameof = "1.0"
-mockiato = { git = "https://github.com/myelin-ai/mockiato", optional = true }
+mockiato = { version = "0.4", optional = true }
 nearly_eq = { version = "0.2", optional = true }
 
 [dependencies.nphysics2d]
@@ -34,7 +34,7 @@ default-features = false
 features = ["use-wasm-bindgen"]
 
 [dev-dependencies]
-mockiato = { git = "https://github.com/myelin-ai/mockiato" }
+mockiato = "0.4"
 nearly_eq = "0.2"
 
 [features]
