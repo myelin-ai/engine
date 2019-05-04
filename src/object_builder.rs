@@ -39,10 +39,7 @@ pub struct ObjectBuilderError {
 ///     .unwrap();
 /// ```
 #[derive(Default, Debug)]
-pub struct ObjectBuilder<T>
-where
-    T: AssociatedObjectData,
-{
+pub struct ObjectBuilder<T> {
     shape: Option<Polygon>,
     location: Option<Point>,
     rotation: Option<Radians>,
@@ -51,10 +48,7 @@ where
     associated_data: T,
 }
 
-impl<T> ObjectBuilder<T>
-where
-    T: AssociatedObjectData,
-{
+impl<T> ObjectBuilder<T> {
     /// # Examples
     /// ```
     /// use myelin_engine::prelude::*;

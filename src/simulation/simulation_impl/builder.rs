@@ -25,19 +25,13 @@ use std::time::Instant;
 /// ```
 ///
 /// [`Simulation`]: ./../trait.Simulation.html
-pub struct SimulationBuilder<T>
-where
-    T: AssociatedObjectData,
-{
+pub struct SimulationBuilder<T> {
     world: Option<Box<dyn World>>,
     world_interactor_factory_fn: Option<Box<WorldInteractorFactoryFn<T>>>,
     instant_wrapper_factory_fn: Option<Box<InstantWrapperFactoryFn>>,
 }
 
-impl<T> Debug for SimulationBuilder<T>
-where
-    T: AssociatedObjectData,
-{
+impl<T> Debug for SimulationBuilder<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct(name_of_type!(SimulationBuilder<T>))
             .field("world", &self.world)
@@ -45,10 +39,7 @@ where
     }
 }
 
-impl<T> Default for SimulationBuilder<T>
-where
-    T: AssociatedObjectData,
-{
+impl<T> Default for SimulationBuilder<T> {
     fn default() -> Self {
         Self {
             world: None,
