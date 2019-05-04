@@ -1,3 +1,5 @@
+//! [`ObjectDescription`] factory
+
 use crate::object::*;
 use myelin_geometry::*;
 
