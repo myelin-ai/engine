@@ -47,4 +47,4 @@
 
 ## Unreleased
 - `associated_object_data` is a generic type instead of a `Vec<u8>`. All types that deal with `ObjectDescription` therefore have received a generic type parameter `T`.
-- `ObjectBuilder::build` will return an error when `associated_object_data()` is never called. This is only the case for types that do not implement `Default`.
+- `ObjectBuilder::build` will return an error when `associated_object_data()` is never called. This is not the case for types that implement `Default`.
