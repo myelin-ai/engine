@@ -20,10 +20,7 @@ pub use self::interactable::*;
 ///
 /// [`ObjectBehavior`]: ./trait.ObjectBehavior.html
 #[cfg_attr(any(test, feature = "use-mocks"), mockable)]
-pub trait WorldInteractor<T>: Debug + Sealed
-where
-    T: AssociatedObjectData,
-{
+pub trait WorldInteractor<T>: Debug + Sealed {
     /// Scans for objects in the area defined by an `Aabb`.
     ///
     /// Returns all objects either completely contained or intersecting
@@ -49,4 +46,4 @@ where
 }
 
 #[cfg(any(test, feature = "use-mocks"))]
-impl<T> Sealed for WorldInteractorMock<'_, T> where T: AssociatedObjectData {}
+impl<T> Sealed for WorldInteractorMock<'_, T> {}

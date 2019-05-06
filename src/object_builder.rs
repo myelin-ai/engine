@@ -1,3 +1,5 @@
+//! [`ObjectDescription`] factory
+
 use crate::object::*;
 use myelin_geometry::*;
 
@@ -5,17 +7,25 @@ use myelin_geometry::*;
 /// wrongly been ommited when building finished
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
 pub struct ObjectBuilderError {
-    /// Flag signaling that .shape(...) was never called
+    /// Flag signaling that `.shape(...)` was never called
     pub missing_shape: bool,
-    /// Flag signaling that .location(...) was never called
+    /// Flag signaling that `.location(...)` was never called
     pub missing_location: bool,
-    /// Flag signaling that .mobility(...) was never called
+    /// Flag signaling that `.mobility(...)` was never called
     pub missing_mobility: bool,
+    /// Flag signaling that `.associated_data(...)` was never called
+    pub missing_associated_data: bool,
 }
 
 /// [`ObjectDescription`] factory, which can be used in order to configure
 /// the properties of a new object.
 /// Methods can be chained on it in order to configure it.
+///
+/// If [`associated_data`] is never called and `T` implements [`Default`], then
+/// the default value is used. Otherwise [`build`] will return an error.
+///
+/// [`build`]: ./struct.ObjectBuilder.html#method.build
+/// [`associated_data`]: ./struct.ObjectBuilder.html#method.associated_data
 ///
 /// # Examples
 /// ```
@@ -38,23 +48,30 @@ pub struct ObjectBuilderError {
 ///     .build()
 ///     .unwrap();
 /// ```
-#[derive(Default, Debug)]
-pub struct ObjectBuilder<T>
-where
-    T: AssociatedObjectData,
-{
+#[derive(Debug)]
+pub struct ObjectBuilder<T> {
     shape: Option<Polygon>,
     location: Option<Point>,
     rotation: Option<Radians>,
     mobility: Option<Mobility>,
     passable: bool,
-    associated_data: T,
+    associated_data: Option<T>,
 }
 
-impl<T> ObjectBuilder<T>
-where
-    T: AssociatedObjectData,
-{
+impl<T> Default for ObjectBuilder<T> {
+    fn default() -> Self {
+        Self {
+            shape: None,
+            location: None,
+            rotation: None,
+            mobility: None,
+            passable: false,
+            associated_data: None,
+        }
+    }
+}
+
+impl<T> ObjectBuilder<T> {
     /// # Examples
     /// ```
     /// use myelin_engine::prelude::*;
@@ -125,7 +142,7 @@ where
     /// let builder = ObjectBuilder::<String>::default().associated_data(String::from("Foo"));
     /// ```
     pub fn associated_data(&mut self, associated_data: T) -> &mut Self {
-        self.associated_data = associated_data;
+        self.associated_data = Some(associated_data);
         self
     }
 
@@ -160,6 +177,7 @@ where
             missing_shape: self.shape.is_none(),
             missing_location: self.location.is_none(),
             missing_mobility: self.mobility.is_none(),
+            missing_associated_data: self.associated_data.is_none(),
         };
 
         let object = ObjectDescription {
@@ -168,17 +186,33 @@ where
             location: self.location.take().ok_or_else(|| error.clone())?,
             mobility: self.mobility.take().ok_or_else(|| error.clone())?,
             passable: self.passable,
-            associated_data: self.associated_data.clone(),
+            associated_data: self.take_associated_data().ok_or_else(|| error.clone())?,
         };
 
         Ok(object)
     }
 }
 
-impl<T> From<ObjectDescription<T>> for ObjectBuilder<T>
+trait TakeAssociatedData<T> {
+    fn take_associated_data(&mut self) -> Option<T>;
+}
+
+impl<T> TakeAssociatedData<T> for ObjectBuilder<T> {
+    default fn take_associated_data(&mut self) -> Option<T> {
+        self.associated_data.take()
+    }
+}
+
+impl<T> TakeAssociatedData<T> for ObjectBuilder<T>
 where
-    T: AssociatedObjectData,
+    T: Default,
 {
+    default fn take_associated_data(&mut self) -> Option<T> {
+        Some(self.associated_data.take().unwrap_or_default())
+    }
+}
+
+impl<T> From<ObjectDescription<T>> for ObjectBuilder<T> {
     fn from(object_description: ObjectDescription<T>) -> Self {
         let ObjectDescription {
             shape,
@@ -195,7 +229,7 @@ where
             rotation: Some(rotation),
             mobility: Some(mobility),
             passable,
-            associated_data,
+            associated_data: Some(associated_data),
         }
     }
 }
@@ -210,6 +244,7 @@ mod test {
             .location(10.0, 10.0)
             .rotation(Radians::try_new(0.0).unwrap())
             .mobility(Mobility::Immovable)
+            .associated_data(())
             .build();
 
         assert_eq!(
@@ -235,6 +270,7 @@ mod test {
             )
             .rotation(Radians::try_new(0.0).unwrap())
             .mobility(Mobility::Immovable)
+            .associated_data(())
             .build();
 
         assert_eq!(
@@ -244,6 +280,71 @@ mod test {
             }),
             result
         );
+    }
+
+    #[test]
+    fn test_object_builder_should_error_for_missing_associated_data() {
+        #[derive(Debug, PartialEq)]
+        struct AssociatedData;
+
+        let result = ObjectBuilder::<AssociatedData>::default()
+            .shape(
+                PolygonBuilder::default()
+                    .vertex(0.0, 0.0)
+                    .vertex(0.0, 1.0)
+                    .vertex(1.0, 0.0)
+                    .vertex(1.0, 1.0)
+                    .build()
+                    .unwrap(),
+            )
+            .location(30.0, 40.0)
+            .rotation(Radians::try_new(0.0).unwrap())
+            .mobility(Mobility::Immovable)
+            .build();
+
+        assert_eq!(
+            Err(ObjectBuilderError {
+                missing_associated_data: true,
+                ..ObjectBuilderError::default()
+            }),
+            result
+        );
+    }
+
+    #[test]
+    fn test_object_builder_uses_default_value_for_associated_data() {
+        let result = ObjectBuilder::<String>::default()
+            .shape(
+                PolygonBuilder::default()
+                    .vertex(0.0, 0.0)
+                    .vertex(0.0, 1.0)
+                    .vertex(1.0, 0.0)
+                    .vertex(1.0, 1.0)
+                    .build()
+                    .unwrap(),
+            )
+            .location(30.0, 40.0)
+            .rotation(Radians::try_new(0.0).unwrap())
+            .mobility(Mobility::Immovable)
+            .build();
+
+        let expected = ObjectDescription {
+            shape: PolygonBuilder::default()
+                .vertex(0.0, 0.0)
+                .vertex(0.0, 1.0)
+                .vertex(1.0, 0.0)
+                .vertex(1.0, 1.0)
+                .build()
+                .unwrap(),
+            location: Point { x: 30.0, y: 40.0 },
+            rotation: Radians::try_new(0.0).unwrap(),
+
+            mobility: Mobility::Immovable,
+            passable: false,
+            associated_data: String::default(),
+        };
+
+        assert_eq!(Ok(expected), result);
     }
 
     #[test]
@@ -260,6 +361,7 @@ mod test {
             )
             .rotation(Radians::try_new(0.0).unwrap())
             .location(30.0, 40.0)
+            .associated_data(())
             .build();
 
         assert_eq!(
@@ -285,6 +387,7 @@ mod test {
             )
             .location(30.0, 40.0)
             .mobility(Mobility::Immovable)
+            .associated_data(())
             .build();
 
         let expected = ObjectDescription {
@@ -322,6 +425,7 @@ mod test {
             .location(30.0, 40.0)
             .mobility(Mobility::Immovable)
             .passable(true)
+            .associated_data(())
             .build();
 
         let expected = ObjectDescription {
@@ -344,7 +448,7 @@ mod test {
     }
 
     #[test]
-    fn test_object_builder_uses_name() {
+    fn test_object_builder_uses_associated_data() {
         let result = ObjectBuilder::default()
             .shape(
                 PolygonBuilder::default()
@@ -358,6 +462,7 @@ mod test {
             .rotation(Radians::try_new(0.0).unwrap())
             .location(30.0, 40.0)
             .mobility(Mobility::Immovable)
+            .associated_data((10, "foo"))
             .build();
 
         let expected = ObjectDescription {
@@ -373,7 +478,7 @@ mod test {
 
             mobility: Mobility::Immovable,
             passable: false,
-            associated_data: (),
+            associated_data: (10, "foo"),
         };
 
         assert_eq!(Ok(expected), result);
@@ -388,6 +493,7 @@ mod test {
                 missing_shape: true,
                 missing_location: true,
                 missing_mobility: true,
+                missing_associated_data: true,
             }),
             result
         );

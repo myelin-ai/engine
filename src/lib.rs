@@ -23,7 +23,7 @@
 pub use myelin_geometry as geometry;
 
 pub mod object;
-mod object_builder;
+pub mod object_builder;
 pub mod prelude;
 mod private;
 pub mod simulation;

@@ -18,10 +18,7 @@ use std::fmt::Debug;
 /// [`Object`]: ./object/struct.Object.html
 /// [`step`]: ./trait.Simulation.html#tymethod.step
 #[cfg_attr(any(test, feature = "use-mocks"), mockable)]
-pub trait Simulation<T>: Debug + Sealed
-where
-    T: AssociatedObjectData,
-{
+pub trait Simulation<T>: Debug + Sealed {
     /// Advance the simulation by one tick. This will apply
     /// forces to the objects, handle collisions and allow them to
     /// take action.
@@ -67,4 +64,4 @@ pub type Id = usize;
 pub type Snapshot<'a, T> = Vec<Object<'a, T>>;
 
 #[cfg(any(test, feature = "use-mocks"))]
-impl<T> Sealed for SimulationMock<'_, T> where T: AssociatedObjectData {}
+impl<T> Sealed for SimulationMock<'_, T> {}

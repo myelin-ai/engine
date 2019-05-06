@@ -12,10 +12,7 @@ pub use self::object_behavior::*;
 
 /// An object that is stored in the simulation
 #[derive(Debug, Clone)]
-pub struct Object<'a, T>
-where
-    T: AssociatedObjectData,
-{
+pub struct Object<'a, T> {
     /// The object's unique ID.
     /// Can be stored in order to retrieve this object later on.
     pub id: Id,
@@ -32,10 +29,7 @@ where
 ///
 /// [`Object`]: ./trait.Object.html
 #[derive(Debug, Clone)]
-pub enum Action<T>
-where
-    T: AssociatedObjectData,
-{
+pub enum Action<T> {
     /// Apply the specified force to the object
     ApplyForce(Force),
     /// Create a new object at the specified location
@@ -52,10 +46,7 @@ where
 /// [`Simulation`]: ../simulation/trait.Simulation.html
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 #[non_exhaustive]
-pub struct ObjectDescription<T>
-where
-    T: AssociatedObjectData,
-{
+pub struct ObjectDescription<T> {
     /// The vertices defining the shape of the object
     /// in relation to its [`position`]
     ///
@@ -77,14 +68,12 @@ where
     pub passable: bool,
 
     /// Arbitrary data associated with this object
-    #[serde(bound(deserialize = "T: AssociatedObjectData"))]
     pub associated_data: T,
 }
 
 /// Required bounds for [`ObjectDescription::associated_data`].
 /// This trait is automatically implemented for all types that satisfy the supertraits.
-pub trait AssociatedObjectData =
-    Clone + Debug + PartialEq + Serialize + for<'de> Deserialize<'de> + 'static;
+pub trait AssociatedObjectData = Clone + Debug + PartialEq + 'static;
 
 /// An object's mobility and, if present, its
 /// current velocity as a vector

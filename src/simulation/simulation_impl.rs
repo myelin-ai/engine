@@ -36,10 +36,7 @@ pub type InstantWrapperFactoryFn = dyn Fn() -> Box<dyn InstantWrapper>;
 ///
 /// [`Simulation`]: ./../trait.Simulation.html
 /// [`World`]: ./trait.World.html
-pub struct SimulationImpl<T>
-where
-    T: AssociatedObjectData,
-{
+pub struct SimulationImpl<T> {
     world: Box<dyn World>,
     non_physical_object_data: HashMap<BodyHandle, NonPhysicalObjectData<T>>,
     world_interactor_factory_fn: Box<WorldInteractorFactoryFn<T>>,
@@ -49,7 +46,7 @@ where
 
 impl<T> Debug for SimulationImpl<T>
 where
-    T: AssociatedObjectData,
+    T: Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct(name_of_type!(SimulationImpl<T>))
@@ -60,10 +57,7 @@ where
 }
 
 #[derive(Debug)]
-struct NonPhysicalObjectData<T>
-where
-    T: AssociatedObjectData,
-{
+struct NonPhysicalObjectData<T> {
     pub(crate) behavior: RefCell<Box<dyn ObjectBehavior<T>>>,
     pub(crate) associated_data: T,
 }
@@ -202,7 +196,7 @@ impl<T> HandleOption for Option<T> {
     }
 }
 
-impl<T> Sealed for SimulationImpl<T> where T: AssociatedObjectData {}
+impl<T> Sealed for SimulationImpl<T> {}
 
 impl<T> Simulation<T> for SimulationImpl<T>
 where

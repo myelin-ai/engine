@@ -7,18 +7,12 @@ use std::time::Duration;
 ///
 /// [`WorldInteractor`]: ./../object/trait.WorldInteractor.html
 #[derive(Debug)]
-pub struct WorldInteractorImpl<'a, T>
-where
-    T: AssociatedObjectData,
-{
+pub struct WorldInteractorImpl<'a, T> {
     interactable: &'a dyn Interactable<T>,
     id: Id,
 }
 
-impl<'a, T> WorldInteractorImpl<'a, T>
-where
-    T: AssociatedObjectData,
-{
+impl<'a, T> WorldInteractorImpl<'a, T> {
     /// Creates a new instance of [`WorldInteractorImpl`].
     ///
     /// [`WorldInteractorImpl`]: ./struct.WorldInteractorImpl.html
@@ -27,7 +21,7 @@ where
     }
 }
 
-impl<T> Sealed for WorldInteractorImpl<'_, T> where T: AssociatedObjectData {}
+impl<T> Sealed for WorldInteractorImpl<'_, T> {}
 
 impl<'a, T> WorldInteractor<T> for WorldInteractorImpl<'a, T>
 where

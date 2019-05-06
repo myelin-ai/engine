@@ -16,10 +16,7 @@ where
 }
 
 /// Cast implementation to [`Any`] for [`ObjectBehavior`].
-pub trait ObjectBehaviorAsAny<T>
-where
-    T: AssociatedObjectData,
-{
+pub trait ObjectBehaviorAsAny<T> {
     /// Cast implementation to [`Any`].
     /// This is needed in order to downcast trait objects of type `&dyn ObjectBehavior` to
     /// concrete types.
@@ -51,14 +48,11 @@ where
 /// [`ObjectBehavior`]: ./trait.ObjectBehavior.html
 /// [`Clone`]: https://doc.rust-lang.org/nightly/std/clone/trait.Clone.html
 #[doc(hidden)]
-pub trait ObjectBehaviorClone<T>
-where
-    T: AssociatedObjectData,
-{
+pub trait ObjectBehaviorClone<T> {
     fn clone_box(&self) -> Box<dyn ObjectBehavior<T>>;
 }
 
-impl<Behaviour, AssociatedData> ObjectBehaviorClone<AssociatedData> for Behaviour
+impl<'de, Behaviour, AssociatedData> ObjectBehaviorClone<AssociatedData> for Behaviour
 where
     Behaviour: ObjectBehavior<AssociatedData> + Clone + 'static,
     AssociatedData: AssociatedObjectData,
@@ -68,10 +62,7 @@ where
     }
 }
 
-impl<T> Clone for Box<dyn ObjectBehavior<T>>
-where
-    T: AssociatedObjectData,
-{
+impl<T> Clone for Box<dyn ObjectBehavior<T>> {
     fn clone(&self) -> Self {
         self.clone_box()
     }

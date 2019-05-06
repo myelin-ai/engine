@@ -10,10 +10,7 @@ use std::time::Duration;
 ///
 /// This trait is sealed and cannot be implemented by downstream crates.
 #[cfg_attr(any(test, feature = "use-mocks"), mockable)]
-pub trait Interactable<T>: Debug + Sealed
-where
-    T: AssociatedObjectData,
-{
+pub trait Interactable<T>: Debug + Sealed {
     /// Returns read-only descriptions for all objects either completely
     /// contained or intersecting with the given area.
     fn objects_in_area(&self, area: Aabb) -> Snapshot<'_, T>;
@@ -35,4 +32,4 @@ where
 }
 
 #[cfg(any(test, feature = "use-mocks"))]
-impl<T> Sealed for InteractableMock<'_, T> where T: AssociatedObjectData {}
+impl<T> Sealed for InteractableMock<'_, T> {}
