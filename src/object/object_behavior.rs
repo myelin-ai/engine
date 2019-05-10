@@ -31,10 +31,10 @@ pub trait ObjectBehaviorAsAny<T> {
     fn as_any(&self) -> &'_ dyn Any;
 }
 
-impl<O, T> ObjectBehaviorAsAny<T> for O
+impl<Behaviour, AssociatedData> ObjectBehaviorAsAny<AssociatedData> for Behaviour
 where
-    O: ObjectBehavior<T> + 'static,
-    T: AssociatedObjectData,
+    Behaviour: ObjectBehavior<T> + 'static,
+    AssociatedData: AssociatedObjectData,
 {
     default fn as_any(&self) -> &'_ dyn Any {
         self
