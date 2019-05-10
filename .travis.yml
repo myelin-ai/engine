@@ -16,8 +16,7 @@ script:
 - cargo build --all-features --verbose $CARGO_OPTIONS 
 - cargo test --all-features --verbose $CARGO_OPTIONS
 - ./coverage.sh
-- cargo clippy -- -Dwarnings
-- cargo clippy --tests -- -Dwarnings
+- cargo clippy --all-features --tests -- -Dwarnings
 - cargo fmt --all -- --check
 - cargo doc --no-deps
 
