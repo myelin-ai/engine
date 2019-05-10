@@ -33,7 +33,7 @@ pub trait ObjectBehaviorAsAny<T> {
 
 impl<Behaviour, AssociatedData> ObjectBehaviorAsAny<AssociatedData> for Behaviour
 where
-    Behaviour: ObjectBehavior<T> + 'static,
+    Behaviour: ObjectBehavior<AssociatedData> + 'static,
     AssociatedData: AssociatedObjectData,
 {
     default fn as_any(&self) -> &'_ dyn Any {
