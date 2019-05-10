@@ -17,7 +17,7 @@
     clippy::needless_borrow,
     clippy::large_digit_groups,
     clippy::explicit_into_iter_loop,
-    clippy::wrong_self_convention,
+    clippy::wrong_self_convention
 )]
 #![cfg_attr(test, allow(clippy::float_cmp))]
 
