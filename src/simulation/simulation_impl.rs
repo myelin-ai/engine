@@ -152,20 +152,20 @@ where
     fn apply_force(&mut self, body_handle: BodyHandle, force: Force) -> ActionResult {
         self.world
             .apply_force(body_handle, force)
-            .to_action_result()
+            .into_action_result()
     }
 
     fn destroy(&mut self, object_id: Id) -> ActionResult {
         self.world
             .remove_body(BodyHandle(object_id))
-            .to_action_result()
+            .into_action_result()
     }
 
     fn destroy_self(&mut self, body_handle: BodyHandle) -> ActionResult {
         self.world
             .remove_body(body_handle)
             .and(self.non_physical_object_data.remove(&body_handle))
-            .to_action_result()
+            .into_action_result()
     }
 
     fn handle_to_behavior(&self, handle: BodyHandle) -> Option<&dyn ObjectBehavior<T>> {
@@ -187,11 +187,11 @@ where
 }
 
 trait HandleOption {
-    fn to_action_result(self) -> ActionResult;
+    fn into_action_result(self) -> ActionResult;
 }
 
 impl<T> HandleOption for Option<T> {
-    fn to_action_result(self) -> ActionResult {
+    fn into_action_result(self) -> ActionResult {
         self.map(|_| ()).ok_or(ActionError::InvalidHandle)
     }
 }
