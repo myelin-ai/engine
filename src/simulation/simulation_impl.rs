@@ -517,6 +517,8 @@ mod tests {
             .unwrap();
 
         let mut object_behavior = ObjectBehaviorMock::new();
+
+        #[allow(clippy::redundant_closure)]
         object_behavior.expect_step(|arg| arg.any()).returns(None);
 
         let mut simulation = SimulationImpl::new(
@@ -722,10 +724,13 @@ mod tests {
             .unwrap();
 
         let mut child_object_behavior = ObjectBehaviorMock::new();
+
+        #[allow(clippy::redundant_closure)]
         child_object_behavior
             .expect_step(|arg| arg.any())
             .returns(None);
 
+        #[allow(clippy::redundant_closure)]
         object_behavior
             .expect_step(|arg| arg.any())
             .returns(Some(Action::Spawn(
@@ -781,6 +786,7 @@ mod tests {
             .build()
             .unwrap();
 
+        #[allow(clippy::redundant_closure)]
         object_behavior
             .expect_step(|arg| arg.any())
             .returns(Some(Action::DestroySelf));
@@ -834,6 +840,7 @@ mod tests {
             .build()
             .unwrap();
 
+        #[allow(clippy::redundant_closure)]
         object_behavior
             .expect_step(|arg| arg.any())
             .returns(Some(Action::Destroy(handle_two.0)));
@@ -892,6 +899,7 @@ mod tests {
             .build()
             .unwrap();
 
+        #[allow(clippy::redundant_closure)]
         object_behavior
             .expect_step(|arg| arg.any())
             .returns(Some(Action::ApplyForce(expected_force)));
