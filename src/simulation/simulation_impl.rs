@@ -517,7 +517,9 @@ mod tests {
             .unwrap();
 
         let mut object_behavior = ObjectBehaviorMock::new();
-        object_behavior.expect_step(|arg| arg.any()).returns(None);
+        object_behavior
+            .expect_step(mockiato::internal::argument::Argument::any)
+            .returns(None);
 
         let mut simulation = SimulationImpl::new(
             box world,
@@ -723,11 +725,11 @@ mod tests {
 
         let mut child_object_behavior = ObjectBehaviorMock::new();
         child_object_behavior
-            .expect_step(|arg| arg.any())
+            .expect_step(mockiato::internal::argument::Argument::any)
             .returns(None);
 
         object_behavior
-            .expect_step(|arg| arg.any())
+            .expect_step(mockiato::internal::argument::Argument::any)
             .returns(Some(Action::Spawn(
                 expected_object_description.clone(),
                 box child_object_behavior,
@@ -782,7 +784,7 @@ mod tests {
             .unwrap();
 
         object_behavior
-            .expect_step(|arg| arg.any())
+            .expect_step(mockiato::internal::argument::Argument::any)
             .returns(Some(Action::DestroySelf));
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
@@ -835,7 +837,7 @@ mod tests {
             .unwrap();
 
         object_behavior
-            .expect_step(|arg| arg.any())
+            .expect_step(mockiato::internal::argument::Argument::any)
             .returns(Some(Action::Destroy(handle_two.0)));
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
@@ -893,7 +895,7 @@ mod tests {
             .unwrap();
 
         object_behavior
-            .expect_step(|arg| arg.any())
+            .expect_step(mockiato::internal::argument::Argument::any)
             .returns(Some(Action::ApplyForce(expected_force)));
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
