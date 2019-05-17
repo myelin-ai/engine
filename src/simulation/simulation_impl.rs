@@ -174,7 +174,7 @@ where
             .get(&handle)?
             .behavior
             .as_ptr();
-        // This is safe as long as we don't hand out `&mut dyn ObjectBehavior` |arg| arg.anywhere, ever.
+        // This is safe as long as we don't hand out `&mut dyn ObjectBehavior` anywhere, ever.
         // We still have some guarantees regarding the borrow checker, as we currently hand out
         // `Vec<Object<'a>>`, where we maintain Rust's borrowing guarantees.
         // Only the `ObjectBehavior` of a given `Object` is borrowed unsafely, which is fine,
