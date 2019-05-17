@@ -54,7 +54,6 @@ where
 mod tests {
     use super::*;
     use crate::world_interactor::InteractableMock;
-    use mockiato::{partial_eq, partial_eq_owned};
     use myelin_geometry::{Point, PolygonBuilder};
 
     fn object_description() -> ObjectDescription<()> {
@@ -88,7 +87,7 @@ mod tests {
 
         let mut interactable = InteractableMock::new();
         interactable
-            .expect_objects_in_area(partial_eq(area))
+            .expect_objects_in_area(|arg| arg.partial_eq(area))
             .returns(objects.clone());
         let world_interactor = WorldInteractorImpl::new(&interactable, 0);
 
@@ -118,7 +117,7 @@ mod tests {
 
         let mut interactable = InteractableMock::new();
         interactable
-            .expect_objects_in_polygon(partial_eq_owned(area.clone()))
+            .expect_objects_in_polygon(|arg| arg.partial_eq_owned(area.clone()))
             .returns(objects.clone());
         let world_interactor = WorldInteractorImpl::new(&interactable, 0);
 
@@ -142,7 +141,10 @@ mod tests {
 
         let mut interactable = InteractableMock::new();
         interactable
-            .expect_objects_in_ray(partial_eq(origin), partial_eq(direction))
+            .expect_objects_in_ray(
+                |arg| arg.partial_eq(origin),
+                |arg| arg.partial_eq(direction),
+            )
             .returns(objects.clone());
         let world_interactor = WorldInteractorImpl::new(&interactable, 0);
 
@@ -163,7 +165,7 @@ mod tests {
 
         let mut interactable = InteractableMock::new();
         interactable
-            .expect_object(partial_eq(expected_object.id))
+            .expect_object(|arg| arg.partial_eq(expected_object.id))
             .returns(Some(expected_object.clone()));
         let world_interactor = WorldInteractorImpl::new(&interactable, expected_object.id);
 
@@ -184,7 +186,7 @@ mod tests {
 
         let mut interactable = InteractableMock::<()>::new();
         interactable
-            .expect_object(partial_eq(expected_object.id))
+            .expect_object(|arg| arg.partial_eq(expected_object.id))
             .returns(None);
         let world_interactor = WorldInteractorImpl::new(&interactable, expected_object.id);
 

@@ -352,8 +352,6 @@ mod tests {
     use crate::object_builder::ObjectBuilder;
     use crate::simulation::simulation_impl::world::WorldMock;
     use crate::world_interactor::{Interactable, WorldInteractor, WorldInteractorMock};
-    use mockiato::any;
-    use mockiato::{partial_eq, partial_eq_owned};
     use myelin_geometry::PolygonBuilder;
     use std::thread::sleep;
     use std::time::Instant;
@@ -385,7 +383,7 @@ mod tests {
     fn propagates_simulated_timestep() {
         let mut world = box WorldMock::new();
         const EXPECTED_TIMESTEP: f64 = 1.0;
-        world.expect_set_simulated_timestep(partial_eq(EXPECTED_TIMESTEP));
+        world.expect_set_simulated_timestep(|arg| arg.partial_eq(EXPECTED_TIMESTEP));
         let mut simulation = SimulationImpl::new(
             world,
             box world_interactor_factory_fn,
@@ -411,7 +409,7 @@ mod tests {
     fn propagates_zero_timestep() {
         let mut world = box WorldMock::new();
         const EXPECTED_TIMESTEP: f64 = 0.0;
-        world.expect_set_simulated_timestep(partial_eq(EXPECTED_TIMESTEP));
+        world.expect_set_simulated_timestep(|arg| arg.partial_eq(EXPECTED_TIMESTEP));
         let mut simulation = SimulationImpl::new(
             world,
             box world_interactor_factory_fn,
@@ -436,7 +434,9 @@ mod tests {
     fn returns_no_object_with_invalid_handle() {
         let mut world = box WorldMock::new();
         let returned_handle = BodyHandle(1337);
-        world.expect_body(partial_eq(returned_handle)).returns(None);
+        world
+            .expect_body(|arg| arg.partial_eq(returned_handle))
+            .returns(None);
         let simulation = SimulationImpl::new(
             world,
             box world_interactor_factory_fn,
@@ -464,7 +464,7 @@ mod tests {
         };
         let returned_handle = BodyHandle(1337);
         world
-            .expect_add_body(partial_eq(expected_physical_body))
+            .expect_add_body(|arg| arg.partial_eq(expected_physical_body))
             .returns(returned_handle);
 
         let object_description = ObjectBuilder::default()
@@ -504,7 +504,7 @@ mod tests {
         };
         let returned_handle = BodyHandle(1337);
         world
-            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .expect_add_body(|arg| arg.partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
 
         let expected_object_description = ObjectBuilder::default()
@@ -517,7 +517,9 @@ mod tests {
             .unwrap();
 
         let mut object_behavior = ObjectBehaviorMock::new();
-        object_behavior.expect_step(any()).returns(None);
+
+        #[allow(clippy::redundant_closure)]
+        object_behavior.expect_step(|arg| arg.any()).returns(None);
 
         let mut simulation = SimulationImpl::new(
             box world,
@@ -546,10 +548,10 @@ mod tests {
         };
         let returned_handle = BodyHandle(1984);
         world
-            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .expect_add_body(|arg| arg.partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
         world
-            .expect_body(partial_eq(returned_handle))
+            .expect_body(|arg| arg.partial_eq(returned_handle))
             .returns(Some(expected_physical_body));
 
         let mut simulation = SimulationImpl::new(
@@ -595,10 +597,10 @@ mod tests {
         };
         let returned_handle = BodyHandle(1984);
         world
-            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .expect_add_body(|arg| arg.partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
         world
-            .expect_body(partial_eq(returned_handle))
+            .expect_body(|arg| arg.partial_eq(returned_handle))
             .returns(Some(expected_physical_body));
 
         let mut simulation = SimulationImpl::new(
@@ -644,9 +646,11 @@ mod tests {
         let returned_handle = BodyHandle(1984);
         let invalid_handle = BodyHandle(1337);
         world
-            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .expect_add_body(|arg| arg.partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
-        world.expect_body(partial_eq(invalid_handle)).returns(None);
+        world
+            .expect_body(|arg| arg.partial_eq(invalid_handle))
+            .returns(None);
 
         let mut simulation = SimulationImpl::new(
             world,
@@ -696,10 +700,10 @@ mod tests {
         };
         let returned_handle = BodyHandle(1984);
         world
-            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .expect_add_body(|arg| arg.partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
         world
-            .expect_body(partial_eq(returned_handle))
+            .expect_body(|arg| arg.partial_eq(returned_handle))
             .returns(Some(expected_physical_body));
         world.expect_step();
 
@@ -720,10 +724,15 @@ mod tests {
             .unwrap();
 
         let mut child_object_behavior = ObjectBehaviorMock::new();
-        child_object_behavior.expect_step(any()).returns(None);
 
+        #[allow(clippy::redundant_closure)]
+        child_object_behavior
+            .expect_step(|arg| arg.any())
+            .returns(None);
+
+        #[allow(clippy::redundant_closure)]
         object_behavior
-            .expect_step(any())
+            .expect_step(|arg| arg.any())
             .returns(Some(Action::Spawn(
                 expected_object_description.clone(),
                 box child_object_behavior,
@@ -753,11 +762,11 @@ mod tests {
         };
         let returned_handle = BodyHandle(1984);
         world
-            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .expect_add_body(|arg| arg.partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
         world.expect_step();
         world
-            .expect_remove_body(partial_eq(returned_handle))
+            .expect_remove_body(|arg| arg.partial_eq(returned_handle))
             .returns(Some(expected_physical_body));
 
         let mut simulation = SimulationImpl::new(
@@ -777,8 +786,9 @@ mod tests {
             .build()
             .unwrap();
 
+        #[allow(clippy::redundant_closure)]
         object_behavior
-            .expect_step(any())
+            .expect_step(|arg| arg.any())
             .returns(Some(Action::DestroySelf));
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
@@ -806,11 +816,11 @@ mod tests {
         let handle_one = BodyHandle(1);
         let handle_two = BodyHandle(2);
         world
-            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .expect_add_body(|arg| arg.partial_eq(expected_physical_body.clone()))
             .returns(handle_one);
         world.expect_step();
         world
-            .expect_remove_body(partial_eq(handle_two))
+            .expect_remove_body(|arg| arg.partial_eq(handle_two))
             .returns(Some(expected_physical_body));
 
         let mut simulation = SimulationImpl::new(
@@ -830,8 +840,9 @@ mod tests {
             .build()
             .unwrap();
 
+        #[allow(clippy::redundant_closure)]
         object_behavior
-            .expect_step(any())
+            .expect_step(|arg| arg.any())
             .returns(Some(Action::Destroy(handle_two.0)));
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
@@ -857,7 +868,7 @@ mod tests {
         };
         let returned_handle = BodyHandle(1984);
         world
-            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .expect_add_body(|arg| arg.partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
         world.expect_step();
         let expected_force = Force {
@@ -866,8 +877,8 @@ mod tests {
         };
         world
             .expect_apply_force(
-                partial_eq(returned_handle),
-                partial_eq(expected_force.clone()),
+                |arg| arg.partial_eq(returned_handle),
+                |arg| arg.partial_eq(expected_force.clone()),
             )
             .returns(Some(()));
 
@@ -888,8 +899,9 @@ mod tests {
             .build()
             .unwrap();
 
+        #[allow(clippy::redundant_closure)]
         object_behavior
-            .expect_step(any())
+            .expect_step(|arg| arg.any())
             .returns(Some(Action::ApplyForce(expected_force)));
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
@@ -916,9 +928,11 @@ mod tests {
         };
         let returned_handle = BodyHandle(1984);
         world
-            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .expect_add_body(|arg| arg.partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
-        world.expect_body(partial_eq(returned_handle)).returns(None);
+        world
+            .expect_body(|arg| arg.partial_eq(returned_handle))
+            .returns(None);
         let mut simulation = SimulationImpl::new(
             world,
             box world_interactor_factory_fn,
@@ -949,13 +963,13 @@ mod tests {
 
         let returned_handle = BodyHandle(1234);
         world
-            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .expect_add_body(|arg| arg.partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
         world
-            .expect_bodies_in_area(partial_eq(area))
+            .expect_bodies_in_area(|arg| arg.partial_eq(area))
             .returns(vec![returned_handle]);
         world
-            .expect_body(partial_eq(returned_handle))
+            .expect_body(|arg| arg.partial_eq(returned_handle))
             .returns(Some(expected_physical_body.clone()));
 
         let mut simulation = SimulationImpl::new(
@@ -985,12 +999,14 @@ mod tests {
 
         let returned_handle = BodyHandle(1234);
         world
-            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .expect_add_body(|arg| arg.partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
         world
-            .expect_bodies_in_area(partial_eq(area))
+            .expect_bodies_in_area(|arg| arg.partial_eq(area))
             .returns(vec![returned_handle]);
-        world.expect_body(partial_eq(returned_handle)).returns(None);
+        world
+            .expect_body(|arg| arg.partial_eq(returned_handle))
+            .returns(None);
 
         let mut simulation = SimulationImpl::new(
             box world,
@@ -1014,13 +1030,13 @@ mod tests {
             .unwrap();
         let returned_handle = BodyHandle(1234);
         world
-            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .expect_add_body(|arg| arg.partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
         world
-            .expect_bodies_in_polygon(partial_eq_owned(area.clone()))
+            .expect_bodies_in_polygon(|arg| arg.partial_eq_owned(area.clone()))
             .returns(vec![returned_handle]);
         world
-            .expect_body(partial_eq(returned_handle))
+            .expect_body(|arg| arg.partial_eq(returned_handle))
             .returns(Some(expected_physical_body.clone()));
 
         let mut simulation = SimulationImpl::new(
@@ -1048,13 +1064,16 @@ mod tests {
 
         let returned_handle = BodyHandle(1234);
         world
-            .expect_add_body(partial_eq(expected_physical_body.clone()))
+            .expect_add_body(|arg| arg.partial_eq(expected_physical_body.clone()))
             .returns(returned_handle);
         world
-            .expect_bodies_in_ray(partial_eq(origin), partial_eq(direction))
+            .expect_bodies_in_ray(
+                |arg| arg.partial_eq(origin),
+                |arg| arg.partial_eq(direction),
+            )
             .returns(vec![returned_handle]);
         world
-            .expect_body(partial_eq(returned_handle))
+            .expect_body(|arg| arg.partial_eq(returned_handle))
             .returns(Some(expected_physical_body.clone()));
 
         let mut simulation = SimulationImpl::new(
