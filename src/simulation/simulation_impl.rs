@@ -674,14 +674,6 @@ mod tests {
         assert!(object.is_none())
     }
 
-    // Something seems fishy with the following test
-    // It fails because the expected step from the child
-    // is not called.
-    // Removing the expected step from the child
-    // results in step being called unexpectedly.
-    // I suspect it's a problem resulting from our mock
-    // returning the same handle twice.
-    #[ignore]
     #[test]
     fn spawns_object() {
         let mut world = box WorldMock::new();
@@ -698,14 +690,16 @@ mod tests {
             mobility: expected_mobility.clone(),
             passable: expected_passable,
         };
-        let returned_handle = BodyHandle(1984);
+        let body_handle = BodyHandle(1984);
+        let child_body_handle = BodyHandle(1985);
+        world.expect_add_body_calls_in_order();
         world
             .expect_add_body(|arg| arg.partial_eq(expected_physical_body.clone()))
-            .returns(returned_handle);
+            .returns(body_handle);
         world
-            .expect_body(|arg| arg.partial_eq(returned_handle))
-            .returns(Some(expected_physical_body));
-        world.expect_step();
+            .expect_add_body(|arg| arg.partial_eq(expected_physical_body.clone()))
+            .returns(child_body_handle);
+        world.expect_step().times(2);
 
         let mut simulation = SimulationImpl::new(
             world,
@@ -728,8 +722,12 @@ mod tests {
         #[allow(clippy::redundant_closure)]
         child_object_behavior
             .expect_step(|arg| arg.any())
-            .returns(None);
+            .returns(None)
+            // We can't enforce exactly one call here, because the `child_object_behavior` stored in `object_behavior`
+            // is never called, only a clone of it is called.
+            .times(..=1);
 
+        object_behavior.expect_step_calls_in_order();
         #[allow(clippy::redundant_closure)]
         object_behavior
             .expect_step(|arg| arg.any())
@@ -737,6 +735,8 @@ mod tests {
                 expected_object_description.clone(),
                 box child_object_behavior,
             )));
+        #[allow(clippy::redundant_closure)]
+        object_behavior.expect_step(|arg| arg.any()).returns(None);
 
         simulation.add_object(expected_object_description.clone(), box object_behavior);
 
