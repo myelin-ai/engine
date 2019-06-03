@@ -206,7 +206,6 @@ where
         let mut actions = Vec::new();
         {
             for (object_handle, non_physical_object_data) in &self.non_physical_object_data {
-                dbg!(object_handle);
                 let world_interactor = (self.world_interactor_factory_fn)(self, object_handle.0);
                 let action = non_physical_object_data
                     .behavior
