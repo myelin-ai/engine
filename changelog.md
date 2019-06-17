@@ -50,4 +50,4 @@
 - `ObjectBuilder::build` will return an error when `associated_object_data()` is never called. This is not the case for types that implement `Default`.
 
 ## Unreleased
-- Mockiato has been updated to '0.6'
+- Mockiato has been updated to '0.8'
