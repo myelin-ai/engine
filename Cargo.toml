@@ -25,7 +25,7 @@ ncollide2d = "0.19"
 serde = { version = "1.0", features = ["derive"] }
 alga = "0.9"
 nameof = "1.0"
-mockiato = { version = "0.8", optional = true }
+mockiato = { version = "0.9", optional = true }
 nearly_eq = { version = "0.2", optional = true }
 
 [dependencies.nphysics2d]
@@ -34,7 +34,7 @@ default-features = false
 features = ["use-wasm-bindgen"]
 
 [dev-dependencies]
-mockiato = "0.8"
+mockiato = "0.9"
 nearly_eq = "0.2"
 
 [features]
