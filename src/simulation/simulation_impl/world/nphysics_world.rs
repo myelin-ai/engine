@@ -12,25 +12,28 @@ use super::{BodyHandle, PhysicalBody, World};
 use crate::prelude::*;
 use crate::private::Sealed;
 use nalgebra::base::{Scalar, Vector2};
+use nameof::name_of_type;
 use ncollide2d::bounding_volume::AABB as NcollideAabb;
 use ncollide2d::math::Point as NcollidePoint;
+use ncollide2d::pipeline::CollisionGroups;
 use ncollide2d::query::Ray;
 use ncollide2d::shape::{ConvexPolygon, ShapeHandle};
 use nphysics2d::algebra::ForceType;
+use nphysics2d::force_generator::DefaultForceGeneratorSet;
+use nphysics2d::joint::DefaultJointConstraintSet;
 use nphysics2d::material::{BasicMaterial, MaterialHandle};
 use nphysics2d::math::Force as NphysicsForce;
 use nphysics2d::math::{Isometry, Point as NPhysicsPoint, Vector as NPhysicsVector};
-use nphysics2d::object::{BodyPartHandle, Collider, ColliderDesc, RigidBodyDesc, DefaultColliderHandle, DefaultBodyHandle, DefaultBodySet, DefaultColliderSet};
-use nphysics2d::volumetric::Volumetric;
-use nphysics2d::world::{MechanicalWorld as PhysicsWorld, DefaultGeometricalWorld};
-use std::f64::consts::PI;
-use ncollide2d::pipeline::CollisionGroups;
 use nphysics2d::object::Body;
-use nphysics2d::joint::DefaultJointConstraintSet;
+use nphysics2d::object::{
+    BodyPartHandle, Collider, ColliderDesc, DefaultBodyHandle, DefaultBodySet,
+    DefaultColliderHandle, DefaultColliderSet, RigidBodyDesc,
+};
+use nphysics2d::volumetric::Volumetric;
+use nphysics2d::world::{DefaultGeometricalWorld, MechanicalWorld as PhysicsWorld};
+use std::f64::consts::PI;
 use std::fmt;
-use nameof::name_of_type;
 use std::fmt::Debug;
-use nphysics2d::force_generator::DefaultForceGeneratorSet;
 
 /// An implementation of [`World`] that uses nphysics
 /// in the background.
@@ -62,11 +65,19 @@ impl NphysicsWorld {
     /// let mut world = NphysicsWorld::with_timestep(1.0);
     /// ```
     pub fn with_timestep(timestep: f64) -> Self {
-        let mut physics_world = PhysicsWorldWrapper(PhysicsWorld::new(NPhysicsVector::new(0.0, 0.0)));
+        let mut physics_world =
+            PhysicsWorldWrapper(PhysicsWorld::new(NPhysicsVector::new(0.0, 0.0)));
 
         physics_world.set_timestep(timestep);
 
-        Self { physics_world, geometric_world: DefaultGeometricalWorld::new(), bodies: DefaultBodySet::new(), colliders: DefaultColliderSet::new(), constraints: DefaultJointConstraintSet::new(), forces: DefaultForceGeneratorSet::new() }
+        Self {
+            physics_world,
+            geometric_world: DefaultGeometricalWorld::new(),
+            bodies: DefaultBodySet::new(),
+            colliders: DefaultColliderSet::new(),
+            constraints: DefaultJointConstraintSet::new(),
+            forces: DefaultForceGeneratorSet::new(),
+        }
     }
 
     fn get_body_from_handle(&self, collider_handle: DefaultColliderHandle) -> Option<PhysicalBody> {
@@ -105,7 +116,10 @@ impl NphysicsWorld {
 
     fn get_mobility(&self, collider: &Collider<f64, DefaultBodyHandle>) -> Mobility {
         let body_handle = collider.body();
-        let rigid_body = self.bodies.rigid_body(body_handle).expect("Body handle did not correspond to any rigid body");
+        let rigid_body = self
+            .bodies
+            .rigid_body(body_handle)
+            .expect("Body handle did not correspond to any rigid body");
 
         if rigid_body.is_ground() {
             Mobility::Immovable
