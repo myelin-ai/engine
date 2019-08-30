@@ -27,7 +27,7 @@ use nphysics2d::math::{Isometry, Point as NPhysicsPoint, Vector as NPhysicsVecto
 use nphysics2d::object::Body;
 use nphysics2d::object::{
     BodyPartHandle, Collider, ColliderDesc, DefaultBodyHandle, DefaultBodySet,
-    DefaultColliderHandle, DefaultColliderSet, RigidBodyDesc,
+    DefaultColliderHandle, DefaultColliderSet, Ground, RigidBodyDesc,
 };
 use nphysics2d::volumetric::Volumetric;
 use nphysics2d::world::{DefaultGeometricalWorld, MechanicalWorld as PhysicsWorld};
@@ -46,6 +46,7 @@ pub struct NphysicsWorld {
     colliders: DefaultColliderSet<f64, DefaultColliderHandle>,
     constraints: DefaultJointConstraintSet<f64>,
     forces: DefaultForceGeneratorSet<f64>,
+    ground_handle: DefaultBodyHandle,
 }
 
 impl Debug for NphysicsWorld {
@@ -68,12 +69,16 @@ impl NphysicsWorld {
         let mut physics_world =
             PhysicsWorldWrapper(PhysicsWorld::new(NPhysicsVector::new(0.0, 0.0)));
 
+        let mut bodies = DefaultBodySet::new();
+        let ground_handle = bodies.insert(Ground::new());
+
         physics_world.set_timestep(timestep);
 
         Self {
             physics_world,
+            bodies,
+            ground_handle,
             geometric_world: DefaultGeometricalWorld::new(),
-            bodies: DefaultBodySet::new(),
             colliders: DefaultColliderSet::new(),
             constraints: DefaultJointConstraintSet::new(),
             forces: DefaultForceGeneratorSet::new(),
@@ -266,41 +271,37 @@ impl World for NphysicsWorld {
         const MASS_OF_BODY_IN_KG: f64 = 20.0;
 
         let collision_groups = collision_groups_for_body(&body);
+        let ground = BodyPartHandle(self.ground_handle, 0);
 
-        let handle = match body.mobility {
+        let collider = match body.mobility {
             Mobility::Immovable => ColliderDesc::new(shape)
                 .margin(COLLIDER_MARGIN)
                 .position(isometry)
                 .material(material)
                 .collision_groups(collision_groups)
-                .build_with_parent(BodyPartHandle::ground(), &mut self.physics_world)
-                .expect("Internal nphysics error: Ground handle was invalid")
-                .handle(),
+                .build(ground),
             Mobility::Movable(velocity) => {
                 let velocity = nphysics2d::algebra::Velocity2::linear(velocity.x, velocity.y);
-                let rigid_body_handle = RigidBodyDesc::new()
+                let rigid_body = RigidBodyDesc::new()
                     .position(isometry)
                     .local_inertia(local_inertia)
                     .local_center_of_mass(local_center_of_mass)
                     .mass(MASS_OF_BODY_IN_KG)
                     .velocity(velocity)
-                    .build()
-                    .part_handle();
+                    .build();
+                let rigid_body_handle = self.bodies.insert(rigid_body);
                 ColliderDesc::new(shape)
                     .margin(COLLIDER_MARGIN)
                     .position(Isometry::identity())
                     .material(material)
                     .collision_groups(collision_groups)
-                    .build_with_parent(rigid_body_handle, &mut self.physics_world)
-                    .expect(
-                        "Internal nphysics error: Handle of rigid body that was just built is \
-                         invalid",
-                    )
-                    .handle()
+                    .build(BodyPartHandle(rigid_body_handle, 0))
             }
         };
 
-        to_body_handle(handle)
+        let collider_handle = self.colliders.insert(collider);
+
+        to_body_handle(collider.body())
     }
 
     #[must_use]
@@ -308,7 +309,7 @@ impl World for NphysicsWorld {
         let physical_body = self.body(body_handle)?;
         let collider_handle = to_collider_handle(body_handle);
         let nphysics_body_handle = self.physics_world.collider_body_handle(collider_handle)?;
-        self.physics_world.remove_bodies(&[nphysics_body_handle]);
+        self.bodies.remove(nphysics_body_handle);
         Some(physical_body)
     }
 
@@ -353,10 +354,9 @@ impl World for NphysicsWorld {
     fn bodies_in_area(&self, area: Aabb) -> Vec<BodyHandle> {
         let collision_groups = querying_collision_groups();
 
-        self.physics_world
-            .collider_world()
-            .interferences_with_aabb(&to_ncollide_aabb(area), &collision_groups)
-            .map(|collider| to_body_handle(collider.handle()))
+        self.geometric_world
+            .interferences_with_aabb(&self.colliders, &to_ncollide_aabb(area), &collision_groups)
+            .map(|(_, collider)| to_body_handle(collider.body()))
             .collect()
     }
 
@@ -386,10 +386,9 @@ impl World for NphysicsWorld {
         let direction = to_ncollide_vector(direction);
         let ray = Ray::new(origin, direction);
 
-        self.physics_world
-            .collider_world()
-            .interferences_with_ray(&ray, &collision_groups)
-            .map(|(collider, _)| to_body_handle(collider.handle()))
+        self.geometric_world
+            .interferences_with_ray(&self.colliders, &ray, &collision_groups)
+            .map(|(_, collider, _)| to_body_handle(collider.body()))
             .collect()
     }
 }
@@ -402,12 +401,12 @@ fn collision_groups_for_body(body: &PhysicalBody) -> CollisionGroups {
     }
 }
 
-fn to_body_handle(collider_handle: DefaultColliderHandle) -> BodyHandle {
-    BodyHandle(collider_handle.uid())
+fn to_body_handle(collider_handle: DefaultBodyHandle) -> BodyHandle {
+    unimplemented!()
 }
 
 fn to_collider_handle(object_handle: BodyHandle) -> DefaultColliderHandle {
-    DefaultColliderHandle::from(object_handle.0)
+    unimplemented!()
 }
 
 fn to_ncollide_aabb(aabb: Aabb) -> NcollideAabb<f64> {
