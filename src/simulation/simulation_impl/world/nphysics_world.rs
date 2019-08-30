@@ -5,9 +5,7 @@
 //! [`World`]: ./trait.World.html
 //! [`Objects`]: ../object/struct.Body.html
 pub mod builder;
-mod physics_world_wrapper;
 
-use self::physics_world_wrapper::PhysicsWorldWrapper;
 use super::{BodyHandle, PhysicalBody, World};
 use crate::prelude::*;
 use crate::private::Sealed;
@@ -29,7 +27,7 @@ use nphysics2d::object::{
     DefaultColliderHandle, DefaultColliderSet, Ground, RigidBodyDesc,
 };
 use nphysics2d::volumetric::Volumetric;
-use nphysics2d::world::{DefaultGeometricalWorld, MechanicalWorld as PhysicsWorld};
+use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
 use slab::Slab;
 use std::collections::HashMap;
 use std::f64::consts::PI;
@@ -41,7 +39,7 @@ use std::fmt::Debug;
 ///
 /// [`World`]: ./trait.World.html
 pub struct NphysicsWorld {
-    physics_world: PhysicsWorldWrapper,
+    physics_world: DefaultMechanicalWorld<f64>,
     geometric_world: DefaultGeometricalWorld<f64>,
     bodies: DefaultBodySet<f64>,
     colliders: DefaultColliderSet<f64, DefaultColliderHandle>,
@@ -75,8 +73,7 @@ impl NphysicsWorld {
     /// let mut world = NphysicsWorld::with_timestep(1.0);
     /// ```
     pub fn with_timestep(timestep: f64) -> Self {
-        let mut physics_world =
-            PhysicsWorldWrapper(PhysicsWorld::new(NPhysicsVector::new(0.0, 0.0)));
+        let mut physics_world = DefaultMechanicalWorld::new(NPhysicsVector::new(0.0, 0.0));
 
         let mut bodies = DefaultBodySet::new();
         let ground_handle = bodies.insert(Ground::new());
