@@ -310,29 +310,21 @@ impl World for NphysicsWorld {
 
         let collider_handle = self.colliders.insert(collider);
 
-        let index = self.body_handles.insert(NphysicsHandles {
-            collider_handle,
-            body_handle,
-        });
-        let body_handle = BodyHandle(index);
-        self.colliders_to_body_handles
-            .insert(collider_handle, body_handle);
         self.geometric_world
             .sync_colliders(&self.bodies, &mut self.colliders);
-        body_handle
+
+        self.create_body_handle(collider_handle, body_handle)
     }
 
     #[must_use]
     fn remove_body(&mut self, body_handle: BodyHandle) -> Option<PhysicalBody> {
         let physical_body = self.body(body_handle)?;
-        let nphysics_handles = *self.body_handles.get(body_handle.0)?;
+        let nphysics_handles = self.body_handles.get(body_handle.0).copied()?;
 
         self.colliders.remove(nphysics_handles.collider_handle);
         self.colliders_to_body_handles
             .remove(&nphysics_handles.collider_handle);
-
         self.body_handles.remove(body_handle.0);
-
         if let Some(handle) = nphysics_handles.body_handle {
             self.bodies.remove(handle);
         }
@@ -342,18 +334,13 @@ impl World for NphysicsWorld {
 
     #[must_use]
     fn body(&self, handle: BodyHandle) -> Option<PhysicalBody> {
-        let NphysicsHandles {
-            collider_handle, ..
-        } = *self.body_handles.get(handle.0)?;
+        let collider_handle = self.body_handles.get(handle.0)?.collider_handle;
         self.get_body_from_handle(collider_handle)
     }
 
     #[must_use]
     fn apply_force(&mut self, body_handle: BodyHandle, force: Force) -> Option<()> {
-        let NphysicsHandles {
-            body_handle: nphysics_body_handle,
-            ..
-        } = *self.body_handles.get(body_handle.0)?;
+        let nphysics_body_handle = self.body_handles.get(body_handle.0)?.body_handle;
         let body = self.bodies.get_mut(nphysics_body_handle?)?;
 
         let nphysics_force =
@@ -421,6 +408,24 @@ impl World for NphysicsWorld {
             .interferences_with_ray(&self.colliders, &ray, &collision_groups)
             .map(|(collider, _, _)| *self.colliders_to_body_handles.get(&collider).unwrap())
             .collect()
+    }
+}
+
+impl NphysicsWorld {
+    fn create_body_handle(
+        &mut self,
+        collider_handle: DefaultColliderHandle,
+        body_handle: Option<DefaultBodyHandle>,
+    ) -> BodyHandle {
+        let nphysics_handles = NphysicsHandles {
+            collider_handle,
+            body_handle,
+        };
+        let index = self.body_handles.insert(nphysics_handles);
+        let body_handle = BodyHandle(index);
+        self.colliders_to_body_handles
+            .insert(collider_handle, body_handle);
+        body_handle
     }
 }
 
