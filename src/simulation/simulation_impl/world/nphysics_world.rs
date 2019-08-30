@@ -24,13 +24,14 @@ use nphysics2d::joint::DefaultJointConstraintSet;
 use nphysics2d::material::{BasicMaterial, MaterialHandle};
 use nphysics2d::math::Force as NphysicsForce;
 use nphysics2d::math::{Isometry, Point as NPhysicsPoint, Vector as NPhysicsVector};
-use nphysics2d::object::Body;
 use nphysics2d::object::{
     BodyPartHandle, Collider, ColliderDesc, DefaultBodyHandle, DefaultBodySet,
     DefaultColliderHandle, DefaultColliderSet, Ground, RigidBodyDesc,
 };
 use nphysics2d::volumetric::Volumetric;
 use nphysics2d::world::{DefaultGeometricalWorld, MechanicalWorld as PhysicsWorld};
+use slab::Slab;
+use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt;
 use std::fmt::Debug;
@@ -47,6 +48,14 @@ pub struct NphysicsWorld {
     constraints: DefaultJointConstraintSet<f64>,
     forces: DefaultForceGeneratorSet<f64>,
     ground_handle: DefaultBodyHandle,
+    body_handles: Slab<NphysicsHandles>,
+    colliders_to_body_handles: HashMap<DefaultColliderHandle, BodyHandle>,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+struct NphysicsHandles {
+    body_handle: Option<DefaultBodyHandle>,
+    collider_handle: DefaultColliderHandle,
 }
 
 impl Debug for NphysicsWorld {
@@ -71,7 +80,6 @@ impl NphysicsWorld {
 
         let mut bodies = DefaultBodySet::new();
         let ground_handle = bodies.insert(Ground::new());
-
         physics_world.set_timestep(timestep);
 
         Self {
@@ -82,6 +90,8 @@ impl NphysicsWorld {
             colliders: DefaultColliderSet::new(),
             constraints: DefaultJointConstraintSet::new(),
             forces: DefaultForceGeneratorSet::new(),
+            body_handles: Slab::new(),
+            colliders_to_body_handles: HashMap::new(),
         }
     }
 
@@ -121,17 +131,15 @@ impl NphysicsWorld {
 
     fn get_mobility(&self, collider: &Collider<f64, DefaultBodyHandle>) -> Mobility {
         let body_handle = collider.body();
-        let rigid_body = self
-            .bodies
-            .rigid_body(body_handle)
-            .expect("Body handle did not correspond to any rigid body");
+        let rigid_body = self.bodies.rigid_body(body_handle);
 
-        if rigid_body.is_ground() {
-            Mobility::Immovable
-        } else {
-            let linear_velocity = rigid_body.velocity().linear;
-            let (x, y) = elements(&linear_velocity);
-            Mobility::Movable(Vector { x, y })
+        match rigid_body {
+            None => Mobility::Immovable,
+            Some(rigid_body) => {
+                let linear_velocity = rigid_body.velocity().linear;
+                let (x, y) = elements(&linear_velocity);
+                Mobility::Movable(Vector { x, y })
+            }
         }
     }
 
@@ -273,13 +281,16 @@ impl World for NphysicsWorld {
         let collision_groups = collision_groups_for_body(&body);
         let ground = BodyPartHandle(self.ground_handle, 0);
 
-        let collider = match body.mobility {
-            Mobility::Immovable => ColliderDesc::new(shape)
-                .margin(COLLIDER_MARGIN)
-                .position(isometry)
-                .material(material)
-                .collision_groups(collision_groups)
-                .build(ground),
+        let (collider, body_handle) = match body.mobility {
+            Mobility::Immovable => (
+                ColliderDesc::new(shape)
+                    .margin(COLLIDER_MARGIN)
+                    .position(isometry)
+                    .material(material)
+                    .collision_groups(collision_groups)
+                    .build(ground),
+                None,
+            ),
             Mobility::Movable(velocity) => {
                 let velocity = nphysics2d::algebra::Velocity2::linear(velocity.x, velocity.y);
                 let rigid_body = RigidBodyDesc::new()
@@ -290,40 +301,63 @@ impl World for NphysicsWorld {
                     .velocity(velocity)
                     .build();
                 let rigid_body_handle = self.bodies.insert(rigid_body);
-                ColliderDesc::new(shape)
+                let collider = ColliderDesc::new(shape)
                     .margin(COLLIDER_MARGIN)
                     .position(Isometry::identity())
                     .material(material)
                     .collision_groups(collision_groups)
-                    .build(BodyPartHandle(rigid_body_handle, 0))
+                    .build(BodyPartHandle(rigid_body_handle, 0));
+                (collider, Some(rigid_body_handle))
             }
         };
 
         let collider_handle = self.colliders.insert(collider);
 
-        to_body_handle(collider.body())
+        let index = self.body_handles.insert(NphysicsHandles {
+            collider_handle,
+            body_handle,
+        });
+        let body_handle = BodyHandle(index);
+        self.colliders_to_body_handles
+            .insert(collider_handle, body_handle);
+        self.geometric_world
+            .sync_colliders(&self.bodies, &mut self.colliders);
+        body_handle
     }
 
     #[must_use]
     fn remove_body(&mut self, body_handle: BodyHandle) -> Option<PhysicalBody> {
         let physical_body = self.body(body_handle)?;
-        let collider_handle = to_collider_handle(body_handle);
-        let nphysics_body_handle = self.physics_world.collider_body_handle(collider_handle)?;
-        self.bodies.remove(nphysics_body_handle);
+        let nphysics_handles = *self.body_handles.get(body_handle.0)?;
+
+        self.colliders.remove(nphysics_handles.collider_handle);
+        self.colliders_to_body_handles
+            .remove(&nphysics_handles.collider_handle);
+
+        self.body_handles.remove(body_handle.0);
+
+        if let Some(handle) = nphysics_handles.body_handle {
+            self.bodies.remove(handle);
+        }
+
         Some(physical_body)
     }
 
     #[must_use]
     fn body(&self, handle: BodyHandle) -> Option<PhysicalBody> {
-        let collider_handle = to_collider_handle(handle);
+        let NphysicsHandles {
+            collider_handle, ..
+        } = *self.body_handles.get(handle.0)?;
         self.get_body_from_handle(collider_handle)
     }
 
     #[must_use]
     fn apply_force(&mut self, body_handle: BodyHandle, force: Force) -> Option<()> {
-        let collider_handle = to_collider_handle(body_handle);
-        let nphysics_body_handle = self.physics_world.collider_body_handle(collider_handle)?;
-        let body = self.physics_world.body_mut(nphysics_body_handle)?;
+        let NphysicsHandles {
+            body_handle: nphysics_body_handle,
+            ..
+        } = *self.body_handles.get(body_handle.0)?;
+        let body = self.bodies.get_mut(nphysics_body_handle?)?;
 
         let nphysics_force =
             NphysicsForce::from_slice(&[force.linear.x, force.linear.y, force.torque.0]);
@@ -356,7 +390,7 @@ impl World for NphysicsWorld {
 
         self.geometric_world
             .interferences_with_aabb(&self.colliders, &to_ncollide_aabb(area), &collision_groups)
-            .map(|(_, collider)| to_body_handle(collider.body()))
+            .map(|(collider, _)| *self.colliders_to_body_handles.get(&collider).unwrap())
             .collect()
     }
 
@@ -388,7 +422,7 @@ impl World for NphysicsWorld {
 
         self.geometric_world
             .interferences_with_ray(&self.colliders, &ray, &collision_groups)
-            .map(|(_, collider, _)| to_body_handle(collider.body()))
+            .map(|(collider, _, _)| *self.colliders_to_body_handles.get(&collider).unwrap())
             .collect()
     }
 }
@@ -399,14 +433,6 @@ fn collision_groups_for_body(body: &PhysicalBody) -> CollisionGroups {
     } else {
         non_passable_bodies_collision_groups()
     }
-}
-
-fn to_body_handle(collider_handle: DefaultBodyHandle) -> BodyHandle {
-    unimplemented!()
-}
-
-fn to_collider_handle(object_handle: BodyHandle) -> DefaultColliderHandle {
-    unimplemented!()
 }
 
 fn to_ncollide_aabb(aabb: Aabb) -> NcollideAabb<f64> {
@@ -522,7 +548,6 @@ mod tests {
             ..movable_body()
         };
         let handle = world.add_body(expected_body.clone());
-
         let actual_body = world.body(handle);
 
         assert_eq!(Some(expected_body), actual_body)
