@@ -374,7 +374,7 @@ impl World for NphysicsWorld {
 
         self.geometric_world
             .interferences_with_aabb(&self.colliders, &to_ncollide_aabb(area), &collision_groups)
-            .map(|(collider, _)| *self.colliders_to_body_handles.get(&collider).unwrap())
+            .map(|(collider, _)| self.collider_handle_to_body_handle(collider))
             .collect()
     }
 
@@ -406,7 +406,7 @@ impl World for NphysicsWorld {
 
         self.geometric_world
             .interferences_with_ray(&self.colliders, &ray, &collision_groups)
-            .map(|(collider, _, _)| *self.colliders_to_body_handles.get(&collider).unwrap())
+            .map(|(collider, _, _)| self.collider_handle_to_body_handle(collider))
             .collect()
     }
 }
@@ -426,6 +426,13 @@ impl NphysicsWorld {
         self.colliders_to_body_handles
             .insert(collider_handle, body_handle);
         body_handle
+    }
+
+    fn collider_handle_to_body_handle(&self, collider_handle: DefaultColliderHandle) -> BodyHandle {
+        *self
+            .colliders_to_body_handles
+            .get(&collider_handle)
+            .expect("Internal error: Nphysics returned invalid handle")
     }
 }
 
