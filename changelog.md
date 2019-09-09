@@ -52,5 +52,5 @@
 ## 0.14.0
 - Mockiato has been updated to '0.8'
 
-## Unreleased
+## 0.14.1
 - Mockiato has been updated to '0.9'
