@@ -54,3 +54,5 @@
 
 ## 0.14.1
 - Mockiato has been updated to '0.9'
+- ncollide has been updated to '0.20'
+- nphysics has been updated to '0.12'
