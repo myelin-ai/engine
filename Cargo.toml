@@ -4,7 +4,7 @@ description = """
 This crate contains the physical engine of
 the simulation, as well as the objects that reside
 within it"""
-version = "0.14.1"
+version = "0.14.2"
 authors = [
     "Jan Nils Ferner <jan@myelin.ch>",
     "Mathias Fischler <mathias@myelin.ch>",
@@ -17,6 +17,9 @@ documentation = "https://docs.rs/myelin-engine"
 edition = "2018"
 license = "MIT OR Apache-2.0"
 keywords = [ "simulation", "2d", "physics" ]
+
+[badges.maintenance]
+status = "deprecated"
 
 [dependencies]
 myelin-geometry = "2.4"

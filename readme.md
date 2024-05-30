@@ -1,5 +1,8 @@
 # Myelin Engine
 
+> [!WARNING]
+> `myelin-engine` is no longer maintained and thus the repository has been archived.
+
 [![Build Status](https://travis-ci.com/myelin-ai/engine.svg?branch=master)](https://travis-ci.com/myelin-ai/engine)
 [![Latest Version](https://img.shields.io/crates/v/myelin-engine.svg)](https://crates.io/crates/myelin-engine)
 [![Documentation](https://docs.rs/myelin-engine/badge.svg)](https://docs.rs/myelin-engine)
