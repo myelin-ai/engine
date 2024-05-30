@@ -8,14 +8,14 @@ version = "0.14.1"
 authors = [
     "Jan Nils Ferner <jan@myelin.ch>",
     "Mathias Fischler <mathias@myelin.ch>",
-    "Ruben Schmidmeister <ruben@myelin.ch>",
+    "Tau Gärtli <git@tau.garden>",
     "Jeremy Stucki <jeremy@myelin.ch>",
 ]
 repository = "https://github.com/myelin-ai/engine"
 homepage = "https://github.com/myelin-ai/engine"
 documentation = "https://docs.rs/myelin-engine"
 edition = "2018"
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 keywords = [ "simulation", "2d", "physics" ]
 
 [dependencies]
